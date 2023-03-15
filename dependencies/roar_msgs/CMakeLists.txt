@@ -3,7 +3,6 @@ project(roar_msgs)
 
 find_package(catkin REQUIRED COMPONENTS
   message_generation
-  message_runtime
   roscpp
   rospy
   std_msgs
@@ -20,12 +19,10 @@ find_package(catkin REQUIRED COMPONENTS
    DEPENDENCIES
    std_msgs
    geometry_msgs
-   roar_msgs
  )
 
 catkin_package(
   CATKIN_DEPENDS 
-  message_generation 
   message_runtime 
   roscpp 
   rospy 
