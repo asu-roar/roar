@@ -1,0 +1,30 @@
+#!/usr/bin/env python
+
+import rospy
+from std_srvs.srv import Trigger
+from std_msgs.msg import Empty
+from sensor_msgs.msg import Joy
+
+
+def key_callback(msg):
+
+    if msg.buttons[0] == 1:
+        pdu_drop_pub.publish()
+        rospy.sleep(5)
+
+    elif msg.buttons[1] == 1:
+        pdu_home_client.call()
+        rospy.sleep(5)
+
+
+rospy.init_node("joy_pdu_node")
+
+pdu_drop_pub = rospy.Publisher(
+    "probe_deployment_unit/drop", Empty, queue_size=1, latch=True
+)
+
+pdu_home_client = rospy.ServiceProxy("probe_deployment_unit/home", Trigger)
+
+joy_key_sub = rospy.Subscriber("joy", Joy, key_callback, queue_size=1)
+
+rospy.spin()

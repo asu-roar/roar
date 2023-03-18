@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:include filename="$(find leo_erc_description)/urdf/leo.xacro"/>
+  <xacro:include filename="$(find leo_erc_description)/urdf/zed2.xacro"/>
+
+  <xacro:macro name="leo_erc" 
+               params="rockers_fixed:=true
+                       link_prefix:=''
+                       joint_prefix:=''">
+
+    <xacro:leo default_antenna="false"
+               rockers_fixed="${rockers_fixed}"
+               link_prefix="${link_prefix}"
+               joint_prefix="${joint_prefix}"/>
+
+    <joint name="${joint_prefix}erc_payload_joint" type="fixed">
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <parent link="${link_prefix}base_link"/>
+      <child link="${link_prefix}erc_payload_link"/>
+    </joint>
+
+    <link name="${link_prefix}erc_payload_link">
+      <inertial>
+        <mass value="1.33042"/>
+        <origin xyz="-0.055949 0.001702 0.064261"/>
+        <inertia
+          ixx="0.007414" ixy="0.00007852" ixz="-0.003995"
+          iyy="0.01745" iyz="-0.00001858"
+          izz="0.01187"/>
+      </inertial>
+      <visual>
+        <geometry>
+          <mesh filename="package://leo_erc_description/models/ERC2021payload.dae"/>
+        </geometry>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://leo_erc_description/models/ERC2021payload_outline.dae"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="${joint_prefix}zed2_tilt_head_joint" type="fixed">
+      <origin xyz="0.048 0 0.141" rpy="0 0.415911961 0"/> <!-- 23.83 degree tilt -->
+      <parent link="${link_prefix}erc_payload_link"/>
+      <child link="${link_prefix}zed2_tilt_head_link"/>
+    </joint>
+
+    <link name="${link_prefix}zed2_tilt_head_link">
+      <inertial>
+        <mass value="0.108614"/>
+        <origin xyz="0 -0.008564 0.015313"/>
+        <inertia
+          ixx="7.371e-5" ixy="0.0" ixz="1.326071e-6"
+          iyy="3.14e-5" iyz="-1.424e-5"
+          izz="6.13e-5"/>
+      </inertial>
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 ${pi}"/>
+        <geometry>
+          <mesh filename="package://leo_erc_description/models/Manfrotto_head.dae"/>
+        </geometry>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 ${pi}"/>
+        <geometry>
+          <mesh filename="package://leo_erc_description/models/Manfrotto_head.dae"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="${joint_prefix}zed2_camera_center_joint" type="fixed">
+      <parent link="${link_prefix}zed2_tilt_head_link"/>
+      <child link="${link_prefix}zed2_camera_center"/>
+      <origin xyz="0 0 0.0486" rpy="0 0.032637657 0"/>
+    </joint>
+
+    <xacro:zed2 link_prefix="${link_prefix}" 
+                joint_prefix="${joint_prefix}"/>
+
+  </xacro:macro>
+
+
+  <xacro:macro name="leo_erc_gazebo"
+               params="robot_ns:=''">
+
+    <xacro:property name="link_prefix" value=""/>
+    <xacro:if value="${robot_ns != '' and robot_ns != '/'}">
+      <xacro:property name="link_prefix" value="${robot_ns}/"/>
+    </xacro:if>
+
+    <xacro:leo_gazebo robot_ns="${robot_ns}"/>
+
+    <xacro:zed2_gazebo robot_ns="${robot_ns}"/>
+
+    <gazebo>
+      <plugin name="ground_truth" filename="libgazebo_ros_p3d.so">
+        <robotNamespace>${robot_ns}</robotNamespace>
+        <frameName>map</frameName>
+        <bodyName>${link_prefix}base_footprint</bodyName>
+        <topicName>ground_truth_raw</topicName>
+        <updateRate>30.0</updateRate>
+      </plugin>
+    </gazebo>
+
+  </xacro:macro>
+
+
+  <xacro:macro name="leo_erc_sim" 
+               params="fixed:=false
+                       robot_ns:=''">
+
+    <xacro:property name="link_prefix" value=""/>
+    <xacro:if value="${robot_ns != '' and robot_ns != '/'}">
+      <xacro:property name="link_prefix" value="${robot_ns}/"/>
+    </xacro:if>
+
+    <xacro:leo_erc rockers_fixed="false"
+                   link_prefix="${link_prefix}"/>
+
+    <xacro:leo_erc_gazebo robot_ns="${robot_ns}"/>
+
+    <xacro:if value="${fixed}">
+      <link name="world"/>
+      <joint name="fixed" type="fixed">
+        <parent link="world"/>
+        <child link="${link_prefix}base_footprint"/>
+        <origin xyz="0.0 0.0 0"/>
+      </joint>
+    </xacro:if>
+  
+  </xacro:macro>
+
+</robot>
