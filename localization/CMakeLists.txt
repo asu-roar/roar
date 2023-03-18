@@ -22,9 +22,9 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_executable(coordinates ukf.cpp)
+add_executable(localization ukf.cpp)
 
-target_link_libraries(coordinates
+target_link_libraries(localization
    ${catkin_LIBRARIES}
  )
 
