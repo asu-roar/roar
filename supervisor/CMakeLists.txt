@@ -21,6 +21,7 @@ include_directories(
 )
 
  catkin_install_python(PROGRAMS
-   src/supervisor_node.py
+   src/auto_supervisor.py
+   src/roar_supervisor.py
    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
  )

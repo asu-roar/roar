@@ -112,8 +112,8 @@ class Handler():
 if __name__ == "__main__":
     # Run the handler by calling an object/instance
     Handler()
-    # Error in case loop is terminated
-    rospy.logerr("supervisor_node terminated!")
+    # Warning in case loop is terminated
+    rospy.logwarn("supervisor_node terminated!")
 
 
 # Insert the lines that will send the CAN frames to stop the rover in the required states.
