@@ -1,0 +1,99 @@
+#!/usr/bin/env python3
+
+import rospy
+import PyKDL
+
+from geometry_msgs.msg import Pose, TwistWithCovariance
+from nav_msgs.msg import Odometry
+from std_srvs.srv import Trigger, TriggerRequest, TriggerResponse
+from std_msgs.msg import Empty as EmptyMsg
+from std_srvs.srv import Empty as EmptySrv
+
+
+def pose_to_frame(pose: Pose):
+    return PyKDL.Frame(
+        PyKDL.Rotation.Quaternion(
+            pose.orientation.x,
+            pose.orientation.y,
+            pose.orientation.z,
+            pose.orientation.w,
+        ),
+        PyKDL.Vector(pose.position.x, pose.position.y, pose.position.z),
+    )
+
+
+def frame_to_pose(frame):
+    pose = Pose()
+    pose.position.x = frame.p.x()
+    pose.position.y = frame.p.y()
+    pose.position.z = frame.p.z()
+    (
+        pose.orientation.x,
+        pose.orientation.y,
+        pose.orientation.z,
+        pose.orientation.w,
+    ) = frame.M.GetQuaternion()
+    return pose
+
+
+def update_offset():
+    global offset
+    offset = pose_to_frame(last_pose).Inverse()
+
+
+def wheel_odom_callback(msg: Odometry):
+    global last_pose
+    last_pose = msg.pose.pose
+
+    frame = offset * pose_to_frame(msg.pose.pose)
+    msg.pose.pose = frame_to_pose(frame)
+
+    wheel_odom_pub.publish(msg)
+
+
+def wheel_odom_reset(req: TriggerRequest):
+    update_offset()
+    return TriggerResponse(True, "")
+
+
+def zed2_odom_callback(msg: Odometry):
+    msg.twist = TwistWithCovariance()
+    zed2_odom_pub.publish(msg)
+
+
+def zed2_reset_odom_callback(msg: EmptyMsg):
+    zed2_reset_odom()
+
+
+rospy.init_node("odom_compat_node")
+
+last_pose = Pose()
+last_pose.orientation.w = 1.0
+offset = PyKDL.Frame()
+
+wheel_odom_pub = rospy.Publisher("wheel_odom_with_covariance", Odometry, queue_size=1)
+wheel_odom_sub = rospy.Subscriber(
+    "gazebo/controllers/diff_drive/odom",
+    Odometry,
+    wheel_odom_callback,
+    tcp_nodelay=True,
+)
+wheel_odom_reset_srv = rospy.Service(
+    "firmware/reset_odometry", Trigger, wheel_odom_reset
+)
+
+zed2_odom_pub = rospy.Publisher("zed2/odom", Odometry, queue_size=1)
+zed2_odom_sub = rospy.Subscriber(
+    "gazebo/zed2/odom", Odometry, zed2_odom_callback, tcp_nodelay=True
+)
+zed2_reset_odom = rospy.ServiceProxy("gazebo/zed2/reset_odom", EmptySrv)
+zed2_reset_odom_sub = rospy.Subscriber(
+    "zed2/reset_odometry", EmptyMsg, zed2_reset_odom_callback
+)
+
+rospy.wait_for_service("gazebo/zed2/reset_odom")
+rospy.sleep(10.0)
+rospy.loginfo("Resetting ZED2 odometry")
+zed2_reset_odom()
+
+rospy.spin()
