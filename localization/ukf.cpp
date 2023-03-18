@@ -1,7 +1,7 @@
 #include <ros/ros.h>
 #include <std_msgs/String.h>
 #include <eigen3/Eigen/Core>
-#include <eigen3/Eigen/Geometry>
+#include <eigen3/Eigen/Dense>
 
 int main(int argc, char *argv[])
 {
