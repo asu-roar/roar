@@ -5,7 +5,7 @@
 
 int main(int argc, char *argv[])
 {
-  ros::init(argc, argv, "my_node");
+  ros::init(argc, argv, "localization");
   ros::NodeHandle nh;
   ros::Publisher pub = nh.advertise<std_msgs::String>("coordinates", 10);
 
