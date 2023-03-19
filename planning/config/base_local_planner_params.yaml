@@ -1,0 +1,36 @@
+#GlobalPlannerParams
+global_planner/GlobalPlanner:
+  allow_unknown: true
+  default_tolerance: 10   #tolerance on the goal point for the planner
+  visualize_potential: true
+  use_dijkstra: false   #If true, use dijkstra's algorithm. Otherwise, A*
+  
+  lethal_cost: 253
+  neutral_cost: 66
+  cost_factor: 0.55
+
+
+#LocalPlannerParams
+DWAPlannerROS:
+  # RobotConfigurationParams
+  acc_lim_x: 2.5        #The x acceleration limit of the robot in meters/sec^2
+  acc_lim_y: 2.5        #The y acceleration limit of the robot in meters/sec^2
+  acc_lim_theta: 3.2    #The rotational acceleration limit of the robot in radians/sec^2
+
+  max_vel_x: 0.45       #The maximum x velocity for the robot in m/s
+  min_vel_x: 0.0        #The minimum x velocity for the robot in m/s, (negative for backwards motion)
+  max_vel_y: 0.1        #The maximum y velocity for the robot in m/s
+  min_vel_y: -0.1       #The minimum y velocity for the robot in m/s
+
+  max_vel_trans: 0.55   #The absolute value of the maximum translational velocity for the robot in m/s
+  min_vel_trans: 0.1    #The absolute value of the minimum translational velocity for the robot in m/s
+
+  max_rot_vel: 1.0      #The absolute value of the maximum rotational velocity for the robot in rad/s
+  min_rot_vel: 0.4      #The absolute value of the minimum rotational velocity for the robot in rad/s
+
+  #GoalToleranceParameters
+  yaw_goal_tolerance: 0.1 #The tolerance in radians for the controller in yaw/rotation when achieving its goal
+  xy_goal_tolerance: 0.2  #The tolerance in meters for the controller in the x & y distance when achieving a goal
+
+  #and much more...
+
