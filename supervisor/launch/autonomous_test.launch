@@ -1,0 +1,3 @@
+<launch>
+    <node pkg="supervisor" type="autonomous.py" name="autonomous_nodes" output="screen"/>
+</launch>

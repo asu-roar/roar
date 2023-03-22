@@ -1,0 +1,3 @@
+<launch>
+    <node pkg="supervisor" type="manual.py" name="manual_nodes" output="screen"/>
+</launch>
