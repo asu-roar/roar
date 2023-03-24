@@ -3,6 +3,7 @@
 
 import rospy
 import roslaunch
+import time
 from roar_msgs.msg import Mode
 
 
@@ -17,17 +18,12 @@ class Handler():
         self.init_manual()
         # Loop and wait for mode switch commands
         self.loop()
-    
-    # Gets called everytime a mode command is received
-    def command_callback(self, rec_msg):
-        self.mode_command = rec_msg
-        self.mode_switch = True
 
     def init_node(self):
         # Initialize node and sleep rate
         rospy.init_node("roar_supervisor")
         rospy.loginfo("roar_supervisor node initialized")
-        self.rate = rospy.Rate(10)
+        self.rate = rospy.Rate(2)
         # Subscribe
         rospy.Subscriber("/base/command/mode", 
                          Mode, 
@@ -49,39 +45,41 @@ class Handler():
 
     # Gets called only one time to initialize ROAR in Manual mode
     def init_manual(self):
-        # Initialize required variables
-        self.mode_switch = False
-        self.current_mode = "Manual Mode"
+        # Initialize mode variables
+        self.rec_mode = Mode()
+        self.current_mode = Mode()
+        self.current_mode.mode = self.current_mode.MANUAL
         rospy.loginfo("Launching ROAR in Manual mode")
         # Launch manual mode nodes
         self.manual_launcher.start()
 
+    # Gets called everytime a mode command is received
+    def command_callback(self, rec_msg):
+        self.rec_mode = rec_msg
+
     # Gets called everytime 
     def switch_mode(self):
-        if self.mode_switch == True:
-            if self.mode_command.mode == self.mode_command.AUTO:
-                if self.current_mode == "Manual Mode":
-                    rospy.loginfo("Shutting down Manual Mode nodes")
-                    self.manual_launcher.shutdown()
-                    rospy.loginfo("Launching Autonomous Mode nodes")
-                    self.autonomous_launcher.start()
-                    self.current_mode == "Autonomous Mode"
-                elif self.current_mode == "Autonomous Mode":
-                    rospy.logwarn("Already in Autonomous Mode")
-            elif self.mode.mode == self.mode.MANUAL:
-                if self.current_mode == "Manual Mode":
-                    rospy.logwarn("Already in Manual Mode")
-                elif self.current_mode == "Autonomous Mode":
-                    rospy.loginfo("Shutting down Autonomous Mode nodes")
-                    self.autonomous_launcher.shutdown()
-                    rospy.loginfo("Launching Manual Mode nodes")
-                    self.manual_launcher.start()
-                    self.current_mode == "Manual Mode"
-            self.mode_switch = False
+        if self.rec_mode.mode == self.rec_mode.AUTONOMOUS:
+            rospy.loginfo("Shutting down Manual Mode nodes in 5 seconds")
+            time.sleep(5)
+            rospy.loginfo("Shutting down Manual Mode nodes")
+            self.manual_launcher.shutdown()
+            rospy.loginfo("Launching Autonomous Mode nodes")
+            self.autonomous_launcher.start()
+            self.current_mode.mode = self.current_mode.AUTONOMOUS
+        elif self.rec_mode.mode == self.rec_mode.MANUAL:
+            rospy.loginfo("Shutting down Autonomous Mode nodes")
+            self.autonomous_launcher.shutdown()
+            rospy.loginfo("Launching Manual Mode nodes")
+            self.manual_launcher.start()
+            self.current_mode == "Manual Mode"
+        self.mode_switch = False
 
     # Loop
     def loop(self):
         while not rospy.is_shutdown():
+            if self.rec_mode.mode != self.current_mode.mode:
+                self.switch_mode()
             self.rate.sleep()
         
 
