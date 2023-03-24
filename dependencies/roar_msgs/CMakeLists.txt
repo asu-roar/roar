@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
    FILES
    Command.msg
    LandmarkArray.msg
+   Mode.msg
  )
 
  generate_messages(
