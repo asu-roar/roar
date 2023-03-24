@@ -9,18 +9,12 @@ from roar_msgs.msg import Mode
 class Handler():
 
     def __init__(self):
-        # Initialize node and sleep rate
-        rospy.init_node("roar_supervisor")
-        rospy.loginfo("roar_supervisor initialized")
-        self.rate = rospy.Rate(10)
-        # Subscribe
-        rospy.Subscriber("/base/command/mode", 
-                         Mode, 
-                         self.command_callback)
+        # Initialize the ROS node
+        self.init_node()
         # Initialize the roslaunch objects
         self.init_launchers()
         # Initialize manual mode nodes
-        self.init_mode()
+        self.init_manual()
         # Loop and wait for mode switch commands
         self.loop()
     
@@ -29,6 +23,16 @@ class Handler():
         self.mode_command = rec_msg
         self.mode_switch = True
 
+    def init_node(self):
+        # Initialize node and sleep rate
+        rospy.init_node("roar_supervisor")
+        rospy.loginfo("roar_supervisor node initialized")
+        self.rate = rospy.Rate(10)
+        # Subscribe
+        rospy.Subscriber("/base/command/mode", 
+                         Mode, 
+                         self.command_callback)
+    
     def init_launchers(self):
         # Launch files paths
         self.manual_path = "~/roar_ws/supervisor/launch/manual_test.launch"
@@ -44,7 +48,7 @@ class Handler():
         rospy.loginfo("ROSLaunchParent objects initialized")
 
     # Gets called only one time to initialize ROAR in Manual mode
-    def init_mode(self):
+    def init_manual(self):
         # Initialize required variables
         self.mode_switch = False
         self.current_mode = "Manual Mode"
