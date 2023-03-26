@@ -3,40 +3,53 @@
 #include <eigen3/Eigen/Dense>
 #include <eigen3/Eigen/Cholesky>
 #include <cmath>
+#include <chrono>
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
+using namespace std::chrono;
 
 float x = 0;
 float y = 0;
 float z = 0;
+auto time_start = high_resolution_clock::now();
 std::vector<float> Vel_arr = {0, 0, 0, 0, 0, 0};
 std::vector<float> IMU_arr;
 std::vector<float> IMU_arr_old;
+std::vector<float> prev_state;
 
-void Vel_Callback(const std_msgs::Float32MultiArray::ConstPtr& msg)                            // callback of encoder readings
+void Vel_Callback(const std_msgs::Float32MultiArray::ConstPtr& msg)                                          // callback of encoder readings
 {
   ROS_INFO("I heard Velocities");
   Vel_arr = msg->data;
 }
 
-void IMU_Callback(const std_msgs::Float32MultiArray::ConstPtr& msg)                            // callback of IMU readings
+void IMU_Callback(const std_msgs::Float32MultiArray::ConstPtr& msg)                                          // callback of IMU readings
 {
   ROS_INFO("I heard IMU");
   IMU_arr = msg->data;
+  auto time_start = high_resolution_clock::now();
 }
 
-void Predict()                                                                                 // prediction function (where system model goes)
+std::vector<float> Predict(std::vector<float> state_old,std::vector<float> velocity,float omega)             // prediction function (where system model goes)
+{
+ auto time_stop = high_resolution_clock::now();
+ auto duration = duration_cast<seconds>(time_stop - time_start);  
+ float angle = state_old[2] + omega*duration.count();                                                        // calculating angle based on angular velocity from IMU
+ std::vector<float> new_state = {
+                                 state_old[0] + velocity[0]*cos(angle)*duration.count(), 
+                                 state_old[1] + velocity[1]*cos(angle)*duration.count(),
+                                 angle
+                                };
+ return new_state;
+}
+
+void Estimate()                                                                                              // estimation function (where we update prediction readings using IMU)
 {
 
 }
 
-void Estimate()                                                                                // estimation function (where we update prediction readings using IMU)
-{
-
-}
-
-int main(int argc, char *argv[])                                                               // initialization of ros node and other variables
+int main(int argc, char *argv[])                                                                             // initialization of ros node and other variables
 {
   ros::init(argc, argv, "localization");
   ros::NodeHandle nh;
@@ -58,12 +71,13 @@ int main(int argc, char *argv[])                                                
 
   Eigen::Vector3f pose(1.0, 2.0, 3.0);       
 
-  while (ros::ok())                                                                            // while (1) loop
+  while (ros::ok())                                                                                          // while (1) loop
   {
     coordinates.data = coordinates_arr;
     if (IMU_arr != IMU_arr_old)
     {
-      Predict();
+      std::vector<float> prediction;
+      prediction = Predict(prev_state,Vel_arr,IMU_arr[1]);
       Estimate();
       pub.publish(coordinates);
       ros::spinOnce();
