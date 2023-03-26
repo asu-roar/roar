@@ -37,8 +37,8 @@ std::vector<float> Predict(std::vector<float> state_old,std::vector<float> veloc
  auto duration = duration_cast<seconds>(time_stop - time_start);  
  float angle = state_old[2] + omega*duration.count();                                                        // calculating angle based on angular velocity from IMU
  std::vector<float> new_state = {
-                                 state_old[0] + velocity[0]*cos(angle)*duration.count(), 
-                                 state_old[1] + velocity[1]*cos(angle)*duration.count(),
+                                 state_old[0] + velocity[0]*cos(angle)*duration.count(),              //// modify this so it takes absoulte of time in case it produces a negative point
+                                 state_old[1] + velocity[1]*sin(angle)*duration.count(),
                                  angle
                                 };
  return new_state;
