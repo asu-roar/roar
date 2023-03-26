@@ -61,24 +61,24 @@ int main(int argc, char *argv[])                                                
   std::vector<float> coordinates_arr = {x, y, z};
   Eigen::Matrix3f model_noise;
   Eigen::Matrix3f measure_noise;
-  model_noise << 1.0, 2.0, 3.0,
-                 4.0, 5.0, 6.0,
-                 7.0, 8.0, 9.0;
+  model_noise << 1.0, 0.0, 0.0,
+                 0.0, 5.0, 0.0,
+                 0.0, 0.0, 9.0;
 
-  measure_noise << 1.0, 2.0, 3.0,
-                   4.0, 5.0, 6.0,
-                   7.0, 8.0, 9.0;               
+  measure_noise << 1.0, 0.0, 0.0,
+                   0.0, 5.0, 0.0,
+                   0.0, 0.0, 9.0;               
 
   Eigen::Vector3f pose(1.0, 2.0, 3.0);       
 
   while (ros::ok())                                                                                          // while (1) loop
   {
-    coordinates.data = coordinates_arr;
     if (IMU_arr != IMU_arr_old)
     {
       std::vector<float> prediction;
       prediction = Predict(prev_state,Vel_arr,IMU_arr[1]);
       Estimate();
+      coordinates.data = coordinates_arr;
       pub.publish(coordinates);
       ros::spinOnce();
       rate.sleep();
