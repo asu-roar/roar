@@ -28,7 +28,6 @@ void IMU_Callback(const std_msgs::Float32MultiArray::ConstPtr& msg)             
 {
   ROS_INFO("I heard IMU");
   IMU_arr = msg->data;
-  auto time_start = high_resolution_clock::now();
 }
 
 std::vector<float> Predict(std::vector<float> state_old,std::vector<float> velocity,float omega)             // prediction function (where system model goes)
@@ -78,6 +77,7 @@ int main(int argc, char *argv[])                                                
       std::vector<float> prediction;
       prediction = Predict(prev_state,Vel_arr,IMU_arr[1]);
       Estimate();
+      auto time_start = high_resolution_clock::now();
       coordinates.data = coordinates_arr;
       pub.publish(coordinates);
       ros::spinOnce();
