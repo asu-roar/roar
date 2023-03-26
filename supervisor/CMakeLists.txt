@@ -29,5 +29,6 @@ include_directories(
    src/roar_supervisor.py
    test/manual.py
    test/autonomous.py
+   test/mode_sender.py
    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
  )
