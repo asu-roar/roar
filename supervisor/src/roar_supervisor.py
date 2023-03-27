@@ -4,7 +4,6 @@
 import rospy
 import roslaunch.rlutil
 import roslaunch.parent
-import time
 from roar_msgs.msg import Mode
 
 
@@ -44,12 +43,12 @@ class Launcher():
     def launch(self):
         # Launch the nodes after the required delay
         rospy.loginfo("Launching {}" .format(self.mode))
-        time.sleep(self.delay)
+        rospy.sleep(self.delay)
         self.launcher.start()
         # Check if the nodes were successfully launched
         while not self.launcher.pm.is_alive():
             rospy.loginfo("Waiting for Alive")
-            time.sleep(0.1)
+            rospy.sleep(0.1)
         rospy.loginfo("{} was launched successfully" .format(self.mode))
 
     # A method to shutdown and delete the created launcher
@@ -59,7 +58,7 @@ class Launcher():
         self.launcher.shutdown()
         # Check if the nodes were successfully shutdown
         while self.launcher.pm.is_alive():
-                time.sleep(0.1)
+                rospy.sleep(0.1)
         rospy.loginfo("{} was shutdown successfully" .format(self.mode))
         # Delete the current Launcher object to free memory space
         del self
