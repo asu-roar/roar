@@ -83,8 +83,9 @@ class Handler():
         # Subscribe
         rospy.Subscriber("/base/command/mode", 
                          ModeCommand, 
-                         self.command_callback)
-
+                         self.command_callback
+                         )
+        
     # Gets called only one time to launch ROAR in Manual Mode
     def init_roar(self):
         # Initialize mode variables
