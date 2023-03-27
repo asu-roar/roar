@@ -11,9 +11,9 @@ find_package(catkin REQUIRED COMPONENTS
 
  add_message_files(
    FILES
-   Command.msg
    LandmarkArray.msg
-   Mode.msg
+   ModeCommand.msg
+   StateCommand.msg
  )
 
  generate_messages(

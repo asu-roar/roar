@@ -4,7 +4,7 @@
 import rospy
 import roslaunch.rlutil
 import roslaunch.parent
-from roar_msgs.msg import Mode
+from roar_msgs.msg import ModeCommand
 
 
 class Launcher():
@@ -82,7 +82,7 @@ class Handler():
         self.rate = rospy.Rate(2)
         # Subscribe
         rospy.Subscriber("/base/command/mode", 
-                         Mode, 
+                         ModeCommand, 
                          self.command_callback)
 
     # Gets called only one time to launch ROAR in Manual Mode
@@ -91,7 +91,7 @@ class Handler():
         # Boolean to determine whether a Mode command was received or not
         self.received = False
         # Initialize mode variable
-        self.mode = Mode()
+        self.mode = ModeCommand()
         self.mode.mode = self.mode.MANUAL
         # Create and launch a Launcher object in Manual Mode
         rospy.loginfo("Waking up ROAR in Manual mode")

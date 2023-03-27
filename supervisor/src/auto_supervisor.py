@@ -2,9 +2,8 @@
 
 
 import rospy
-from can_msgs.msg import Frame
-from roar_msgs.msg import Command
-import time
+from std_msgs.msg import Float32MultiArray
+from roar_msgs.msg import StateCommand
 
 
 class Handler():
@@ -13,19 +12,19 @@ class Handler():
         # Initialize node and loop rate
         rospy.init_node("supervisor_node")
         self.rate = rospy.Rate(10)
-        # Create publishers
-        self.can_pub = rospy.Publisher("/sent_messages", 
-                                       Frame, 
+        # Create publisher
+        self.pub = rospy.Publisher("/nav_action/supervised", 
+                                       Float32MultiArray, 
                                        queue_size=10
                                        )
         # Create subscribers
-        rospy.Subscriber("/command", 
-                         Command, 
+        rospy.Subscriber("/base/command/state", 
+                         State, 
                          self.command_callback
                          )
-        rospy.Subscriber("/can_gate", 
-                         Frame, 
-                         self.can_callback
+        rospy.Subscriber("/nav_action/unsupervised", 
+                         Float32MultiArray, 
+                         self.motors_callback
                          )
         # CAN frame to be sent
         self.frame = None
@@ -55,7 +54,7 @@ class Handler():
         if self.state == "IDLE":
             if self.last_command.command == self.last_command.START:
                 rospy.loginfo("Transitioning from IDLE state to WORKING state using START command in 5 seconds!")
-                time.sleep(5)
+                rospy.sleep(5)
                 rospy.loginfo("Transitioned to WORKING state!")
                 self.state = "WORKING"
             elif self.last_command.command == self.last_command.WAIT:
@@ -86,7 +85,7 @@ class Handler():
                 rospy.logwarn("Rover is already in WAITING state!")
             elif self.last_command.command == self.last_command.RESUME:
                 rospy.loginfo("Transitioning from WAITING state to WORKING state using RESUME command in 5 seconds!")
-                time.sleep(5)
+                rospy.sleep(5)
                 rospy.loginfo("Transitioned to WORKING state!")
                 self.state = "WORKING"
             elif self.last_command.command == self.last_command.ABORT:
@@ -94,7 +93,7 @@ class Handler():
                 self.state = "IDLE"
 
     # Called when a CAN frame is received on "/can_gate"
-    def can_callback(self, frame):
+    def motors_callback(self, frame):
         self.frame = frame
 
     # Main loop, called from __init__()
@@ -103,7 +102,7 @@ class Handler():
             if self.state_switch == True:
                 self.state_switch()
             if (self.state == "WORKING") and (self.frame is not None):
-                self.can_pub.publish(self.frame)
+                self.pub.publish(self.frame)
             self.frame = None
             self.rate.sleep()
 
