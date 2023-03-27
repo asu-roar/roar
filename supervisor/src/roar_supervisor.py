@@ -5,7 +5,7 @@ import rospy
 import roslaunch.rlutil
 import roslaunch.parent
 import time
-from std_msgs.msg import UInt8
+from roar_msgs.msg import Mode
 
 
 class Launcher():
@@ -19,11 +19,12 @@ class Launcher():
         self.uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
         self.launcher = roslaunch.parent.ROSLaunchParent(self.uuid, 
                                                          [self.path])
-        
+        # roslaunch.configure_logging(self.uuid)
+
     # Configure launcher path and delay based on selected mode
     def mode_config(self):
         # Manual Mode configuration
-        if self.mode == 0:
+        if self.mode.mode == self.mode.MANUAL:
             # Manual Mode launch file path
             self.path = "/home/belal/roar_ws/src/supervisor/launch/manual_test.launch"
             # Manual Mode delay
@@ -31,7 +32,7 @@ class Launcher():
             # Used for logging purposes
             self.mode = "Manual Mode"
         # Autonomous Mode configuration
-        elif self.mode == 1:
+        elif self.mode.mode == self.mode.AUTONOMOUS:
             # Autonomous Mode launch file path
             self.path = "/home/belal/roar_ws/src/supervisor/launch/autonomous_test.launch"
             # Autonomous Mode delay
@@ -82,7 +83,7 @@ class Handler():
         self.rate = rospy.Rate(2)
         # Subscribe
         rospy.Subscriber("/base/command/mode", 
-                         UInt8, 
+                         Mode, 
                          self.command_callback)
 
     # Gets called only one time to launch ROAR in Manual Mode
@@ -90,8 +91,9 @@ class Handler():
         # Initialize mode variables
         # Boolean to determine whether a Mode command was received or not
         self.received = False
-        # Uint8: Manual Mode = 0, Autonomous Mode = 1
-        self.mode = 0
+        # Initialize mode variable
+        self.mode = Mode()
+        self.mode.mode = self.mode.MANUAL
         # Create and launch a Launcher object in Manual Mode
         rospy.loginfo("Waking up ROAR in Manual mode")
         self.launcher = Launcher(self.mode)
@@ -103,14 +105,14 @@ class Handler():
             # Check if a command is received
             if self.received == True:
                 # Check if the received mode is different from current mode
-                if self.rec_mode.data != self.mode:
+                if self.rec_mode != self.mode:
                     # Switch to the received mode
                     self.switch_mode()
                 # Print warnings in case received mode is the same as the current mode
                 else:
-                    if self.rec_mode.data == 0:
+                    if self.rec_mode.mode == self.rec_mode.MANUAL:
                         rospy.logwarn("ROAR is already in Manual mode!")
-                    elif self.rec_mode.data == 1:
+                    elif self.rec_mode.mode == self.rec_mode.AUTONOMOUS:
                         rospy.logwarn("ROAR is already in Autonomous mode!")
                 # Reset the received mode flag
                 self.received = False
@@ -127,7 +129,7 @@ class Handler():
         # Shutdown current active mode
         self.launcher.shutdown()
         # Change mode variable to correct value
-        self.mode = self.rec_mode.data
+        self.mode = self.rec_mode
         # Create and launch a Launcher object in the new mode
         self.launcher = Launcher(self.mode)
         self.launcher.launch()
