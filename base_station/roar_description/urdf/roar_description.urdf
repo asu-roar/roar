@@ -959,4 +959,74 @@
     <axis
       xyz="0.000361364374657969 -0.999828521547702 -0.0185147756001619" />
   </joint>
+
+
+  <!-- ROS Control plugin for Gazebo-->
+  <gazebo>
+    <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+      <robotNamespace>/roar_model</robotNamespace>
+    </plugin>
+  </gazebo>
+  
+  <!--transmission-->
+  <transmission name="Wheel_LHS_Front_Transmission">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="Wheel_LHS_Front_Joint">
+      <hardwareInterface>VelocityJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="Wheel_LHS_Front_Motor">
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+
+  <transmission name="Wheel_LHS_Middle_Transmission">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="Wheel_LHS_Middle_Joint">
+      <hardwareInterface>VelocityJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="Wheel_LHS_Middle_Motor">
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+
+  <transmission name="Wheel_LHS_Back_Transmission">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="Wheel_LHS_Back_Joint">
+      <hardwareInterface>VelocityJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="Wheel_LHS_Back_Motor">
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+
+  <transmission name="Wheel_RHS_Front_Transmission">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="Wheel_RHS_Front_Joint">
+      <hardwareInterface>VelocityJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="Wheel_RHS_Front_Motor">
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+
+  <transmission name="Wheel_RHS_Middle_Transmission">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="Wheel_RHS_Middle_Joint">
+      <hardwareInterface>VelocityJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="Wheel_RHS_Middle_Motor">
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+
+  <transmission name="Wheel_RHS_Back_Transmission">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="Wheel_RHS_Back_Joint">
+      <hardwareInterface>VelocityJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="Wheel_RHS_Back_Motor">
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+
 </robot>
