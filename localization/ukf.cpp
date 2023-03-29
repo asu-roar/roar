@@ -16,14 +16,12 @@ std::vector<float> Vel_arr = {0, 0, 0, 0, 0, 0};
 std::vector<float> IMU_arr;
 std::vector<float> IMU_arr_old;
 std::vector<float> prev_state;
-Eigen::Matrix3f covariance;
-covariance << 0.0, 0.0, 0.0,
-              0.0, 0.0, 0.0, 
-              0.0, 0.0, 0.0; 
+MatrixXd covariance = MatrixXd(3,3);
+MatrixXd Xsig = MatrixXd(5, 11); 
 auto time_start = high_resolution_clock::now(); 
 auto time_stop = high_resolution_clock::now();
 auto duration = duration_cast<seconds>(time_stop - time_start);
-float time = 0;
+double delta_time = 0;
 
 void Vel_Callback(const std_msgs::Float32MultiArray::ConstPtr& msg)                                                          // callback of encoder readings
 {
@@ -37,15 +35,31 @@ void IMU_Callback(const std_msgs::Float32MultiArray::ConstPtr& msg)             
   IMU_arr = msg->data;
   auto time_stop = high_resolution_clock::now();
   auto duration = duration_cast<seconds>(time_stop - time_start);
-  time = duration.count();
+  delta_time = duration.count();
   auto time_start = high_resolution_clock::now();  
+}
+
+void sigma_points(MatrixXd* Xsig_out, VectorXd x, MatrixXd X_cov)
+{
+  int size = 3;
+  double lambda = 3 - size;
+  MatrixXd Xsig = MatrixXd(size, 2 * size + 1);
+  MatrixXd A = X_cov.llt().matrixL();
+  Xsig.col(0) = x;
+  for (int i = 0; i < size; ++i) 
+  {
+    Xsig.col(i+1) = x + sqrt(lambda+size) * A.col(i);
+    Xsig.col(i+1+size) = x - sqrt(lambda+size) * A.col(i);
+    *Xsig_out = Xsig;
+  }
 }
 
 std::vector<float> Predict(std::vector<float> state_old,std::vector<float> velocity, float omega, float delta_t)             // prediction function (where system model goes)
 {
  float angle = state_old[2] + omega*delta_t;                                                                                 // calculating angle based on angular velocity from IMU
  std::vector<float> new_state = {
-                                 state_old[0] + velocity[0]*cos(angle)*delta_t,                                              
+                                 state_old[0] + velocity[0]*cos(angle)*delta_t,
+                                 state_old[1] + velocity[1]*sin(angle)*delta_t,                                              
                                  angle
                                 };
  return new_state;
@@ -83,7 +97,7 @@ int main(int argc, char *argv[])                                                
     if (IMU_arr != IMU_arr_old)
     {
       std::vector<float> prediction;
-      prediction = Predict(prev_state, Vel_arr, IMU_arr[1], time);
+      prediction = Predict(prev_state, Vel_arr, IMU_arr[1], delta_time);
       Estimate();
       coordinates.data = coordinates_arr;
       pub.publish(coordinates);
