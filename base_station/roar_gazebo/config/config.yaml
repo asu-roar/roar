@@ -1,35 +1,29 @@
 roar_model:
 
-  joint_state_controller:
-  type: joint_state_controller/JointStateController
-  publish_rate: 10
+    joint_state_controller:
+        type: joint_state_controller/JointStateController
+        publish_rate: 500
 
-  wheel_lhs_front_velocity_controller:
-      type: velocity_controllers/JointVelocityController
-      joint: Wheel_LHS_Front_Joint
-      pid: {p: 100.0, i: 0.01, d: 10.0}
+    wheel_lhs_front_velocity_controller:
+        type: velocity_controllers/JointVelocityController
+        joint: Wheel_LHS_Front_Joint
 
-  wheel_lhs_middle_velocity_controller:
-      type: velocity_controllers/JointVelocityController
-      joint: Wheel_LHS_Middle_Joint
-      pid: {p: 100.0, i: 0.01, d: 10.0}
+    wheel_lhs_middle_velocity_controller:
+        type: velocity_controllers/JointVelocityController
+        joint: Wheel_LHS_Middle_Joint
 
-  wheel_lhs_back_velocity_controller:
-      type: velocity_controllers/JointVelocityController
-      joint: Wheel_LHS_Back_Joint
-      pid: {p: 100.0, i: 0.01, d: 10.0}
+    wheel_lhs_back_velocity_controller:
+        type: velocity_controllers/JointVelocityController
+        joint: Wheel_LHS_Back_Joint
 
-  wheel_rhs_front_velocity_controller:
-      type: velocity_controllers/JointVelocityController
-      joint: Wheel_RHS_Front_Joint
-      pid: {p: 100.0, i: 0.01, d: 10.0}
+    wheel_rhs_front_velocity_controller:
+        type: velocity_controllers/JointVelocityController
+        joint: Wheel_RHS_Front_Joint
+ 
+    wheel_rhs_middle_velocity_controller:
+        type: velocity_controllers/JointVelocityController
+        joint: Wheel_RHS_Middle_Joint
 
-  wheel_rhs_middle_velocity_controller:
-      type: velocity_controllers/JointVelocityController
-      joint: Wheel_RHS_Middle_Joint
-      pid: {p: 100.0, i: 0.01, d: 10.0}
-
-  wheel_rhs_back_velocity_controller:
-      type: velocity_controllers/JointVelocityController
-      joint: Wheel_RHS_Back_Joint
-      pid: {p: 100.0, i: 0.01, d: 10.0}
+    wheel_rhs_back_velocity_controller:
+        type: velocity_controllers/JointVelocityController
+        joint: Wheel_RHS_Back_Joint
