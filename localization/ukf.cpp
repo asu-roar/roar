@@ -23,11 +23,15 @@ auto time_stop = high_resolution_clock::now();
 auto duration = duration_cast<seconds>(time_stop - time_start);
 double delta_time = 0;
 
+
+
 void Vel_Callback(const std_msgs::Float32MultiArray::ConstPtr& msg)                                                          // callback of encoder readings
 {
   ROS_INFO("I heard Velocities");
   Vel_arr = msg->data;
 }
+
+
 
 void IMU_Callback(const std_msgs::Float32MultiArray::ConstPtr& msg)                                                          // callback of IMU readings
 {
@@ -39,20 +43,35 @@ void IMU_Callback(const std_msgs::Float32MultiArray::ConstPtr& msg)             
   auto time_start = high_resolution_clock::now();  
 }
 
+
+
 void sigma_points(MatrixXd* Xsig_out, VectorXd x, MatrixXd X_cov)
 {
   int size = 3;
+  int size_aug = 5;
+  double std_a = 0.2;
+  double std_yawdd = 0.2;
   double lambda = 3 - size;
-  MatrixXd Xsig = MatrixXd(size, 2 * size + 1);
-  MatrixXd A = X_cov.llt().matrixL();
-  Xsig.col(0) = x;
-  for (int i = 0; i < size; ++i) 
+  VectorXd x_aug = VectorXd(7);
+  MatrixXd P_aug = MatrixXd(7, 7);
+  MatrixXd Xsig_aug = MatrixXd(size_aug, 2 * size_aug + 1);
+  x_aug.head(5) = x;
+  x_aug(5) = 0;
+  x_aug(6) = 0;
+  P_aug.fill(0.0);
+  P_aug.topLeftCorner(5,5) = P;
+  P_aug(5,5) = std_a*std_a;
+  P_aug(6,6) = std_yawdd*std_yawdd;
+  MatrixXd L = P_aug.llt().matrixL();
+  Xsig_aug.col(0)  = x_aug;
+  for (int i = 0; i< size_aug; ++i) 
   {
-    Xsig.col(i+1) = x + sqrt(lambda+size) * A.col(i);
-    Xsig.col(i+1+size) = x - sqrt(lambda+size) * A.col(i);
-    *Xsig_out = Xsig;
+    Xsig_aug.col(i+1) = x_aug + sqrt(lambda+size_aug) * L.col(i);
+    Xsig_aug.col(i+1+size_aug) = x_aug - sqrt(lambda+size_aug) * L.col(i);
   }
 }
+
+
 
 std::vector<float> Predict(std::vector<float> state_old,std::vector<float> velocity, float omega, float delta_t)             // prediction function (where system model goes)
 {
@@ -65,10 +84,14 @@ std::vector<float> Predict(std::vector<float> state_old,std::vector<float> veloc
  return new_state;
 }
 
+
+
 void Estimate()                                                                                                              // estimation function (where we update prediction readings using IMU)
 {
 
 }
+
+
 
 int main(int argc, char *argv[])                                                                                             // initialization of ros node and other variables
 {
