@@ -17,7 +17,6 @@ std::vector<float> IMU_arr;
 std::vector<float> IMU_arr_old;
 std::vector<float> prev_state;
 MatrixXd covariance = MatrixXd(3,3);
-MatrixXd Xsig = MatrixXd(5, 11); 
 auto time_start = high_resolution_clock::now(); 
 auto time_stop = high_resolution_clock::now();
 auto duration = duration_cast<seconds>(time_stop - time_start);
@@ -45,21 +44,21 @@ void IMU_Callback(const std_msgs::Float32MultiArray::ConstPtr& msg)             
 
 
 
-void sigma_points(MatrixXd* Xsig_out, VectorXd x, MatrixXd X_cov)
+MatrixXd sigma_points(VectorXd x, MatrixXd X_cov)
 {
   int size = 3;
   int size_aug = 5;
   double std_a = 0.2;
   double std_yawdd = 0.2;
-  double lambda = 3 - size;
-  VectorXd x_aug = VectorXd(7);
-  MatrixXd P_aug = MatrixXd(7, 7);
+  double lambda = 3 - size_aug;
+  VectorXd x_aug = VectorXd(size_aug);
+  MatrixXd P_aug = MatrixXd(size_aug, size_aug);
   MatrixXd Xsig_aug = MatrixXd(size_aug, 2 * size_aug + 1);
   x_aug.head(5) = x;
   x_aug(5) = 0;
   x_aug(6) = 0;
   P_aug.fill(0.0);
-  P_aug.topLeftCorner(5,5) = P;
+  P_aug.topLeftCorner(5,5) = X_cov;
   P_aug(5,5) = std_a*std_a;
   P_aug(6,6) = std_yawdd*std_yawdd;
   MatrixXd L = P_aug.llt().matrixL();
@@ -69,19 +68,68 @@ void sigma_points(MatrixXd* Xsig_out, VectorXd x, MatrixXd X_cov)
     Xsig_aug.col(i+1) = x_aug + sqrt(lambda+size_aug) * L.col(i);
     Xsig_aug.col(i+1+size_aug) = x_aug - sqrt(lambda+size_aug) * L.col(i);
   }
+  return Xsig_aug;
 }
 
 
 
-std::vector<float> Predict(std::vector<float> state_old,std::vector<float> velocity, float omega, float delta_t)             // prediction function (where system model goes)
+MatrixXd Predict(std::vector<float> state_old,std::vector<float> velocity, float omega, float delta_t, MatrixXd Xsig_aug)             // prediction function (where system model goes)
 {
- float angle = state_old[2] + omega*delta_t;                                                                                 // calculating angle based on angular velocity from IMU
- std::vector<float> new_state = {
-                                 state_old[0] + velocity[0]*cos(angle)*delta_t,
-                                 state_old[1] + velocity[1]*sin(angle)*delta_t,                                              
-                                 angle
-                                };
- return new_state;
+ int size = 3;
+ int size_aug = 5;
+ double lambda = 3 - size_aug;
+ MatrixXd Xsig_pred = MatrixXd(size, 2 * size_aug + 1);
+ for (int i = 0; i< 2*size_aug+1; ++i)
+   {
+    double p_x = Xsig_aug(0,i);
+    double p_y = Xsig_aug(1,i);
+    double yaw = Xsig_aug(2,i);
+    double nu_a = Xsig_aug(3,i);
+    double nu_yawdd = Xsig_aug(4,i);
+
+    double px_p, py_p;
+
+    px_p = p_x + velocity[0]*cos(yaw)*delta_t;
+    py_p = p_y + velocity[1]*sin(yaw)*delta_t;
+ 
+    double yaw_p = yaw + omega*delta_t;
+
+    px_p = px_p + 0.5*nu_a*delta_t*delta_t * cos(yaw);
+    py_p = py_p + 0.5*nu_a*delta_t*delta_t * sin(yaw);
+
+    yaw_p = yaw_p + 0.5*nu_yawdd*delta_t*delta_t;
+
+    Xsig_pred(0,i) = px_p;
+    Xsig_pred(1,i) = py_p;
+    Xsig_pred(2,i) = yaw_p;
+   }
+
+  VectorXd weights = VectorXd(2*size_aug+1);  
+  VectorXd x = VectorXd(size);
+  MatrixXd P = MatrixXd(size, size);
+  double weight_0 = lambda/(lambda+size_aug);
+  weights(0) = weight_0;
+  for (int i=1; i<2*size_aug+1; ++i) 
+  { 
+    double weight = 0.5/(size_aug+lambda);
+    weights(i) = weight;
+  }
+
+  x.fill(0.0);
+  for (int i = 0; i < 2 * size_aug + 1; ++i) 
+  {  
+    x = x + weights(i) * Xsig_pred.col(i);
+  }
+
+  P.fill(0.0);
+  for (int i = 0; i < 2 * size_aug + 1; ++i) 
+  {  
+    VectorXd x_diff = Xsig_pred.col(i) - x;
+    while (x_diff(3)> M_PI) x_diff(3)-=2.*M_PI;
+    while (x_diff(3)<-M_PI) x_diff(3)+=2.*M_PI;
+    P = P + weights(i) * x_diff * x_diff.transpose();
+  }
+  return Xsig_pred;
 }
 
 
@@ -120,7 +168,8 @@ int main(int argc, char *argv[])                                                
     if (IMU_arr != IMU_arr_old)
     {
       std::vector<float> prediction;
-      prediction = Predict(prev_state, Vel_arr, IMU_arr[1], delta_time);
+      MatrixXd Xsig_aug = sigma_points(x, covariance);
+      MatrixXd prediction = Predict(prev_state, Vel_arr, IMU_arr[1], delta_time, Xsig_aug);
       Estimate();
       coordinates.data = coordinates_arr;
       pub.publish(coordinates);
