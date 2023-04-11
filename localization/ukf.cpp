@@ -195,13 +195,16 @@ void Estimate(MatrixXd Xsig_pred, VectorXd z_pred, MatrixXd Zsig, MatrixXd S)   
   while (z_diff(1)<-M_PI) z_diff(1)+=2.*M_PI;
 
   position = position + K * z_diff;
-  covariance = covariance - K*S*K.transpose(); 
+  covariance = covariance - K*S*K.transpose();
 }
 
 
 
 int main(int argc, char *argv[])                                                                                             // initialization of ros node and other variables
 {
+  VectorXd z_pred;
+  MatrixXd S;
+  MatrixXd Zsig;
   ros::init(argc, argv, "localization");
   ros::NodeHandle nh;
   ros::Publisher pub = nh.advertise<std_msgs::Float32MultiArray>("coordinates", 10);
@@ -226,10 +229,10 @@ int main(int argc, char *argv[])                                                
   {
     if (IMU_arr != IMU_arr_old)
     {
-      std::vector<float> prediction;
       MatrixXd Xsig_aug = sigma_points(position, covariance);
       MatrixXd prediction = Predict(prev_state, Vel_arr, IMU_arr[1], delta_time, Xsig_aug);
-      Estimate();
+      z_pred, S, Zsig = PredictIMU(IMU_arr);
+      Estimate(prediction, z_pred, Zsig, S);
       coordinates.data = coordinates_arr;
       pub.publish(coordinates);
       ros::spinOnce();
