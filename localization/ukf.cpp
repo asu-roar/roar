@@ -7,16 +7,20 @@
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
+using Eigen::Map;
 using namespace std::chrono;
 
-float x = 0;
-float y = 0;
-float z = 0;
+VectorXd position;
+int size = 3;
+int size_aug = 5;
+double lambda = 3 - size_aug;
+int size_z = 1;
 std::vector<float> Vel_arr = {0, 0, 0, 0, 0, 0};
 std::vector<float> IMU_arr;
 std::vector<float> IMU_arr_old;
 std::vector<float> prev_state;
 MatrixXd covariance = MatrixXd(3,3);
+VectorXd weights;
 auto time_start = high_resolution_clock::now(); 
 auto time_stop = high_resolution_clock::now();
 auto duration = duration_cast<seconds>(time_stop - time_start);
@@ -75,9 +79,6 @@ MatrixXd sigma_points(VectorXd x, MatrixXd X_cov)
 
 MatrixXd Predict(std::vector<float> state_old,std::vector<float> velocity, float omega, float delta_t, MatrixXd Xsig_aug)             // prediction function (where system model goes)
 {
- int size = 3;
- int size_aug = 5;
- double lambda = 3 - size_aug;
  MatrixXd Xsig_pred = MatrixXd(size, 2 * size_aug + 1);
  for (int i = 0; i< 2*size_aug+1; ++i)
    {
@@ -132,11 +133,69 @@ MatrixXd Predict(std::vector<float> state_old,std::vector<float> velocity, float
   return Xsig_pred;
 }
 
-
-
-void Estimate()                                                                                                              // estimation function (where we update prediction readings using IMU)
+MatrixXd PredictIMU(std::vector<float> IMU_arr)
 {
+  VectorXd weights = VectorXd(2*size_aug+1);
+  double weight_0 = lambda/(lambda+size_aug);
+  double weight = 0.5/(lambda+size_aug);
+  weights(0) = weight_0;
 
+  for (int i=1; i<2*size_aug+1; ++i) 
+  {  
+    weights(i) = weight;
+  }
+  MatrixXd Zsig = MatrixXd(size_z, 2 * size_aug + 1);
+  VectorXd z_pred = VectorXd(size_z);  
+  MatrixXd S = MatrixXd(size_z,size_z);
+  for (int i = 0; i < 2 * size_aug + 1; ++i) 
+  {  
+    Zsig(0,i) = IMU_arr[0];
+  }
+
+  z_pred.fill(0.0);
+  for (int i=0; i < 2*size_aug+1; ++i) 
+  {
+    z_pred = z_pred + weights(i) * Zsig.col(i);
+  }
+
+  S.fill(0.0);
+  for (int i = 0; i < 2 * size_aug + 1; ++i) 
+  {  
+    VectorXd z_diff = Zsig.col(i) - z_pred;
+    while (z_diff(1)> M_PI) z_diff(1)-=2.*M_PI;
+    while (z_diff(1)<-M_PI) z_diff(1)+=2.*M_PI;
+    S = S + weights(i) * z_diff * z_diff.transpose();
+  }
+  MatrixXd R = MatrixXd(size_z,size_z);
+  R <<  0.2;
+  S = S + R;
+  return z_pred, S, Zsig;
+}
+
+
+void Estimate(MatrixXd Xsig_pred, VectorXd z_pred, MatrixXd Zsig, MatrixXd S)                                                                                                              // estimation function (where we update prediction readings using IMU)
+{
+  MatrixXd Tc = MatrixXd(size, size_z);
+  Tc.fill(0.0);
+  for (int i = 0; i < 2 * size_aug + 1; ++i) 
+  {  
+    VectorXd z_diff = Zsig.col(i) - z_pred;
+    while (z_diff(1)> M_PI) z_diff(1)-=2.*M_PI;
+    while (z_diff(1)<-M_PI) z_diff(1)+=2.*M_PI;
+    VectorXd x_diff = Xsig_pred.col(i) - position;
+    while (x_diff(3)> M_PI) x_diff(3)-=2.*M_PI;
+    while (x_diff(3)<-M_PI) x_diff(3)+=2.*M_PI;
+    Tc = Tc + weights(i) * x_diff * z_diff.transpose();
+  }
+  VectorXd IMU_vec;
+  IMU_vec << IMU_arr[0], IMU_arr[1];
+  MatrixXd K = Tc * S.inverse();
+  VectorXd z_diff = IMU_vec - z_pred;
+  while (z_diff(1)> M_PI) z_diff(1)-=2.*M_PI;
+  while (z_diff(1)<-M_PI) z_diff(1)+=2.*M_PI;
+
+  position = position + K * z_diff;
+  covariance = covariance - K*S*K.transpose(); 
 }
 
 
@@ -168,7 +227,7 @@ int main(int argc, char *argv[])                                                
     if (IMU_arr != IMU_arr_old)
     {
       std::vector<float> prediction;
-      MatrixXd Xsig_aug = sigma_points(x, covariance);
+      MatrixXd Xsig_aug = sigma_points(position, covariance);
       MatrixXd prediction = Predict(prev_state, Vel_arr, IMU_arr[1], delta_time, Xsig_aug);
       Estimate();
       coordinates.data = coordinates_arr;
