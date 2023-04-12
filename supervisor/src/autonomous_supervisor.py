@@ -1,6 +1,15 @@
 #!/usr/bin/env python3
 
 
+# Commands: START, WAIT, RESUME, ABORT
+# States: IDLE, WORKING, WAITING
+# Tranisitons:
+# START command: IDLE state -> WORKING state
+# WAIT command: WORKING state -> WAITING state
+# RESUME command: WAITING state -> WORKING state
+# ABORT command: ANY state -> IDLE state
+
+
 import rospy
 from std_msgs.msg import Float32MultiArray
 from roar_msgs.msg import StateCommand
@@ -9,29 +18,25 @@ from roar_msgs.msg import StateCommand
 class Handler():
 
     def __init__(self):
+        # Initialize node
         self.init_node()
-        # Commands: START, WAIT, RESUME, ABORT
-        # States: IDLE, WORKING, WAITING
-        # Tranisitons:
-        # START command: IDLE state -> WORKING state
-        # WAIT command: WORKING state -> WAITING state
-        # RESUME command: WAITING state -> WORKING state
-        # ABORT command: ANY state -> IDLE state
-        # State and command variables
+        # Initialize a variable that indicates current state
         self.state = "IDLE"
+        # Initialize a variable that indicates last command received
         self.command = None
+        # Initialize a variable that indicates whether a new command has been received
         self.state_switch = False
-        self.motors = None
         # Report the initial state
-        rospy.loginfo("Current rover state: {}" .format(self.state))
+        rospy.loginfo("ROAR is currently in {} state." .format(self.state))
         # Run the loop
         self.supervisor()
 
+    # Called the first time the handler is instantiated
     def init_node(self):
         # Initialize node
         rospy.init_node("autonomous_supervisor")
         rospy.loginfo("autonomous_supervisor node initialized")
-        # 10 Hz loop rate
+        # The speed at which setpoints will be sent, adjust if necessary
         self.rate = rospy.Rate(10)
         # Publisher
         self.pub = rospy.Publisher("/nav_action/supervised", 
@@ -55,41 +60,42 @@ class Handler():
 
     # Called from the loop if self.state_switch == True 
     def state_switch(self):
+        # Course of action if received command is START
         if self.command.command == self.command.START:
             if self.state == "IDLE":
                 rospy.loginfo("Transitioning from IDLE state to WORKING state using START command in 5 seconds!")
                 rospy.sleep(5)
                 rospy.loginfo("Transitioned to WORKING state!")
                 self.state = "WORKING"
-            elif self.state == "WORKING":
-                rospy.logwarn("Rover is already in WORKING state!")
             else:
-                rospy.logwarn("Invalid state transition request!")
+                self.error_handler()
+        # Course of action if received command is WAIT
         elif self.command.command == self.command.WAIT:
             if self.state == "WORKING":
                 self.state = "WAITING"
                 rospy.loginfo("Transitioned from WORKING state to WAITING state using WAIT command!")
-                # Insert here a line to send a Float32MultiArray msg that will stop the rover from moving
-            elif self.state == "WAITING":
-                rospy.logwarn("Rover is already in WAITING state!")
             else:
-                rospy.logwarn("Invalid state transition request!")
+                self.error_handler()
+        # Course of action if received command is RESUME
         elif self.command.command == self.command.RESUME:
             if self.state == "WAITING":
                 rospy.loginfo("Transitioning from WAITING state to WORKING state using RESUME command in 5 seconds!")
                 rospy.sleep(5)
                 self.state = "WORKING"
                 rospy.loginfo("Transitioned to WORKING state!")
-            elif self.state == "WORKING":
-                rospy.logwarn("Rover is already in WORKING state!")
             else:
-                rospy.logwarn("Invalid state transition request!")
+                self.error_handler()     
+        # Course of action if received command is ABORT
         elif self.command.command == self.command.ABORT:
             if self.state == "IDLE":
-                rospy.logwarn("Rover is already in IDLE state!")
+                self.error_handler()
             else:
                 self.state == "IDLE"
                 rospy.loginfo("Transitioned to IDLE state using ABORT command!")
+
+    # Gets called in case of invalid input commands
+    def error_handler(self):
+        rospy.logwarn("Invalid input command! ROAR is currently in {} state!".format(self.state))
 
     # Called when a CAN frame is received on "/can_gate"
     def motors_callback(self, motors):
@@ -98,21 +104,19 @@ class Handler():
     # Main loop, called from __init__()
     def supervisor(self):
         while not rospy.is_shutdown():
+            # Perform state switch if a command is received
             if self.state_switch == True:
                 self.state_switch()
-            if (self.state == "WORKING") and (self.motors is not None):
-                self.pub.publish(self.motors)
-            self.motors = None
+            # Change message to be sent to keep ROAR stationary if not in WORKING state
+            if self.state != "WORKING":
+                self.motors = [0, 0, 0, 0, 0, 0]
+            # Publish the supervised motor setpoints
+            self.pub.publish(self.motors)
             self.rate.sleep()
 
-        # Insert here what the node will do in each state
-            
 
 if __name__ == "__main__":
     # Run the handler by calling an object/instance
     Handler()
     # Warning in case loop is terminated
     rospy.logwarn("supervisor_node terminated!")
-
-
-# Insert the lines that will send the CAN frames to stop the rover in the required states.
