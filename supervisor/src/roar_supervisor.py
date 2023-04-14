@@ -64,7 +64,7 @@ class Launcher():
         del self
 
 
-class Handler():
+class NodeHandler():
 
     def __init__(self):
         # Initialize the ROS node
@@ -95,7 +95,7 @@ class Handler():
         self.mode = ModeCommand()
         self.mode.mode = self.mode.MANUAL
         # Create and launch a Launcher object in Manual Mode
-        rospy.loginfo("Waking up ROAR in Manual mode")
+        rospy.loginfo("Waking up ROAR in Manual Mode")
         self.launcher = Launcher(self.mode)
         self.launcher.launch()
 
@@ -110,10 +110,7 @@ class Handler():
                     self.switch_mode()
                 # Print warnings in case received mode is the same as the current mode
                 else:
-                    if self.rec_mode.mode == self.rec_mode.MANUAL:
-                        rospy.logwarn("ROAR is already in Manual mode!")
-                    elif self.rec_mode.mode == self.rec_mode.AUTONOMOUS:
-                        rospy.logwarn("ROAR is already in Autonomous mode!")
+                    rospy.logwarn("ROAR is already in the desired mode!")
                 # Reset the received mode flag
                 self.received = False
             # Sleep at the required rate
@@ -137,6 +134,6 @@ class Handler():
 
 if __name__ == "__main__":
     # Run the handler by calling an object/instance
-    Handler()
+    NodeHandler()
     # Warning in case loop is terminated
     rospy.logwarn("roar_supervisor terminated!")
