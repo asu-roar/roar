@@ -4,13 +4,14 @@
 #include <eigen3/Eigen/Cholesky>
 #include <cmath>
 #include <chrono>
+#include <numeric>
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
-using Eigen::Map;
 using namespace std::chrono;
 
 VectorXd position;
+MatrixXd covariance = MatrixXd(3,3);
 int size = 3;
 int size_aug = 5;
 double lambda = 3 - size_aug;
@@ -18,13 +19,17 @@ int size_z = 1;
 std::vector<float> Vel_arr = {0, 0, 0, 0, 0, 0};
 std::vector<float> IMU_arr;
 std::vector<float> IMU_arr_old;
-std::vector<float> prev_state;
-MatrixXd covariance = MatrixXd(3,3);
+std::vector<float> CAM_arr;
+std::vector<float> CAM_arr_old;
 VectorXd weights;
 auto time_start = high_resolution_clock::now(); 
 auto time_stop = high_resolution_clock::now();
 auto duration = duration_cast<seconds>(time_stop - time_start);
+auto time_start_cam = high_resolution_clock::now(); 
+auto time_stop_cam = high_resolution_clock::now();
+auto duration_cam = duration_cast<seconds>(time_stop - time_start);
 double delta_time = 0;
+double delta_time_cam = 0;
 
 
 
@@ -44,6 +49,18 @@ void IMU_Callback(const std_msgs::Float32MultiArray::ConstPtr& msg)             
   auto duration = duration_cast<seconds>(time_stop - time_start);
   delta_time = duration.count();
   auto time_start = high_resolution_clock::now();  
+}
+
+
+
+void CAM_Callback(const std_msgs::Float32MultiArray::ConstPtr& msg)                                                          // callback of landmarks captured by camera
+{
+  ROS_INFO("I heard Camera");
+  CAM_arr = msg->data;
+  auto time_stop_cam = high_resolution_clock::now();
+  auto duration_cam = duration_cast<seconds>(time_stop - time_start);
+  delta_time_cam = duration_cam.count();
+  auto time_start_cam = high_resolution_clock::now(); 
 }
 
 
@@ -77,7 +94,7 @@ MatrixXd sigma_points(VectorXd x, MatrixXd X_cov)
 
 
 
-MatrixXd Predict(std::vector<float> state_old,std::vector<float> velocity, float omega, float delta_t, MatrixXd Xsig_aug)             // prediction function (where system model goes)
+MatrixXd Predict(std::vector<float> velocity, float omega, float delta_t, MatrixXd Xsig_aug)             // prediction function (where system model goes)
 {
  MatrixXd Xsig_pred = MatrixXd(size, 2 * size_aug + 1);
  for (int i = 0; i< 2*size_aug+1; ++i)
@@ -87,11 +104,13 @@ MatrixXd Predict(std::vector<float> state_old,std::vector<float> velocity, float
     double yaw = Xsig_aug(2,i);
     double nu_a = Xsig_aug(3,i);
     double nu_yawdd = Xsig_aug(4,i);
-
     double px_p, py_p;
 
-    px_p = p_x + velocity[0]*cos(yaw)*delta_t;
-    py_p = p_y + velocity[1]*sin(yaw)*delta_t;
+    double sum = std::accumulate(velocity.begin(), velocity.end(), 0.0);
+    double avg_v = sum / velocity.size();
+
+    px_p = p_x + avg_v*cos(yaw)*delta_t;
+    py_p = p_y + avg_v*sin(yaw)*delta_t;
  
     double yaw_p = yaw + omega*delta_t;
 
@@ -202,6 +221,10 @@ void Estimate(MatrixXd Xsig_pred, VectorXd z_pred, MatrixXd Zsig, MatrixXd S)   
 
 int main(int argc, char *argv[])                                                                                             // initialization of ros node and other variables
 {
+  position << 0, 0, 0;
+  covariance << 2, 0, 0, 
+                0, 2, 0,
+                0, 0, 1000;
   VectorXd z_pred;
   MatrixXd S;
   MatrixXd Zsig;
@@ -210,18 +233,10 @@ int main(int argc, char *argv[])                                                
   ros::Publisher pub = nh.advertise<std_msgs::Float32MultiArray>("coordinates", 10);
   ros::Subscriber sub1 = nh.subscribe("velocity", 10, Vel_Callback);
   ros::Subscriber sub2 = nh.subscribe("IMU", 10, IMU_Callback);
+  ros::Subscriber sub2 = nh.subscribe("CAM", 10, CAM_Callback);
   std_msgs::Float32MultiArray coordinates;
   ros::Rate rate(10);
-  std::vector<float> coordinates_arr = {0, 0, 0};
-  Eigen::Matrix3f model_noise;
-  Eigen::Matrix3f measure_noise;
-  model_noise << 1.0, 0.0, 0.0,
-                 0.0, 5.0, 0.0,
-                 0.0, 0.0, 9.0;
-
-  measure_noise << 1.0, 0.0, 0.0,
-                   0.0, 5.0, 0.0,
-                   0.0, 0.0, 9.0;               
+  std::vector<float> coordinates_arr = {0, 0, 0};         
 
   Eigen::Vector3f pose(1.0, 2.0, 3.0);       
 
@@ -230,10 +245,12 @@ int main(int argc, char *argv[])                                                
     if (IMU_arr != IMU_arr_old)
     {
       MatrixXd Xsig_aug = sigma_points(position, covariance);
-      MatrixXd prediction = Predict(prev_state, Vel_arr, IMU_arr[1], delta_time, Xsig_aug);
+      MatrixXd prediction = Predict(Vel_arr, IMU_arr[1], delta_time, Xsig_aug);
       z_pred, S, Zsig = PredictIMU(IMU_arr);
       Estimate(prediction, z_pred, Zsig, S);
-      coordinates.data = coordinates_arr;
+      coordinates.data[0] = position[0];
+      coordinates.data[1] = position[1];
+      coordinates.data[2] = position[2];
       pub.publish(coordinates);
       ros::spinOnce();
       rate.sleep();
