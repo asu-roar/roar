@@ -233,21 +233,19 @@ int main(int argc, char *argv[])                                                
   ros::Publisher pub = nh.advertise<std_msgs::Float32MultiArray>("coordinates", 10);
   ros::Subscriber sub1 = nh.subscribe("velocity", 10, Vel_Callback);
   ros::Subscriber sub2 = nh.subscribe("IMU", 10, IMU_Callback);
-  ros::Subscriber sub2 = nh.subscribe("CAM", 10, CAM_Callback);
+  ros::Subscriber sub3 = nh.subscribe("CAM", 10, CAM_Callback);
   std_msgs::Float32MultiArray coordinates;
   ros::Rate rate(10);
   std::vector<float> coordinates_arr = {0, 0, 0};         
-
-  Eigen::Vector3f pose(1.0, 2.0, 3.0);       
 
   while (ros::ok())                                                                                                          // while (1) loop
   {
     if (IMU_arr != IMU_arr_old)
     {
-      MatrixXd Xsig_aug = sigma_points(position, covariance);
-      MatrixXd prediction = Predict(Vel_arr, IMU_arr[1], delta_time, Xsig_aug);
-      z_pred, S, Zsig = PredictIMU(IMU_arr);
-      Estimate(prediction, z_pred, Zsig, S);
+      //MatrixXd Xsig_aug = sigma_points(position, covariance);
+      //MatrixXd prediction = Predict(Vel_arr, IMU_arr[1], delta_time, Xsig_aug);
+      //z_pred, S, Zsig = PredictIMU(IMU_arr);
+      //Estimate(prediction, z_pred, Zsig, S);
       coordinates.data[0] = position[0];
       coordinates.data[1] = position[1];
       coordinates.data[2] = position[2];
