@@ -10,8 +10,6 @@ using Eigen::MatrixXd;
 using Eigen::VectorXd;
 using namespace std::chrono;
 
-VectorXd position;
-MatrixXd covariance = MatrixXd(3,3);
 int size = 3;
 int size_aug = 5;
 double lambda = 3 - size_aug;
@@ -30,6 +28,7 @@ auto time_stop_cam = high_resolution_clock::now();
 auto duration_cam = duration_cast<seconds>(time_stop - time_start);
 double delta_time = 0;
 double delta_time_cam = 0;
+
 
 
 
@@ -192,7 +191,7 @@ MatrixXd PredictIMU(std::vector<float> IMU_arr)
 }
 
 
-void Estimate(MatrixXd Xsig_pred, VectorXd z_pred, MatrixXd Zsig, MatrixXd S)                                                                                                              // estimation function (where we update prediction readings using IMU)
+void Estimate(MatrixXd Xsig_pred, VectorXd z_pred, MatrixXd Zsig, MatrixXd S, VectorXd position, MatrixXd covariance)                                                                                                              // estimation function (where we update prediction readings using IMU)
 {
   MatrixXd Tc = MatrixXd(size, size_z);
   Tc.fill(0.0);
@@ -221,6 +220,8 @@ void Estimate(MatrixXd Xsig_pred, VectorXd z_pred, MatrixXd Zsig, MatrixXd S)   
 
 int main(int argc, char *argv[])                                                                                             // initialization of ros node and other variables
 {
+  Eigen::Vector3d position;
+  Eigen::Matrix3d covariance;
   position << 0, 0, 0;
   covariance << 2, 0, 0, 
                 0, 2, 0,
@@ -236,16 +237,17 @@ int main(int argc, char *argv[])                                                
   ros::Subscriber sub3 = nh.subscribe("CAM", 10, CAM_Callback);
   std_msgs::Float32MultiArray coordinates;
   ros::Rate rate(10);
-  std::vector<float> coordinates_arr = {0, 0, 0};         
+  std::vector<float> coordinates_arr = {0, 0, 0};
+  ROS_INFO("Node initialized succesfully");         
 
   while (ros::ok())                                                                                                          // while (1) loop
   {
     if (IMU_arr != IMU_arr_old)
     {
-      //MatrixXd Xsig_aug = sigma_points(position, covariance);
-      //MatrixXd prediction = Predict(Vel_arr, IMU_arr[1], delta_time, Xsig_aug);
-      //z_pred, S, Zsig = PredictIMU(IMU_arr);
-      //Estimate(prediction, z_pred, Zsig, S);
+      MatrixXd Xsig_aug = sigma_points(position, covariance);
+      MatrixXd prediction = Predict(Vel_arr, IMU_arr[1], delta_time, Xsig_aug);
+      z_pred, S, Zsig = PredictIMU(IMU_arr);
+      Estimate(prediction, z_pred, Zsig, S, position, covariance);
       coordinates.data[0] = position[0];
       coordinates.data[1] = position[1];
       coordinates.data[2] = position[2];
