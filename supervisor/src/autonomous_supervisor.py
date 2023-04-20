@@ -17,7 +17,7 @@ from roar_msgs.msg import StateCommand
 
 class Handler():
 
-    def __init__(self):
+    def __init__(self) -> None:
         # Initialize node
         self.init_node()
         # Initialize a variable that indicates current state
@@ -32,7 +32,7 @@ class Handler():
         self.supervisor()
 
     # Called the first time the handler is instantiated
-    def init_node(self):
+    def init_node(self) -> None:
         # Initialize node
         rospy.init_node("autonomous_supervisor")
         rospy.loginfo("autonomous_supervisor node initialized")
@@ -54,12 +54,12 @@ class Handler():
                          )
 
     # Called every time a command is received on "/command"
-    def command_callback(self, rec_command):
+    def command_callback(self, rec_command: StateCommand) -> None:
         self.command = rec_command
         self.state_switch = True
 
     # Called from the loop if self.state_switch == True 
-    def state_switch(self):
+    def state_switch(self) -> None:
         # Course of action if received command is START
         if self.command.command == self.command.START:
             if self.state == "IDLE":
@@ -68,14 +68,14 @@ class Handler():
                 rospy.loginfo("Transitioned to WORKING state!")
                 self.state = "WORKING"
             else:
-                self.error_handler()
+                self.raise_warning()
         # Course of action if received command is WAIT
         elif self.command.command == self.command.WAIT:
             if self.state == "WORKING":
                 self.state = "WAITING"
                 rospy.loginfo("Transitioned from WORKING state to WAITING state using WAIT command!")
             else:
-                self.error_handler()
+                self.raise_warning()
         # Course of action if received command is RESUME
         elif self.command.command == self.command.RESUME:
             if self.state == "WAITING":
@@ -84,25 +84,25 @@ class Handler():
                 self.state = "WORKING"
                 rospy.loginfo("Transitioned to WORKING state!")
             else:
-                self.error_handler()     
+                self.raise_warning()     
         # Course of action if received command is ABORT
         elif self.command.command == self.command.ABORT:
             if self.state == "IDLE":
-                self.error_handler()
+                self.raise_warning()
             else:
                 self.state == "IDLE"
                 rospy.loginfo("Transitioned to IDLE state using ABORT command!")
 
     # Gets called in case of invalid input commands
-    def error_handler(self):
+    def raise_warning(self) -> None:
         rospy.logwarn("Invalid input command! ROAR is currently in {} state!".format(self.state))
 
     # Called when a CAN frame is received on "/can_gate"
-    def motors_callback(self, motors):
+    def motors_callback(self, motors: Float32MultiArray) -> None:
         self.motors = motors
 
     # Main loop, called from __init__()
-    def supervisor(self):
+    def supervisor(self) -> None:
         while not rospy.is_shutdown():
             # Perform state switch if a command is received
             if self.state_switch == True:
