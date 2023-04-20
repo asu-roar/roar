@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 
-
-# Commands: START, WAIT, RESUME, ABORT
-# States: IDLE, WORKING, WAITING
-# Tranisitons:
-# START command: IDLE state -> WORKING state
-# WAIT command: WORKING state -> WAITING state
-# RESUME command: WAITING state -> WORKING state
-# ABORT command: ANY state -> IDLE state
-
+"""
+Commands: START, WAIT, RESUME, ABORT
+States: IDLE, WORKING, WAITING
+Tranisitons:
+START command: IDLE state -> WORKING state
+WAIT command: WORKING state -> WAITING state
+RESUME command: WAITING state -> WORKING state
+ABORT command: ANY state -> IDLE state
+"""
 
 import rospy
 from std_msgs.msg import Float32MultiArray
