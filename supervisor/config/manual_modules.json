@@ -1,0 +1,10 @@
+{
+    "modules":
+    [
+        {
+        "pkg": "supervisor" ,
+        "launch_file":"manual_test.launch",
+        "heartbeats_topic":"/status/manual"
+        }
+    ]
+}
