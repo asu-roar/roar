@@ -12,7 +12,7 @@ class Module:
     heartbeat: str (optional)
         Checks if the node is alive.
     """
-    
+
     def __init__(
         self, pkg: str, launch_file: str, heartbeat_topic=None
     ) -> None:
@@ -44,9 +44,8 @@ class Module:
             return None
         else:
             self.uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
-            self.launch_args = [self.pkg, self.launch_file]
-            self.roslaunch_file = roslaunch.rlutil.resolve_launch_arguments(self.launch_args)
+            self.roslaunch_file = roslaunch.rlutil.resolve_launch_arguments([self.pkg, self.launch_file])
             self.launcher = roslaunch.parent.ROSLaunchParent(self.uuid, self.roslaunch_file)
-
         
-    def heartbeat_callback(self, msg: NodeStatus)
+    def heartbeat_callback(self, msg: NodeStatus) -> None:
+        pass
