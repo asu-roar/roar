@@ -116,7 +116,7 @@ class Handler():
 
 
 if __name__ == "__main__":
-    # Run the handler by calling an object/instance
-    Handler()
-    # Warning in case loop is terminated
-    rospy.logwarn("supervisor_node terminated!")
+    try:
+        Handler()
+    except rospy.ROSInterruptException:
+        rospy.logwarn("supervisor_node terminated!")

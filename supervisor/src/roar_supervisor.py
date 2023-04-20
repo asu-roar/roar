@@ -9,7 +9,7 @@ from roar_msgs.msg import ModeCommand
 
 class Launcher():
 
-    def __init__(self, mode):
+    def __init__(self, mode) -> None:
         # Configure the launcher with the required mode
         self.mode = mode
         self.mode_config()
@@ -21,7 +21,7 @@ class Launcher():
         # roslaunch.configure_logging(self.uuid)
 
     # Configure launcher path and delay based on selected mode
-    def mode_config(self):
+    def mode_config(self) -> None:
         # Manual Mode configuration
         if self.mode.mode == self.mode.MANUAL:
             # Manual Mode launch file path
@@ -40,7 +40,7 @@ class Launcher():
             self.mode = "Autonomous Mode"
 
     # A method to launch the created launcher
-    def launch(self):
+    def launch(self) -> None:
         # Launch the nodes after the required delay
         rospy.loginfo("Launching {}" .format(self.mode))
         rospy.sleep(self.delay)
@@ -52,7 +52,7 @@ class Launcher():
         rospy.loginfo("{} was launched successfully" .format(self.mode))
 
     # A method to shutdown and delete the created launcher
-    def shutdown(self):
+    def shutdown(self) -> None:
         # Shutdown the nodes
         rospy.loginfo("Shutting down {}" .format(self.mode))
         self.launcher.shutdown()
@@ -66,7 +66,7 @@ class Launcher():
 
 class NodeHandler():
 
-    def __init__(self):
+    def __init__(self) -> None:
         # Initialize the ROS node
         self.init_node()
         # Initialize ROAR in Manual Mode
@@ -74,7 +74,7 @@ class NodeHandler():
         # Loop and wait for mode commands
         self.loop()
 
-    def init_node(self):
+    def init_node(self) -> None:
         # Initialize node and sleep rate
         rospy.init_node("roar_supervisor")
         rospy.loginfo("roar_supervisor node initialized")
@@ -87,7 +87,7 @@ class NodeHandler():
                          )
         
     # Gets called only one time to launch ROAR in Manual Mode
-    def init_roar(self):
+    def init_roar(self) -> None:
         # Initialize mode variables
         # Boolean to determine whether a Mode command was received or not
         self.received = False
@@ -100,7 +100,7 @@ class NodeHandler():
         self.launcher.launch()
 
     # Loop until a mode command is received
-    def loop(self):
+    def loop(self) -> None:
         while not rospy.is_shutdown():
             # Check if a command is received
             if self.received == True:
@@ -117,12 +117,12 @@ class NodeHandler():
             self.rate.sleep()
 
     # Gets called everytime a mode command is received
-    def command_callback(self, rec_msg):
+    def command_callback(self, rec_msg) -> None:
         self.rec_mode = rec_msg
         self.received = True
 
     # Gets called everytime a mode switch is required
-    def switch_mode(self):
+    def switch_mode(self) -> None:
         # Shutdown current active mode
         self.launcher.shutdown()
         # Change mode variable to correct value
@@ -133,7 +133,7 @@ class NodeHandler():
 
 
 if __name__ == "__main__":
-    # Run the handler by calling an object/instance
-    NodeHandler()
-    # Warning in case loop is terminated
-    rospy.logwarn("roar_supervisor terminated!")
+    try:
+        NodeHandler()
+    except rospy.ROSInterruptException:
+        rospy.logwarn("roar_supervisor terminated!")
