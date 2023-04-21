@@ -1,16 +1,15 @@
-<?xml version='1.0'?>
 <sdf version='1.7'>
-  <model name='roar_model'>
+  <model name='roar_empty_world'>
     <link name='Rover_base_link'>
       <inertial>
         <pose>-0.10329 -0.67716 0.33377 0 -0 0</pose>
         <mass>8.6832</mass>
         <inertia>
           <ixx>0.030287</ixx>
-          <ixy>-4.3566e-07</ixy>
-          <ixz>5.083e-08</ixz>
+          <ixy>0</ixy>
+          <ixz>5e-08</ixz>
           <iyy>0.029753</iyy>
-          <iyz>-0.00013063</iyz>
+          <iyz>0</iyz>
           <izz>0.046393</izz>
         </inertia>
       </inertial>
@@ -18,6 +17,7 @@
       <enable_wind>0</enable_wind>
       <kinematic>0</kinematic>
       <pose>0 0 0 0 -0 0</pose>
+      <gravity>1</gravity>
       <visual name='Rover_base_link_visual'>
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
@@ -27,8 +27,17 @@
           </mesh>
         </geometry>
         <material>
-          <shader type='pixel'/>
+          <shader type='pixel'>
+            <normal_map>__default__</normal_map>
+          </shader>
           <emissive>0 0 0 1</emissive>
+          <script>
+            <name>ModelPreview_1::Rover_base_link::Rover_base_link_visual_MATERIAL_</name>
+            <uri>__default__</uri>
+          </script>
+          <diffuse>0.533 0.541 0.522 1</diffuse>
+          <ambient>0 0 0 1</ambient>
+          <specular>0 0 0 1</specular>
         </material>
         <transparency>0</transparency>
         <cast_shadows>1</cast_shadows>
@@ -97,16 +106,17 @@
         <mass>2.70951</mass>
         <inertia>
           <ixx>0.0038657</ixx>
-          <ixy>9.32225e-05</ixy>
-          <ixz>-3.30364e-07</ixz>
+          <ixy>9.322e-05</ixy>
+          <ixz>0</ixz>
           <iyy>0.00465187</iyy>
-          <iyz>-1.18116e-06</iyz>
+          <iyz>0</iyz>
           <izz>0.00431288</izz>
         </inertia>
       </inertial>
       <self_collide>0</self_collide>
       <enable_wind>0</enable_wind>
       <kinematic>0</kinematic>
+      <gravity>1</gravity>
       <visual name='Bogie_LHS_visual'>
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
@@ -116,8 +126,17 @@
           </mesh>
         </geometry>
         <material>
-          <shader type='pixel'/>
+          <shader type='pixel'>
+            <normal_map>__default__</normal_map>
+          </shader>
           <emissive>0 0 0 1</emissive>
+          <script>
+            <name>ModelPreview_1::Bogie_LHS::Bogie_LHS_visual_MATERIAL_</name>
+            <uri>__default__</uri>
+          </script>
+          <diffuse>0.333 0.341 0.325 1</diffuse>
+          <ambient>0 0 0 1</ambient>
+          <specular>0 0 0 1</specular>
         </material>
         <transparency>0</transparency>
         <cast_shadows>1</cast_shadows>
@@ -186,16 +205,17 @@
         <mass>2.78386</mass>
         <inertia>
           <ixx>0.00412565</ixx>
-          <ixy>-9.32013e-05</ixy>
-          <ixz>3.17048e-07</ixz>
+          <ixy>0</ixy>
+          <ixz>3.2e-07</ixz>
           <iyy>0.00484284</iyy>
-          <iyz>-0.000108703</iyz>
+          <iyz>0</iyz>
           <izz>0.00442726</izz>
         </inertia>
       </inertial>
       <self_collide>0</self_collide>
       <enable_wind>0</enable_wind>
       <kinematic>0</kinematic>
+      <gravity>1</gravity>
       <visual name='Bogie_RHS_visual'>
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
@@ -205,8 +225,17 @@
           </mesh>
         </geometry>
         <material>
-          <shader type='pixel'/>
+          <shader type='pixel'>
+            <normal_map>__default__</normal_map>
+          </shader>
           <emissive>0 0 0 1</emissive>
+          <script>
+            <name>ModelPreview_1::Bogie_RHS::Bogie_RHS_visual_MATERIAL_</name>
+            <uri>__default__</uri>
+          </script>
+          <diffuse>0.333 0.341 0.325 1</diffuse>
+          <ambient>0 0 0 1</ambient>
+          <specular>0 0 0 1</specular>
         </material>
         <transparency>0</transparency>
         <cast_shadows>1</cast_shadows>
@@ -271,20 +300,21 @@
     <link name='Differential_Ball_Lower_LHS'>
       <pose>0.167026 -0.375715 0.059211 1.5708 0.1658 -1.5708</pose>
       <inertial>
-        <pose>-0 0 -0.006673 0 -0 0</pose>
+        <pose>0 0 -0.006673 0 -0 0</pose>
         <mass>0.00138901</mass>
         <inertia>
-          <ixx>3.76749e-08</ixx>
-          <ixy>-1.65436e-24</ixy>
-          <ixz>5.88386e-25</ixz>
-          <iyy>3.76749e-08</iyy>
-          <iyz>-3.41761e-25</iyz>
-          <izz>4.8965e-08</izz>
+          <ixx>4e-08</ixx>
+          <ixy>-0</ixy>
+          <ixz>0</ixz>
+          <iyy>4e-08</iyy>
+          <iyz>-0</iyz>
+          <izz>5e-08</izz>
         </inertia>
       </inertial>
       <self_collide>0</self_collide>
       <enable_wind>0</enable_wind>
       <kinematic>0</kinematic>
+      <gravity>1</gravity>
       <visual name='Differential_Ball_Lower_LHS_visual'>
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
@@ -294,8 +324,17 @@
           </mesh>
         </geometry>
         <material>
-          <shader type='pixel'/>
+          <shader type='pixel'>
+            <normal_map>__default__</normal_map>
+          </shader>
           <emissive>0 0 0 1</emissive>
+          <script>
+            <name>ModelPreview_1::Differential_Ball_Lower_LHS::Differential_Ball_Lower_LHS_visual_MATERIAL_</name>
+            <uri>__default__</uri>
+          </script>
+          <diffuse>0.18 0.204 0.212 1</diffuse>
+          <ambient>0 0 0 1</ambient>
+          <specular>0 0 0 1</specular>
         </material>
         <transparency>0</transparency>
         <cast_shadows>1</cast_shadows>
@@ -363,17 +402,18 @@
         <pose>0 0 0.006673 0 -0 0</pose>
         <mass>0.001389</mass>
         <inertia>
-          <ixx>3.7675e-08</ixx>
-          <ixy>8.2718e-24</ixy>
-          <ixz>2.8561e-24</ixz>
-          <iyy>3.7675e-08</iyy>
-          <iyz>-1.8232e-24</iyz>
-          <izz>4.8965e-08</izz>
+          <ixx>4e-08</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>4e-08</iyy>
+          <iyz>-0</iyz>
+          <izz>5e-08</izz>
         </inertia>
       </inertial>
       <self_collide>0</self_collide>
       <enable_wind>0</enable_wind>
       <kinematic>0</kinematic>
+      <gravity>1</gravity>
       <visual name='Differential_Ball_Lower_RHS_visual'>
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
@@ -383,8 +423,17 @@
           </mesh>
         </geometry>
         <material>
-          <shader type='pixel'/>
+          <shader type='pixel'>
+            <normal_map>__default__</normal_map>
+          </shader>
           <emissive>0 0 0 1</emissive>
+          <script>
+            <name>ModelPreview_1::Differential_Ball_Lower_RHS::Differential_Ball_Lower_RHS_visual_MATERIAL_</name>
+            <uri>__default__</uri>
+          </script>
+          <diffuse>0.18 0.204 0.212 1</diffuse>
+          <ambient>0 0 0 1</ambient>
+          <specular>0 0 0 1</specular>
         </material>
         <transparency>0</transparency>
         <cast_shadows>1</cast_shadows>
@@ -449,20 +498,21 @@
     <link name='Differential_Ball_Upper_LHS'>
       <pose>0.173655 -0.365306 0.323182 1.5708 0.058588 0</pose>
       <inertial>
-        <pose>-0 -0 0.006673 0 -0 0</pose>
+        <pose>0 0 0.006673 0 -0 0</pose>
         <mass>0.00138901</mass>
         <inertia>
-          <ixx>3.76749e-08</ixx>
-          <ixy>-5.99706e-24</ixy>
-          <ixz>5.76518e-24</ixz>
-          <iyy>3.76749e-08</iyy>
-          <iyz>-2.96971e-24</iyz>
-          <izz>4.8965e-08</izz>
+          <ixx>4e-08</ixx>
+          <ixy>-0</ixy>
+          <ixz>0</ixz>
+          <iyy>4e-08</iyy>
+          <iyz>-0</iyz>
+          <izz>5e-08</izz>
         </inertia>
       </inertial>
       <self_collide>0</self_collide>
       <enable_wind>0</enable_wind>
       <kinematic>0</kinematic>
+      <gravity>1</gravity>
       <visual name='Differential_Ball_Upper_LHS_visual'>
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
@@ -472,7 +522,17 @@
           </mesh>
         </geometry>
         <material>
-          <shader type='pixel'/>
+          <shader type='pixel'>
+            <normal_map>__default__</normal_map>
+          </shader>
+          <script>
+            <name>ModelPreview_1::Differential_Ball_Upper_LHS::Differential_Ball_Upper_LHS_visual_MATERIAL_</name>
+            <uri>__default__</uri>
+          </script>
+          <diffuse>0.18 0.204 0.212 1</diffuse>
+          <ambient>0 0 0 1</ambient>
+          <specular>0 0 0 1</specular>
+          <emissive>0 0 0 1</emissive>
         </material>
         <transparency>0</transparency>
         <cast_shadows>1</cast_shadows>
@@ -540,17 +600,18 @@
         <pose>0.004131 -0.003623 0.000142 0 -0 0</pose>
         <mass>0.00138901</mass>
         <inertia>
-          <ixx>3.76749e-08</ixx>
+          <ixx>4e-08</ixx>
           <ixy>0</ixy>
-          <ixz>7.34041e-25</ixz>
-          <iyy>3.76749e-08</iyy>
-          <iyz>-1.0129e-24</iyz>
-          <izz>4.8965e-08</izz>
+          <ixz>0</ixz>
+          <iyy>4e-08</iyy>
+          <iyz>-0</iyz>
+          <izz>5e-08</izz>
         </inertia>
       </inertial>
       <self_collide>0</self_collide>
       <enable_wind>0</enable_wind>
       <kinematic>0</kinematic>
+      <gravity>1</gravity>
       <visual name='Differential_Ball_Upper_RHS_visual'>
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
@@ -560,7 +621,17 @@
           </mesh>
         </geometry>
         <material>
-          <shader type='pixel'/>
+          <shader type='pixel'>
+            <normal_map>__default__</normal_map>
+          </shader>
+          <script>
+            <name>ModelPreview_1::Differential_Ball_Upper_RHS::Differential_Ball_Upper_RHS_visual_MATERIAL_</name>
+            <uri>__default__</uri>
+          </script>
+          <diffuse>0.18 0.204 0.212 1</diffuse>
+          <ambient>0 0 0 1</ambient>
+          <specular>0 0 0 1</specular>
+          <emissive>0 0 0 1</emissive>
         </material>
         <transparency>0</transparency>
         <cast_shadows>1</cast_shadows>
@@ -625,20 +696,21 @@
     <link name='Differential_Bar'>
       <pose>-0.097628 -0.336981 0.328245 1.5708 0.026808 -0</pose>
       <inertial>
-        <pose>-0 0 0.035 0 -0 0</pose>
+        <pose>0 0 0.035 0 -0 0</pose>
         <mass>0.135556</mass>
         <inertia>
-          <ixx>9.44653e-06</ixx>
-          <ixy>-2.14055e-05</ixy>
-          <ixz>4.05289e-20</ixz>
+          <ixx>9.45e-06</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
           <iyy>0.00263596</iyy>
-          <iyz>1.6561e-18</iyz>
+          <iyz>0</iyz>
           <izz>0.00263904</izz>
         </inertia>
       </inertial>
       <self_collide>0</self_collide>
       <enable_wind>0</enable_wind>
       <kinematic>0</kinematic>
+      <gravity>1</gravity>
       <visual name='Differential_Bar_visual'>
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
@@ -648,8 +720,17 @@
           </mesh>
         </geometry>
         <material>
-          <shader type='pixel'/>
+          <shader type='pixel'>
+            <normal_map>__default__</normal_map>
+          </shader>
           <emissive>0 0 0 1</emissive>
+          <script>
+            <name>ModelPreview_1::Differential_Bar::Differential_Bar_visual_MATERIAL_</name>
+            <uri>__default__</uri>
+          </script>
+          <diffuse>0.333 0.341 0.325 1</diffuse>
+          <ambient>0 0 0 1</ambient>
+          <specular>0 0 0 1</specular>
         </material>
         <transparency>0</transparency>
         <cast_shadows>1</cast_shadows>
@@ -717,17 +798,18 @@
         <pose>-0.004543 -0.132163 0.002378 0 -0 0</pose>
         <mass>0.0191838</mass>
         <inertia>
-          <ixx>4.06781e-05</ixx>
-          <ixy>1.43649e-08</ixy>
-          <ixz>6.32889e-09</ixz>
-          <iyy>4.18079e-07</iyy>
-          <iyz>-7.4614e-07</iyz>
-          <izz>4.06834e-05</izz>
+          <ixx>4.068e-05</ixx>
+          <ixy>1e-08</ixy>
+          <ixz>1e-08</ixz>
+          <iyy>4.2e-07</iyy>
+          <iyz>0</iyz>
+          <izz>4.068e-05</izz>
         </inertia>
       </inertial>
       <self_collide>0</self_collide>
       <enable_wind>0</enable_wind>
       <kinematic>0</kinematic>
+      <gravity>1</gravity>
       <visual name='Differential_Rod_LHS_visual'>
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
@@ -737,8 +819,17 @@
           </mesh>
         </geometry>
         <material>
-          <shader type='pixel'/>
+          <shader type='pixel'>
+            <normal_map>__default__</normal_map>
+          </shader>
           <emissive>0 0 0 1</emissive>
+          <script>
+            <name>ModelPreview_1::Differential_Rod_LHS::Differential_Rod_LHS_visual_MATERIAL_</name>
+            <uri>__default__</uri>
+          </script>
+          <diffuse>0.18 0.204 0.212 1</diffuse>
+          <ambient>0 0 0 1</ambient>
+          <specular>0 0 0 1</specular>
         </material>
         <transparency>0</transparency>
         <cast_shadows>1</cast_shadows>
@@ -806,17 +897,18 @@
         <pose>0.000144 -0.126483 -0.002328 0 -0 0</pose>
         <mass>0.0191838</mass>
         <inertia>
-          <ixx>4.06781e-05</ixx>
-          <ixy>1.43649e-08</ixy>
-          <ixz>6.32889e-09</ixz>
-          <iyy>4.18079e-07</iyy>
-          <iyz>-7.4614e-07</iyz>
-          <izz>4.06834e-05</izz>
+          <ixx>4.068e-05</ixx>
+          <ixy>1e-08</ixy>
+          <ixz>1e-08</ixz>
+          <iyy>4.2e-07</iyy>
+          <iyz>0</iyz>
+          <izz>4.068e-05</izz>
         </inertia>
       </inertial>
       <self_collide>0</self_collide>
       <enable_wind>0</enable_wind>
       <kinematic>0</kinematic>
+      <gravity>1</gravity>
       <visual name='Differential_Rod_RHS_visual'>
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
@@ -826,8 +918,17 @@
           </mesh>
         </geometry>
         <material>
-          <shader type='pixel'/>
+          <shader type='pixel'>
+            <normal_map>__default__</normal_map>
+          </shader>
           <emissive>0 0 0 1</emissive>
+          <script>
+            <name>ModelPreview_1::Differential_Rod_RHS::Differential_Rod_RHS_visual_MATERIAL_</name>
+            <uri>__default__</uri>
+          </script>
+          <diffuse>0.18 0.204 0.212 1</diffuse>
+          <ambient>0 0 0 1</ambient>
+          <specular>0 0 0 1</specular>
         </material>
         <transparency>0</transparency>
         <cast_shadows>1</cast_shadows>
@@ -896,16 +997,17 @@
         <mass>1.83541</mass>
         <inertia>
           <ixx>0.00481293</ixx>
-          <ixy>4.62222e-05</ixy>
-          <ixz>6.68295e-05</ixz>
+          <ixy>4.622e-05</ixy>
+          <ixz>6.683e-05</ixz>
           <iyy>0.00430112</iyy>
-          <iyz>-0.00110833</iyz>
+          <iyz>0</iyz>
           <izz>0.00329381</izz>
         </inertia>
       </inertial>
       <self_collide>0</self_collide>
       <enable_wind>0</enable_wind>
       <kinematic>0</kinematic>
+      <gravity>1</gravity>
       <visual name='Rocker_LHS_visual'>
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
@@ -915,8 +1017,17 @@
           </mesh>
         </geometry>
         <material>
-          <shader type='pixel'/>
+          <shader type='pixel'>
+            <normal_map>__default__</normal_map>
+          </shader>
           <emissive>0 0 0 1</emissive>
+          <script>
+            <name>ModelPreview_1::Rocker_LHS::Rocker_LHS_visual_MATERIAL_</name>
+            <uri>__default__</uri>
+          </script>
+          <diffuse>0.333 0.341 0.325 1</diffuse>
+          <ambient>0 0 0 1</ambient>
+          <specular>0 0 0 1</specular>
         </material>
         <transparency>0</transparency>
         <cast_shadows>1</cast_shadows>
@@ -985,16 +1096,17 @@
         <mass>1.8356</mass>
         <inertia>
           <ixx>0.004813</ixx>
-          <ixy>-4.6993e-05</ixy>
-          <ixz>-6.6289e-05</ixz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
           <iyy>0.004275</iyy>
-          <iyz>-0.0011198</iyz>
+          <iyz>0</iyz>
           <izz>0.0033199</izz>
         </inertia>
       </inertial>
       <self_collide>0</self_collide>
       <enable_wind>0</enable_wind>
       <kinematic>0</kinematic>
+      <gravity>1</gravity>
       <visual name='Rocker_RHS_visual'>
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
@@ -1004,8 +1116,17 @@
           </mesh>
         </geometry>
         <material>
-          <shader type='pixel'/>
+          <shader type='pixel'>
+            <normal_map>__default__</normal_map>
+          </shader>
           <emissive>0 0 0 1</emissive>
+          <script>
+            <name>ModelPreview_1::Rocker_RHS::Rocker_RHS_visual_MATERIAL_</name>
+            <uri>__default__</uri>
+          </script>
+          <diffuse>0.333 0.341 0.325 1</diffuse>
+          <ambient>0 0 0 1</ambient>
+          <specular>0 0 0 1</specular>
         </material>
         <transparency>0</transparency>
         <cast_shadows>1</cast_shadows>
@@ -1074,16 +1195,17 @@
         <mass>1.55167</mass>
         <inertia>
           <ixx>0.00800323</ixx>
-          <ixy>4.00071e-16</ixy>
-          <ixz>5.08002e-16</ixz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
           <iyy>0.00800315</iyy>
-          <iyz>-1.09713e-10</iyz>
+          <iyz>-0</iyz>
           <izz>0.0125935</izz>
         </inertia>
       </inertial>
       <self_collide>0</self_collide>
       <enable_wind>0</enable_wind>
       <kinematic>0</kinematic>
+      <gravity>1</gravity>
       <visual name='Wheel_LHS_Back_visual'>
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
@@ -1093,8 +1215,17 @@
           </mesh>
         </geometry>
         <material>
-          <shader type='pixel'/>
+          <shader type='pixel'>
+            <normal_map>__default__</normal_map>
+          </shader>
           <emissive>0 0 0 1</emissive>
+          <script>
+            <name>ModelPreview_1::Wheel_LHS_Back::Wheel_LHS_Back_visual_MATERIAL_</name>
+            <uri>__default__</uri>
+          </script>
+          <diffuse>0 0 0 1</diffuse>
+          <ambient>0 0 0 1</ambient>
+          <specular>0 0 0 1</specular>
         </material>
         <transparency>0</transparency>
         <cast_shadows>1</cast_shadows>
@@ -1163,16 +1294,17 @@
         <mass>1.55167</mass>
         <inertia>
           <ixx>0.00800333</ixx>
-          <ixy>5.09855e-17</ixy>
-          <ixz>-6.68842e-17</ixz>
+          <ixy>0</ixy>
+          <ixz>-0</ixz>
           <iyy>0.00800325</iyy>
-          <iyz>2.69482e-12</iyz>
+          <iyz>0</iyz>
           <izz>0.0125934</izz>
         </inertia>
       </inertial>
       <self_collide>0</self_collide>
       <enable_wind>0</enable_wind>
       <kinematic>0</kinematic>
+      <gravity>1</gravity>
       <visual name='Wheel_LHS_Front_visual'>
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
@@ -1182,8 +1314,17 @@
           </mesh>
         </geometry>
         <material>
-          <shader type='pixel'/>
+          <shader type='pixel'>
+            <normal_map>__default__</normal_map>
+          </shader>
           <emissive>0 0 0 1</emissive>
+          <script>
+            <name>ModelPreview_1::Wheel_LHS_Front::Wheel_LHS_Front_visual_MATERIAL_</name>
+            <uri>__default__</uri>
+          </script>
+          <diffuse>0 0 0 1</diffuse>
+          <ambient>0 0 0 1</ambient>
+          <specular>0 0 0 1</specular>
         </material>
         <transparency>0</transparency>
         <cast_shadows>1</cast_shadows>
@@ -1252,16 +1393,17 @@
         <mass>1.5977</mass>
         <inertia>
           <ixx>0.0083678</ixx>
-          <ixy>6.5052e-19</ixy>
-          <ixz>-1.2837e-16</ixz>
+          <ixy>0</ixy>
+          <ixz>-0</ixz>
           <iyy>0.0083678</iyy>
-          <iyz>-6.1838e-14</iyz>
+          <iyz>-0</iyz>
           <izz>0.013245</izz>
         </inertia>
       </inertial>
       <self_collide>0</self_collide>
       <enable_wind>0</enable_wind>
       <kinematic>0</kinematic>
+      <gravity>1</gravity>
       <visual name='Wheel_LHS_Middle_visual'>
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
@@ -1271,8 +1413,17 @@
           </mesh>
         </geometry>
         <material>
-          <shader type='pixel'/>
+          <shader type='pixel'>
+            <normal_map>__default__</normal_map>
+          </shader>
           <emissive>0 0 0 1</emissive>
+          <script>
+            <name>ModelPreview_1::Wheel_LHS_Middle::Wheel_LHS_Middle_visual_MATERIAL_</name>
+            <uri>__default__</uri>
+          </script>
+          <diffuse>0 0 0 1</diffuse>
+          <ambient>0 0 0 1</ambient>
+          <specular>0 0 0 1</specular>
         </material>
         <transparency>0</transparency>
         <cast_shadows>1</cast_shadows>
@@ -1342,15 +1493,16 @@
         <inertia>
           <ixx>0.0080033</ixx>
           <ixy>0</ixy>
-          <ixz>-2.5005e-17</ixz>
+          <ixz>-0</ixz>
           <iyy>0.0080033</iyy>
-          <iyz>2.6947e-12</iyz>
+          <iyz>0</iyz>
           <izz>0.012593</izz>
         </inertia>
       </inertial>
       <self_collide>0</self_collide>
       <enable_wind>0</enable_wind>
       <kinematic>0</kinematic>
+      <gravity>1</gravity>
       <visual name='Wheel_RHS_Back_visual'>
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
@@ -1360,8 +1512,17 @@
           </mesh>
         </geometry>
         <material>
-          <shader type='pixel'/>
+          <shader type='pixel'>
+            <normal_map>__default__</normal_map>
+          </shader>
           <emissive>0 0 0 1</emissive>
+          <script>
+            <name>ModelPreview_1::Wheel_RHS_Back::Wheel_RHS_Back_visual_MATERIAL_</name>
+            <uri>__default__</uri>
+          </script>
+          <diffuse>0 0 0 1</diffuse>
+          <ambient>0 0 0 1</ambient>
+          <specular>0 0 0 1</specular>
         </material>
         <transparency>0</transparency>
         <cast_shadows>1</cast_shadows>
@@ -1430,16 +1591,17 @@
         <mass>1.5517</mass>
         <inertia>
           <ixx>0.0080032</ixx>
-          <ixy>1.1362e-16</ixy>
-          <ixz>-1.0017e-16</ixz>
+          <ixy>0</ixy>
+          <ixz>-0</ixz>
           <iyy>0.0080032</iyy>
-          <iyz>-1.0971e-10</iyz>
+          <iyz>-0</iyz>
           <izz>0.012594</izz>
         </inertia>
       </inertial>
       <self_collide>0</self_collide>
       <enable_wind>0</enable_wind>
       <kinematic>0</kinematic>
+      <gravity>1</gravity>
       <visual name='Wheel_RHS_Front_visual'>
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
@@ -1449,7 +1611,17 @@
           </mesh>
         </geometry>
         <material>
-          <shader type='pixel'/>
+          <shader type='pixel'>
+            <normal_map>__default__</normal_map>
+          </shader>
+          <script>
+            <name>ModelPreview_1::Wheel_RHS_Front::Wheel_RHS_Front_visual_MATERIAL_</name>
+            <uri>__default__</uri>
+          </script>
+          <diffuse>0 0 0 1</diffuse>
+          <ambient>0 0 0 1</ambient>
+          <specular>0 0 0 1</specular>
+          <emissive>0 0 0 1</emissive>
         </material>
         <transparency>0</transparency>
         <cast_shadows>1</cast_shadows>
@@ -1518,16 +1690,17 @@
         <mass>1.59767</mass>
         <inertia>
           <ixx>0.00836783</ixx>
-          <ixy>5.65954e-17</ixy>
-          <ixz>1.52747e-16</ixz>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
           <iyy>0.00836775</iyy>
-          <iyz>-6.22457e-14</iyz>
+          <iyz>-0</iyz>
           <izz>0.0132447</izz>
         </inertia>
       </inertial>
       <self_collide>0</self_collide>
       <enable_wind>0</enable_wind>
       <kinematic>0</kinematic>
+      <gravity>1</gravity>
       <visual name='Wheel_RHS_Middle_visual'>
         <pose>0 0 0 0 -0 0</pose>
         <geometry>
@@ -1537,8 +1710,17 @@
           </mesh>
         </geometry>
         <material>
-          <shader type='pixel'/>
+          <shader type='pixel'>
+            <normal_map>__default__</normal_map>
+          </shader>
           <emissive>0 0 0 1</emissive>
+          <script>
+            <name>ModelPreview_1::Wheel_RHS_Middle::Wheel_RHS_Middle_visual_MATERIAL_</name>
+            <uri>__default__</uri>
+          </script>
+          <diffuse>0 0 0 1</diffuse>
+          <ambient>0 0 0 1</ambient>
+          <specular>0 0 0 1</specular>
         </material>
         <transparency>0</transparency>
         <cast_shadows>1</cast_shadows>
