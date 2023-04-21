@@ -5,7 +5,7 @@ import rospy
 import roslaunch.rlutil
 import roslaunch.parent
 from roar_msgs.msg import ModeCommand
-from supervisor.module import Module
+from supervisor_modules.module import Module
 
 
 class Launcher():
