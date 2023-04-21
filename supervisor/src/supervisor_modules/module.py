@@ -56,9 +56,10 @@ class Module:
         # Initialize status variable
         self.status = NodeStatus()
         self.status.status = self.status.SHUTDOWN
-        # Check inputs
+        # Check inputs for errors
         self.__check_errors()
         self.__check_heartbeat_topic()
+        # Initialize a ROSLaunchParent object if no errors were found
         self.__init_module()
 
     def __check_errors(self) -> None:
@@ -96,7 +97,8 @@ class Module:
                              self.heartbeat_callback)
         else:
             rospy.loginfo(
-                "No heartbeat topic provided, proceeding without one..")
+                "{} Module: No heartbeat topic was provided, proceeding without one.."
+                .format(self.name))
 
     def __init_module(self) -> None:
         """
@@ -116,6 +118,7 @@ class Module:
     def launch(self) -> None:
         """
         Launches the Module object's launch file using a ROSLaunchParent object.
+        Module must be in SHUTDOWN state before it can be launched.
         """
         if self.status.status == self.status.SHUTDOWN:
             self.status.status = self.status.STARTING
@@ -124,14 +127,17 @@ class Module:
             raise
 
     def launch_after_delay(self, delay: int) -> None:
+        # Handle type errors for the provided delay
         if delay is not int:
             raise SupervisorError(
-                "{} Module: provided delay is not int, launch failed!"
+                "{} Module: provided launch delay is not int.. launch failed!"
                 .format(self.name))
+        # Handle logical errors for the provided delay
         if delay < 1:
             raise SupervisorError(
-                "{} Module: provided delay is less than 1 sec, launch failed!"
+                "{} Module: provided launch delay is less than 1 sec.. launch failed!"
                 .format(self.name))
+        
 
     def shutdown(self) -> None:
         # Shuts down the module
