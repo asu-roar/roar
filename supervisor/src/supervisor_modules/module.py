@@ -4,7 +4,6 @@
 import rospy
 import roslaunch.parent
 import roslaunch.rlutil
-from typing import Any
 from roar_msgs.msg import NodeStatus as ModuleStatus
 from .supervisor_error import SupervisorError
 
@@ -41,7 +40,7 @@ class Module:
     # ------------------------------ Private Methods ------------------------------
 
     def __init__(
-        self, name: str, pkg: str, launch_file: str, heartbeat_topic: Any = None
+        self, name: str, pkg: str, launch_file: str, heartbeat_topic: str = None
     ) -> None:
         """
         Initializes a Module object with a given name, package, and launch file, and an
@@ -62,7 +61,7 @@ class Module:
         self.status.header.stamp = rospy.Time.now()
         self.status.header.frame_id = self.name
         self.status.status = self.status.SHUTDOWN
-        self.status.message = "Module: Module is SHUTDOWN, ready to launch.."
+        self.status.message = "Module is SHUTDOWN, ready to launch.."
 
     def __check_errors(self) -> None:
         """
@@ -228,5 +227,5 @@ class Module:
     def get_status(self) -> ModuleStatus:
         return self.status
 
-    def get_heartbeat_topic(self) -> Any:
+    def get_heartbeat_topic(self) -> str:
         return self.get_heartbeat_topic
