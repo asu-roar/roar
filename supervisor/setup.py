@@ -1,16 +1,15 @@
-# Install the supervisor library
+"""
+Install the supervisor package
+"""
 
-from setuptools import setup, find_packages
 
-setup(
-    name='supervisor_modules',
-    version='0.1.0',
-    packages=find_packages(where="src"),
-    package_dir={'': 'src'},
-    install_requires=[],
-    author="ASU ROAR",
-    author_email='asuroar.eg@gmail.com',
-    description="Supervisor library",
-    license='GNU General Public License v3.0',
-    url='https://github.com/asu-roar/roar'
-)
+from setuptools import setup
+from catkin_pkg.python_setup import generate_distutils_setup
+
+
+setup_args = generate_distutils_setup(
+    packages=['supervisor'], 
+    package_dir={'': 'src'}
+    )
+
+setup(**setup_args)
