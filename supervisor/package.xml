@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>supervisor</name>
-  <version>0.0.0</version>
+  <version>0.0.1</version>
   <description>The supervisor package</description>
 
   <maintainer email="asuroar.eg@gmail.com">ASU ROAR</maintainer>
