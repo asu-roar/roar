@@ -10,6 +10,9 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 
+catkin_python_setup()
+
+
 catkin_package(
   CATKIN_DEPENDS
   roscpp
@@ -23,10 +26,9 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-
  catkin_install_python(PROGRAMS
-   src/autonomous_supervisor.py
-   src/roar_supervisor.py
+   scripts/autonomous_supervisor.py
+   scripts/roar_supervisor.py
    test/manual.py
    test/autonomous.py
    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
