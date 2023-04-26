@@ -1,19 +1,25 @@
 #!/usr/bin/python3
 
 
+"""
+Provides the capabilities to read and create Module objects from a .JSON file
+and methods to have control over the Modules.
+"""
+
+
 import rospy
 import os.path
 import json
 from typing import List, Dict
 from roar_msgs.msg import NodeStatus as ModuleStatus
-from .exceptions import SupervisorError
 from .module import Module
+from .supervisor_exceptions import *
 
 
 class ModuleHandler:
 
     """
-
+    
     """
 
     # ------------------------------ Private Methods ------------------------------
