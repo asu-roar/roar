@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 import rospy
 import numpy as np
 from std_msgs.msg import Header
@@ -55,6 +55,9 @@ class OccupancyGridMap:
         heights = np.zeros((self.grid_width, self.grid_height))
         for (x, y, z) in (x, y, z):
             heights[x, y] = max(self.grid_map[x, y], z)
+
+        #create a 2d histogram of z values in each  cell
+        # hist2d, _, _ = np.histogram2d(x, y, bins=[self.grid_width, self.grid_height], range=[[0, self.grid_width], [0, self.grid_height]], weights=z)
 
         #set the maximum z value in each  cell as its cost
         # self.grid_map = np.round(hist2d).astype(np.int8)

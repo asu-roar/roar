@@ -1,11 +1,11 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 import rospy
 import numpy as np
 import heapq
 from nav_msgs.msg import OccupancyGrid, Path
 from visualization_msgs.msg import Marker
 from geometry_msgs.msg import PoseStamped,PoseWithCovarianceStamped, Pose, Point, Quaternion, Vector3
-from std_msgs.msg import  ColorRGBA
+from std_msgs.msg import Header, ColorRGBA
 
 
 class AStarPlanner:
@@ -68,24 +68,23 @@ class AStarPlanner:
         x, y = current_cell                                                             #get the coordinates of the current cell
         neighbors = [(x+i, y+j)             
                      for i in range(-1, 2) for j in range(-1, 2)    
-                     if not(i==0 and j==0)                                                   #exclude the current cell 
-                     and (0<=x+i<self.grid_width and 0<=y+j<self.grid_height)                #check if the neighbor is inside the grid
-                     and not(self.grid_map[current_cell[0], current_cell[1]] == 100 or -1)]  #check if the neighbor is an obstacle or unknown 
+                     if not(i==0 and j==0)                                              #exclude the current cell 
+                     and 0<=x+i<self.grid_width and 0<=y+j<self.grid_height             #check if the neighbor is inside the grid
+                     and self.grid_map[current_cell[0], current_cell[1]] == 100 or -1]  #check if the neighbor is an obstacle or unknown 
                    
         return neighbors
 
     #the distance in a straight line between two points on the grid
-    #def distance(self,start_cell,end_cell):      
+    def distance(self,start_cell,end_cell):      
         x = start_cell.x - end_cell.x
         y = start_cell.y - end_cell.y
         return 1 * max(abs(x),abs(y))
 
-    #def heuristic(self,start_cell,end_cell):
+    def heuristic(self,start_cell,end_cell):
         heuristic = self.distance(start_cell,end_cell)
         return heuristic
-    
-    def heuristic(self, start_cell, end_cell):
-        return np.linalg.norm(np.array(start_cell) - np.array(end_cell))
+    #def heuristic(self, start_cell, end_cell):
+    #    return np.linalg.norm(np.array(start_cell) - np.array(end_cell))
    
     def pose_to_cell(self, pose):
         x = int((pose.x - self.origin_x) / self.grid_resolution)
@@ -111,13 +110,7 @@ class AStarPlanner:
 
         #initialize the parent dictionary to store the optimal path
         came_from = {}    
-
-        #Goal Reached Flag
-        goal_reached = False
-
-        # Alternative Path
-        alternative_current_cell = None
-
+      
         while len(opened) > 0:
             #remove and return the lowest f_score cell from the opened list
             current_cell = heapq.heappop(opened)[1]                      #[1] to get the cell of the lowest f_score from the tuple (f_score, cell)
@@ -133,17 +126,10 @@ class AStarPlanner:
                 path.append(self.goal)
                 path.reverse()
                 self.publish_path(path)                               #publish the path
-                goal_reached = True
                 break
             
             closed.append(current_cell)                               #add the current cell to the closed list
             neighbors = self.get_neighbors(current_cell)              #get the neighbors of the current cell
-
-            if len(neighbors) == 0:
-                # Replace alternative current cell with current cell if it has a lower cost or alternative current cell is None
-                if alternative_current_cell is None or g_scores[current_cell] < g_scores[alternative_current_cell]:
-                    alternative_current_cell = current_cell
-                continue
 
             for neighbor in neighbors:
                 if neighbor not in closed:
@@ -157,22 +143,9 @@ class AStarPlanner:
 
                         if neighbor not in opened:  
                             heapq.heappush(opened, (f_scores[neighbor], neighbor))              #add the neighbor to the opened list
-        
-        
-        if not goal_reached and alternative_current_cell is not None:
-            # Publish path to altnerative current cell
-            path = []
-            rospy.info("Path found")
-            while alternative_current_cell in came_from:
-                pose = self.cell_to_pose(alternative_current_cell)
-                path.append(pose)
-                alternative_current_cell = came_from[alternative_current_cell]
-            path.append(self.goal)
-            path.reverse()
-            self.publish_path(path)                             #publish the path
-            
-        elif not goal_reached:
+        else:
             rospy.loginfo("No path found")
+            return None
 
 #-------------------------------------------------Publishers and visualizations-----------------------------------------------------------
 
@@ -226,7 +199,7 @@ class AStarPlanner:
 
 #-------------------------------------------------Main--------------------------------------------------------
 if __name__ == '__main__':
-    rospy.init_node('Astar_planner', anonymous=True)
+    rospy.init_node('Astar_planner')
     rate = rospy.Rate(10)
     path = AStarPlanner()
     while not rospy.is_shutdown():
