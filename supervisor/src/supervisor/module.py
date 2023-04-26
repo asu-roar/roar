@@ -10,7 +10,7 @@ import rospy
 import roslaunch.parent
 import roslaunch.rlutil
 from roar_msgs.msg import NodeStatus as ModuleStatus
-from .exceptions import ModuleShutdownError, ModuleLaunchError, ModuleStatusError
+from .supervisor_exceptions import *
 
 
 class Module:
@@ -19,7 +19,6 @@ class Module:
     Provides the capabilities to launch, shutdown, monitor, and manipulate modules.
     A module must have a name and it corresponds to a launch file in a given ROS
     package.
-    -------------------------------------------------------------------------------
     """
 
     # ------------------------------ Private Methods ------------------------------
@@ -31,16 +30,15 @@ class Module:
         Modules provide the capabilities to launch, shutdown, monitor, and manipulate
         modules, i.e. ROS launch files.
 
-        :param name: a user defined name for the module.
-        :param pkg: the name of the package.
-        :param launch_file: the name of the launch file.    
-        :param heartbeat: (optional) topic to periodically check node status and if
-        it is alive.
+        :param name: `str`: a user defined name for the module.
+        :param pkg: `str`: the name of the package.
+        :param launch_file: `str`: the name of the launch file.    
+        :param heartbeat: `str`: (optional) topic to periodically check node status and
+        if it is alive.
 
         :returns: `None`
         :raises: `TypeError`: in case of non `str` arguments
         """
-
         # Save inputs to instance variables
         self.name: str = name
         self.pkg: str = pkg
@@ -69,7 +67,6 @@ class Module:
         :returns: `None`
         :raises: `None`
         """
-
         # Initialize a unique idea and resolve arguments to launch file path
         self.uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
         launch_args = [self.pkg, self.launch_file]
@@ -84,12 +81,11 @@ class Module:
         Callback function for heartbeat topic. Updates module status with the received
         message.
 
-        :param rec_msg: the received message on the heartbeat topic.
+        :param rec_msg: `ModuleStatus`: the received message on the heartbeat topic.
 
         :returns: `None`
         :raises: `None`
         """
-
         self.status = rec_msg
 
     # ------------------------------ Public Methods ------------------------------
@@ -101,7 +97,7 @@ class Module:
         provided (in seconds) before the module is launched. If the provided delay is
         negative, the module is launched immediately.
 
-        :param delay: (optional) delay in seconds before module launches.
+        :param delay: `int`: (optional) delay in seconds before module launches.
 
         :returns: `None`
         :raises: `ModuleLaunchError`: in case of launch time-out (`pm.is_alive()`)
@@ -189,10 +185,11 @@ class Module:
 
     def restart(self, delay: int = 0) -> None:
         """
-        Shuts down the module then launches it again using a new `ROSLaunchParent` object
-        This is done using the methods `shutdown()` and `launch()`.
+        Shuts down the module then launches it again using a new `ROSLaunchParent`
+        object. This is done using the methods `shutdown()` and `launch()`.
 
-        :param delay: (optional) delay in seconds before module launches after it shuts down
+        :param delay: `int`: (optional) delay in seconds before module launches after
+        it shuts down
 
         :raises: `ModuleShutdownError`: in case of shutdown time-out (`pm.is_alive()`)
         :raises: `ModuleStatusError`: if module is in OFFLINE state
@@ -262,7 +259,7 @@ class Module:
 
         @ no params
 
-        :returns: `rospy.Time` launch time of the module, i.e. when it left OFFLINE state
+        :returns: `rospy.Time`: launch time of the module, i.e. when it left OFFLINE state
         :raises: `ModuleStatusError`: if module is in OFFLINE state
         """
         # Check if the module is not OFFLINE
@@ -272,3 +269,14 @@ class Module:
             raise ModuleStatusError(
                 "{} Module: Could not return up_since since the module is OFFLINE"
                 .format(self.name))
+
+    def update_status(self, rec_status: ModuleStatus) -> None:
+        """
+        Updates the module's status with the received status.
+
+        :param rec_status: `ModuleStatus`: new module status
+
+        :returns: `None`
+        :raises: `None`
+        """
+        self.status = rec_status

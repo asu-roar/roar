@@ -3,5 +3,5 @@
 """
 
 from .module import *
-from .exceptions import *
+from .supervisor_exceptions import *
 from .module_handler import *
