@@ -1,0 +1,26 @@
+<launch>
+
+   <master auto="start"/>
+
+ <!-- Run the map server --> 
+   <node name="map_server" pkg="map_server" type="map_server" args="$(find planning)/maps/map.yaml"/>
+
+ <!--- Run AMCL --> 
+   <!---include file="$(find amcl)/examples/amcl_omni.launch" /-->
+
+
+   <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+   
+   
+      <param name="base_global_planner" value="global_planner/GlobalPlanner"/>    <!--setting global planner as the base global planner-->
+      <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS"/>  <!--setting dwa as the base local planner-->
+
+      <rosparam file="$(find planning)/config/costmap_common_params.yaml" command="load" ns="global_costmap" /> 
+      <rosparam file="$(find planning)/config/costmap_common_params.yaml" command="load" ns="local_costmap" />
+      <rosparam file="$(find planning)/config/local_costmap_params.yaml" command="load" />
+      <rosparam file="$(find planning)/config/global_costmap_params.yaml" command="load" /> 
+
+      <rosparam file="$(find planning)/config/base_local_planner_params.yaml" command="load" />
+   </node>
+
+</launch> 
