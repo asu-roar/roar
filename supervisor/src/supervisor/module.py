@@ -107,14 +107,7 @@ class Module:
         if self.status.status == self.status.OFFLINE:
             # Process the provided delay and sleep accordingly
             if delay > 0:
-                rospy.loginfo(
-                    "{} Module: Module launching after {} seconds..".format(
-                        self.name, delay))
                 rospy.sleep(delay)
-            # Log after error elapses
-            rospy.loginfo(
-                "{} Module: Module is launching.."
-                .format(self.name))
             # Initialize the ROSLaunchParent object
             self.__init_launcher()
             # Start the ROSLaunchPartent object causing the module to launch
@@ -135,9 +128,6 @@ class Module:
             self.status.status = self.status.ONLINE
             self.status.message = "{} Module: Module was launched successfully.".format(
                 self.name)
-            rospy.loginfo(
-                "{} Module: Module was launched successfully."
-                .format(self.name))
         else:
             raise ModuleStatusError(
                 """{} Module: Module status is not OFFLINE and therefore cannot be launched.. 
@@ -156,8 +146,6 @@ class Module:
         """
         # Check if the module is running to shut it down
         if self.status.status != self.status.OFFLINE:
-            rospy.loginfo("{} Module: Module is shutting down..")
-            # Shutdown the module
             self.module.shutdown()
             # Check if the module was successfully shutdown
             timeout = 0.0
@@ -175,9 +163,6 @@ class Module:
             self.status.status = self.status.OFFLINE
             self.status.message = "{} Module: Module was shutdown successfully.".format(
                 self.name)
-            rospy.loginfo(
-                "{} Module: Module was shutdown successfully."
-                .format(self.name))
         else:
             raise ModuleStatusError(
                 "{} Module: Module status is OFFLINE and therefore module cannot be shutdown.."
@@ -195,9 +180,6 @@ class Module:
         :raises: `ModuleStatusError`: if module is in OFFLINE state
         :raises: `ModuleLaunchError`: in case of launch time-out (`pm.is_alive()`)
         """
-        rospy.loginfo(
-            "{} Module: Module is restarting"
-            .format(self.name))
         # Shutdown the module
         self.shutdown()
         # Launch the module again after the required delay

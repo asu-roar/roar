@@ -2,8 +2,8 @@
 
 
 """
-Provides the capabilities to read and create Module objects from a .JSON file
-and methods to have control over the Modules.
+Provides the capabilities to read and create Module objects from a JSON file
+and methods to control the Modules.
 """
 
 
@@ -19,55 +19,30 @@ from .supervisor_exceptions import *
 class ModuleHandler:
 
     """
-    
+    Provides the capabilities to read and create Module objects from a JSON file
+    and methods to control the Modules.
     """
 
     # ------------------------------ Private Methods ------------------------------
 
-    def __init__(self, file_name: str) -> None:
+    def __init__(self, relative_path: str, file_name: str) -> None:
         """
-        Methods called by this method can raise a SupervisorError.
+        ModuleHandlers allow you to launch, shutdown, and control modules loaded from a
+        JSON file from a given path relative this module's path.
+
+        :param relative_path: `str`: path of the .JSON file relative to this module
+        :param file_name: `str`: name of the JSON file with the modules
+
+        :returns: `None`
+        :raises: `HandlerError`
         """
         # Obtain and check path to the .json file (abs path)
-        file_path: str = self.__get_path(file_name)
+        file_path: str = self.__get_path(relative_path, file_name)
         # Read modules from the file as type Dict
-        modules_dict: Dict[
-            str, List[Dict[str, str]]] = self.__read_file(file_path)
+        module_dict: Dict[
+            str, List[Dict[str, str]]] = self.__load_json(file_path)
         # Create module objects from the modules in the file
-        self.modules: List[Module] = self.__parse_dict(modules_dict)
-
-    def __get_path(self, file_name: str) -> str:
-        """
-        This method can raise a SupervisorError.
-        """
-        current_dir: str = os.path.dirname(os.path.abspath(__file__))
-        relative_path: str = "../../config"
-        file_path = os.path.join(current_dir, relative_path, file_name)
-        # Check that the file exists in the given path
-        if os.path.isfile(file_path) == False:
-            raise SupervisorError(
-                "Could not find a file named {} in the following path:\n"
-                "{}\n"
-                "ModuleHandler object initialization failed!".format(file_name, file_path))
-        else:
-            rospy.loginfo(
-                "Found file: {}\n"
-                "File path:\n"
-                "{}".format(file_name, file_path))
-            return file_path
-
-    def __read_file(self, file_path: str) -> Dict[str, List[Dict[str, str]]]:
-        """
-        This method can raise a SupervisorError.
-        """
-        try:
-            with open(file_path, encoding="utf-8") as file:
-                module_dict = json.load(file)
-            return module_dict
-        except Exception as e:
-            raise SupervisorError(
-                "Failed to read and load the content of the .JSON file!\n"
-                "Error message: {}".format(e))
+        self.modules: List[Module] = self.__parse_dict(module_dict)
 
     def __parse_dict(self, modules_dict: Dict[str, List[Dict[str, str]]]) -> List[Module]:
         """
@@ -82,11 +57,62 @@ class ModuleHandler:
 
     # ------------------------------ Public Methods ------------------------------
 
-    def launch_all(self) -> None:
+    def load_json(self, file_path: str) -> Dict[str, List[Dict[str, str]]]:
+        """
+        Loads the content of a JSON file in a given path and saves it in a `Dict`.
+        :param file_path: `str`: path to the json file
+        
+        :returns: `Dict[str, List[Dict[str, str]]]`: dictionary of modules from the parsed JSON file
+        :raises: `HandlerError`: if JSON file loading fails
+        """
+        if os.path.isfile(file_path) == False:
+            raise HandlerError(
+                "Could not find a file with the following path:\n"
+                "{}\n"
+                "ModuleHandler object initialization failed!".format(file_path))
+        else:
+            rospy.loginfo(
+                "ModuleHandler located the file:\n"
+                "{}".format(file_path))
+        try:
+            with open(file_path, encoding="utf-8") as file:
+                module_dict = json.load(file)
+            return module_dict
+        except Exception as e:
+            raise HandlerError(
+                "Failed to read and load the content of the .JSON file!\n"
+                "Error message: {}".format(e))
+    
+    def launch_all(self, delay: int = 0) -> None:
+        """
+        Launches all modules in the module dictionary. An optional `int` delay can be
+        provided in seconds before the modules are launched. If delay is negative, the
+        modules are launched immediately.
+
+        :param delay: `int`: (optional) delay in seconds before modules are launched
+
+        :returns: `None`
+        :raises: `HandlerError`: if module fails to launch
+        """
+        if delay > 0:
+            rospy.loginfo(
+                "Launching modules after {} seconds.".format(delay))
+            rospy.sleep(5)
         for module in self.modules:
+            module_name = module.get_name()
+            rospy.loginfo(
+                "{} Module is launching..")
             try:
                 module.launch()
-            except SupervisorError as e:
-                module_name = module.get_name()
-                rospy.logerr("Failed to launch {} module.\n"
-                             "Error message: {}".format(module_name, e))
+                rospy.loginfo(
+                    "{} Module was successfully launched!".format(module_name))
+            except ModuleStatusError:
+                rospy.logwarn(
+                    "{} Module could not be launched because it is already running".format(module_name))
+            except ModuleLaunchError as e:
+                raise HandlerError(
+                    "{} Module failed to launch. Error message:\n"
+                    "{}".format(module_name, e))
+            
+    def shutdown_all(self) -> None:
+
