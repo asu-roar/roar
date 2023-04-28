@@ -1,0 +1,21 @@
+{
+    "autonomous_modules":
+    [
+        {
+            "name": "Autonomous Module Name",
+            "pkg": "supervisor",
+            "launch_file":"autonomous_test.launch",
+            "heartbeats_topic":"/status/autonomous"
+        }
+    ],
+
+    "manual_modules":
+    [
+        {
+            "name": "Manual Module Name",
+            "pkg": "supervisor",
+            "launch_file":"manual_test.launch",
+            "heartbeats_topic":"/status/manual"
+        }  
+    ]
+}
