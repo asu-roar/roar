@@ -25,64 +25,77 @@ class ModuleHandler:
 
     # ------------------------------ Private Methods ------------------------------
 
-    def __init__(self, relative_path: str, file_name: str) -> None:
+    def __init__(self, file_path: str) -> None:
         """
         ModuleHandlers allow you to launch, shutdown, and control modules loaded from a
         JSON file from a given path relative this module's path.
 
-        :param relative_path: `str`: path of the .JSON file relative to this module
-        :param file_name: `str`: name of the JSON file with the modules
+        :param file_path: `str`: absolute path to the .JSON file
 
         :returns: `None`
-        :raises: `HandlerError`
+        :raises: `HandlerInitError`: if JSON file loading fails
         """
+        # Initialize modules dictionary and list
+        self.modules_dict: Dict[str, List[Dict[str, str]]] = None
+        self.modules: List[Module] = None
         # Obtain and check path to the .json file (abs path)
-        file_path: str = self.__get_path(relative_path, file_name)
-        # Read modules from the file as type Dict
-        module_dict: Dict[
-            str, List[Dict[str, str]]] = self.__load_json(file_path)
-        # Create module objects from the modules in the file
-        self.modules: List[Module] = self.__parse_dict(module_dict)
+        self.__load_json(file_path)
 
-    def __parse_dict(self, modules_dict: Dict[str, List[Dict[str, str]]]) -> List[Module]:
-        """
-        Parses an input dictionary of modules and creates Module object.
-        Returns a list of created Module objects.
-        """
-        modules: List[Module] = None
-        for value in modules_dict["modules"]:
-            self.modules.append(
-                Module(value["name"], value["pkg"], value["launch_file"], value["heartbeats_topic"]))
-        return modules
-
-    # ------------------------------ Public Methods ------------------------------
-
-    def load_json(self, file_path: str) -> Dict[str, List[Dict[str, str]]]:
+    def __load_json(self, file_path: str) -> None:
         """
         Loads the content of a JSON file in a given path and saves it in a `Dict`.
-        :param file_path: `str`: path to the json file
+
+        :param file_path: `str`: absolute path to the json file
         
-        :returns: `Dict[str, List[Dict[str, str]]]`: dictionary of modules from the parsed JSON file
-        :raises: `HandlerError`: if JSON file loading fails
+        :returns: `None`
+        :raises: `HandlerInitError`: if JSON file loading fails
         """
         if os.path.isfile(file_path) == False:
-            raise HandlerError(
+            raise HandlerInitError(
                 "Could not find a file with the following path:\n"
                 "{}\n"
                 "ModuleHandler object initialization failed!".format(file_path))
-        else:
-            rospy.loginfo(
-                "ModuleHandler located the file:\n"
-                "{}".format(file_path))
         try:
             with open(file_path, encoding="utf-8") as file:
-                module_dict = json.load(file)
-            return module_dict
+                self.modules_dict = json.load(file)
+                if self.modules_dict is None:
+                    raise HandlerInitError(
+                        "Failed to create a modules dictionary from the contents of the JSON file!")
+                rospy.loginfo(
+                    "ModuleHandler located and loaded the file:\n"
+                    "{}".format(file_path))
         except Exception as e:
-            raise HandlerError(
+            raise HandlerInitError(
                 "Failed to read and load the content of the .JSON file!\n"
                 "Error message: {}".format(e))
-    
+
+    # ------------------------------ Public Methods ------------------------------
+        
+    def select_key(self, module_key: str) -> None:
+        """
+        Parses a list of dictionaries of modules for the given key value and creates a
+        Module object for each module. The module objects are all appended to an empty
+        list.
+
+        :param module_key: `str`: key of the requred list of module dictionaries
+
+        :returns: `None`
+        :raises: `HandlerInitError`: if the selected key contained no modules.
+        """
+        for module in self.modules:
+            module_status = module.get_status()
+            if module_status.status != module_status.OFFLINE:
+                raise Handler Error("Mode switch failed because not all modules were OFFLINE!")
+            
+        self.modules: List[Module] = []
+        for value in self.modules_dict[module_key]:
+            try:
+                self.modules.append(
+                    Module(value["name"], value["pkg"], value["launch_file"], value["heartbeats_topic"]))
+            except TypeError as e:
+                raise HandlerInitError("")
+        
+
     def launch_all(self, delay: int = 0) -> None:
         """
         Launches all modules in the module dictionary. An optional `int` delay can be
