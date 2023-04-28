@@ -1,0 +1,17 @@
+<launch>
+  <!-- Launch Gazebo -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="paused" value="false"/>
+    <arg name="use_sim_time" value="true"/>
+    <arg name="gui" value="true"/>
+    <arg name="headless" value="false"/>
+    <arg name="debug" value="false"/>
+  </include>
+
+  <!-- Load URDF model -->
+  <param name="robot_description" command="cat $(find roar_half_sus_description)/urdf/roar_half_sus_description.urdf"/>
+
+  <!-- Spawn robot in Gazebo -->
+  <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-urdf -model my_model -param robot_description -x 0 -y 0 -z 1"/>
+
+</launch>

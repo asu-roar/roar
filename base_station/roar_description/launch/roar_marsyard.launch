@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<launch>
-  <!-- Set the path to the world file -->
-  <arg name="world_file" default="$(find roar_description)/worlds/roar_marsyard.world"/>
-
-  <!-- Launch Gazebo with the specified world file -->
-  <node name="gazebo" pkg="gazebo_ros" type="gazebo" args="-s libgazebo_ros_init.so $(arg world_file)" respawn="false" output="screen"/>
-</launch>

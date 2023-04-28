@@ -1,0 +1,652 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com) 
+     Commit Version: 1.6.0-4-g7f85cfe  Build Version: 1.6.7995.38578
+     For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
+<robot
+  name="roar_half_sus_description">
+  <link
+    name="base_link">
+    <inertial>
+      <origin
+        xyz="0.63943989864197 0.21159252516643 0.11072637052086"
+        rpy="0 0 0" />
+      <mass
+        value="10.3680124295094" />
+      <inertia
+        ixx="0.0528250367677209"
+        ixy="-6.76687831454814E-06"
+        ixz="0.000283100286370245"
+        iyy="0.0908828071375109"
+        iyz="0.00115875984356573"
+        izz="0.0532438096715966" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://roar_half_sus_description/meshes/base_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://roar_half_sus_description/meshes/base_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <link
+    name="rocker_rhs">
+    <inertial>
+      <origin
+        xyz="0.131115408774191 -0.262565278318047 -0.347598485550029"
+        rpy="0 0 0" />
+      <mass
+        value="1.55415245189339" />
+      <inertia
+        ixx="0.00469688806119508"
+        ixy="-4.75066357212464E-05"
+        ixz="-6.63077736578025E-05"
+        iyy="0.00423596200810898"
+        iyz="-0.00126576919537019"
+        izz="0.00312774605369064" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://roar_half_sus_description/meshes/rocker_rhs.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://roar_half_sus_description/meshes/rocker_rhs.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="rocker_rhs_joint"
+    type="continuous">
+    <origin
+      xyz="0.155185537041214 -0.184563975751286 0.205488319881196"
+      rpy="1.59483532922579 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="rocker_rhs" />
+    <axis
+      xyz="1 0 0" />
+  </joint>
+  <link
+    name="bogie_rhs">
+    <inertial>
+      <origin
+        xyz="0.119070117211604 -0.14701039637998 0.00428618478986914"
+        rpy="0 0 0" />
+      <mass
+        value="2.56788752677777" />
+      <inertia
+        ixx="0.00354223475882696"
+        ixy="-9.37079105531918E-05"
+        ixz="3.07031926424457E-06"
+        iyy="0.00445720497043528"
+        iyz="-9.23136672302244E-06"
+        izz="0.00417625950740417" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://roar_half_sus_description/meshes/bogie_rhs.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://roar_half_sus_description/meshes/bogie_rhs.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="bogie_rhs_joint"
+    type="continuous">
+    <origin
+      xyz="0 -0.159359573468074 0.230227119045658"
+      rpy="0.00791825196663619 0 0" />
+    <parent
+      link="rocker_rhs" />
+    <child
+      link="bogie_rhs" />
+    <axis
+      xyz="1 0 0" />
+  </joint>
+  <link
+    name="wheel_rhs_mid">
+    <inertial>
+      <origin
+        xyz="-1.38777878078145E-15 -0.000310098538666564 -0.0600061613680272"
+        rpy="0 0 0" />
+      <mass
+        value="1.5976653768916" />
+      <inertia
+        ixx="0.00836783341696589"
+        ixy="8.45677694538693E-18"
+        ixz="-6.01696556546763E-16"
+        iyy="0.00836775197998547"
+        iyz="-6.24409726439607E-14"
+        izz="0.0132446797996261" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://roar_half_sus_description/meshes/wheel_rhs_mid.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.298039215686275 0.298039215686275 0.298039215686275 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://roar_half_sus_description/meshes/wheel_rhs_mid.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="wheel_rhs_mid_joint"
+    type="continuous">
+    <origin
+      xyz="0.0149938388979721 -0.168040322890301 -0.223969764917061"
+      rpy="-1.57079632679473 -1.55435634248108 1.57079632679473" />
+    <parent
+      link="bogie_rhs" />
+    <child
+      link="wheel_rhs_mid" />
+    <axis
+      xyz="0 0 1" />
+    <limit effort="10" velocity="0.0"  />
+  </joint>
+  <link
+    name="wheel_rhs_front">
+    <inertial>
+      <origin
+        xyz="2.55351295663786E-15 -0.000305735305073176 -0.0617344149234702"
+        rpy="0 0 0" />
+      <mass
+        value="1.55166626304695" />
+      <inertia
+        ixx="0.00800333368012876"
+        ixy="-1.8550699171227E-16"
+        ixz="1.12002497471801E-16"
+        iyy="0.00800325326915848"
+        iyz="2.69520314354652E-12"
+        izz="0.0125934306153834" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://roar_half_sus_description/meshes/wheel_rhs_front.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.298039215686275 0.298039215686275 0.298039215686275 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://roar_half_sus_description/meshes/wheel_rhs_front.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="wheel_rhs_front_joint"
+    type="continuous">
+    <origin
+      xyz="0.0132607736164887 -0.152989560052285 0.234508422512043"
+      rpy="1.57079632679488 -1.3957417720161 -1.57079632679488" />
+    <parent
+      link="bogie_rhs" />
+    <child
+      link="wheel_rhs_front" />
+    <axis
+      xyz="0 0 1" />
+    <limit effort="10" velocity="0.0"  />
+  </joint>
+  <link
+    name="wheel_rhs_rear">
+    <inertial>
+      <origin
+        xyz="-6.0507154842071E-15 -0.000151545638864575 0.0600156448463669"
+        rpy="0 0 0" />
+      <mass
+        value="1.55167119278224" />
+      <inertia
+        ixx="0.00800323403290154"
+        ixy="4.01125857932796E-17"
+        ixz="2.86073644668547E-17"
+        iyy="0.00800315362181799"
+        iyz="-1.0971286119944E-10"
+        izz="0.0125935069824426" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://roar_half_sus_description/meshes/wheel_rhs_rear.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.298039215686275 0.298039215686275 0.298039215686275 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://roar_half_sus_description/meshes/wheel_rhs_rear.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="wheel_rhs_rear_joint"
+    type="continuous">
+    <origin
+      xyz="0.0149848217212075 -0.323677087326026 -0.456982663312621"
+      rpy="1.5707963267949 -1.546757324364 1.5707963267949" />
+    <parent
+      link="rocker_rhs" />
+    <child
+      link="wheel_rhs_rear" />
+    <axis
+      xyz="0 0 1" />
+    <limit effort="10" velocity="0.0"  />
+  </joint>
+  <link
+    name="rocker_lhs">
+    <inertial>
+      <origin
+        xyz="0.12885348497371 -0.1989082426045 -0.47415961343587"
+        rpy="0 0 0" />
+      <mass
+        value="1.55450622737338" />
+      <inertia
+        ixx="0.00469693111235935"
+        ixy="4.68499299637266E-05"
+        ixz="6.67737422315479E-05"
+        iyy="0.00426118801358878"
+        iyz="-0.00125443776321772"
+        izz="0.00310258327568744" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://roar_half_sus_description/meshes/rocker_lhs.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://roar_half_sus_description/meshes/rocker_lhs.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="rocker_lhs_joint"
+    type="fixed">
+    <origin
+      xyz="0.874180737041214 -0.307380090506195 0.142724014288691"
+      rpy="1.59317787957346 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="rocker_lhs" />
+    <axis
+      xyz="1 0 0" />
+  </joint>
+  <link
+    name="bogie_lhs">
+    <inertial>
+      <origin
+        xyz="-0.1217798826079 -0.147010396037949 0.00428618491480642"
+        rpy="0 0 0" />
+      <mass
+        value="2.56788752935001" />
+      <inertia
+        ixx="0.00354223473985085"
+        ixy="-9.37079103258711E-05"
+        ixz="3.07032095509077E-06"
+        iyy="0.00445720495271205"
+        iyz="-9.23137032314804E-06"
+        izz="0.00417625950536325" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://roar_half_sus_description/meshes/bogie_lhs.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://roar_half_sus_description/meshes/bogie_lhs.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="bogie_lhs_joint"
+    type="continuous">
+    <origin
+      xyz="0.0191451999999956 -0.101653502558275 0.104432276059536"
+      rpy="-3.103409507382 0 3.14159265358979" />
+    <parent
+      link="rocker_lhs" />
+    <child
+      link="bogie_lhs" />
+    <axis
+      xyz="1 0 0" />
+  </joint>
+  <link
+    name="wheel_lhs_mid">
+    <inertial>
+      <origin
+        xyz="-1.83186799063151E-15 0.000310098538666911 0.0600061613680263"
+        rpy="0 0 0" />
+      <mass
+        value="1.59766537689161" />
+      <inertia
+        ixx="0.008367833416966"
+        ixy="1.17678982904312E-16"
+        ixz="-2.22334282025249E-16"
+        iyy="0.0083677519799858"
+        iyz="-6.25361870639396E-14"
+        izz="0.0132446797996262" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://roar_half_sus_description/meshes/wheel_lhs_mid.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.298039215686275 0.298039215686275 0.298039215686275 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://roar_half_sus_description/meshes/wheel_lhs_mid.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="wheel_lhs_mid_joint"
+    type="continuous">
+    <origin
+      xyz="-0.105848638897971 -0.152989560052285 0.234508422512043"
+      rpy="1.5707963267949 1.55499473336566 -1.5707963267949" />
+    <parent
+      link="bogie_lhs" />
+    <child
+      link="wheel_lhs_mid" />
+    <axis
+      xyz="0 0 1" />
+    <limit effort="10" velocity="0.0"  />
+  </joint>
+  <link
+    name="wheel_lhs_front">
+    <inertial>
+      <origin
+        xyz="1.4432899320127E-15 0.00030573578654422 0.060015644846366"
+        rpy="0 0 0" />
+      <mass
+        value="1.55167119278225" />
+      <inertia
+        ixx="0.00800323403290164"
+        ixy="1.73638670708297E-16"
+        ixz="-3.54866080079385E-17"
+        iyy="0.00800315362181801"
+        iyz="-1.09712840947738E-10"
+        izz="0.0125935069824428" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://roar_half_sus_description/meshes/wheel_lhs_front.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.298039215686275 0.298039215686275 0.298039215686275 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://roar_half_sus_description/meshes/wheel_lhs_front.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="wheel_lhs_front_joint"
+    type="continuous">
+    <origin
+      xyz="-0.105834821721208 -0.168040322890301 -0.223969764917061"
+      rpy="1.5707963267949 1.55499473336566 -1.5707963267949" />
+    <parent
+      link="bogie_lhs" />
+    <child
+      link="wheel_lhs_front" />
+    <axis
+      xyz="0 0 1" />
+    <limit effort="10" velocity="0.0"  />
+  </joint>
+  <link
+    name="wheel_lhs_rear">
+    <inertial>
+      <origin
+        xyz="-4.38538094726937E-15 0.000305735305075577 0.0617344149234689"
+        rpy="0 0 0" />
+      <mass
+        value="1.55166626304695" />
+      <inertia
+        ixx="0.00800333368012839"
+        ixy="1.93828235580088E-16"
+        ixz="2.60964198063801E-16"
+        iyy="0.00800325326915786"
+        iyz="2.6945109352869E-12"
+        izz="0.0125934306153828" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://roar_half_sus_description/meshes/wheel_lhs_rear.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.298039215686275 0.298039215686275 0.298039215686275 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://roar_half_sus_description/meshes/wheel_lhs_rear.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="wheel_lhs_rear_joint"
+    type="continuous">
+    <origin
+      xyz="0.123265573616483 -0.259091829106825 -0.584386062592258"
+      rpy="1.5707963267949 -1.54841477401632 1.5707963267949" />
+    <parent
+      link="rocker_lhs" />
+    <child
+      link="wheel_lhs_rear" />
+    <axis
+      xyz="0 0 1" />
+    <limit effort="10" velocity="0.0"  />
+  </joint>
+
+  <!-- ROS Control plugin for Gazebo-->
+  <gazebo>
+    <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+      <robotNamespace>/roar</robotNamespace>
+    </plugin>
+  </gazebo>
+  
+  <!--transmission-->
+  <transmission name="wheel_lhs_front_transmission">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="wheel_lhs_front_joint">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="wheel_lhs_front_motor">
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+
+  <transmission name="wheel_lhs_mid_transmission">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="wheel_lhs_mid_joint">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="wheel_lhs_mid_motor">
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+
+  <transmission name="wheel_lhs_rear_transmission">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="wheel_lhs_rear_joint">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="wheel_lhs_rear_motor">
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+
+  <transmission name="wheel_rhs_front_transmission">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="wheel_rhs_front_joint">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="wheel_rhs_front_motor">
+      <mechanicalReduction>-1</mechanicalReduction>
+    </actuator>
+  </transmission>
+
+  <transmission name="wheel_rhs_mid_transmission">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="wheel_rhs_mid_joint">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="wheel_rhs_mid_motor">
+      <mechanicalReduction>-1</mechanicalReduction>
+    </actuator>
+  </transmission>
+
+  <transmission name="wheel_rhs_rear_transmission">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="wheel_rhs_rear_joint">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="wheel_rhs_rear_motor">
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+
+</robot>
