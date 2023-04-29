@@ -2,33 +2,33 @@ roar:
   # Publish all joint states -----------------------------------
   joint_state_controller:
     type: joint_state_controller/JointStateController
-    publish_rate: 50  
+    publish_rate: 10  
 
   # Velocity Controllers ---------------------------------------
   wheel_lhs_front_velocity_controller:
-    type: effort_controllers/JointVelocityController
+    type: velocity_controllers/JointVelocityController
     joint: wheel_lhs_front_joint
-    pid: {p: 100.0, i: 0.01, d: 10.0}
+    
   wheel_lhs_mid_velocity_controller:
-    type: effort_controllers/JointVelocityController
+    type: velocity_controllers/JointVelocityController
     joint: wheel_lhs_mid_joint
-    pid: {p: 100.0, i: 0.01, d: 10.0}
+    
   wheel_lhs_rear_velocity_controller:
-    type: effort_controllers/JointVelocityController
+    type: velocity_controllers/JointVelocityController
     joint: wheel_lhs_rear_joint
-    pid: {p: 100.0, i: 0.01, d: 10.0}
+    
   wheel_rhs_front_velocity_controller:
-    type: effort_controllers/JointVelocityController
+    type: velocity_controllers/JointVelocityController
     joint: wheel_rhs_front_joint
-    pid: {p: 100.0, i: 0.01, d: 10.0}
+    
   wheel_rhs_mid_velocity_controller:
-    type: effort_controllers/JointVelocityController
+    type: velocity_controllers/JointVelocityController
     joint: wheel_rhs_mid_joint
-    pid: {p: 100.0, i: 0.01, d: 10.0}
+    
   wheel_rhs_rear_velocity_controller:
-    type: effort_controllers/JointVelocityController
+    type: velocity_controllers/JointVelocityController
     joint: wheel_rhs_rear_joint
-    pid: {p: 100.0, i: 0.01, d: 10.0}
+    
 
   # roar:
 #   # Publish all joint states -----------------------------------

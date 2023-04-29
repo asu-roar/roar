@@ -1,0 +1,1 @@
+controller_joint_names: ['', 'rocker_rhs_joint', 'bogie_rhs_joint', 'wheel_rhs_mid_joint', 'wheel_rhs_front_joint', 'wheel_rhs_rear_joint', 'rocker_lhs_joint', 'bogie_lhs_joint', 'wheel_lhs_mid_joint', 'wheel_lhs_front_joint', 'wheel_lhs_rear_joint', ]
