@@ -15,7 +15,7 @@
   <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-urdf -model my_model -param robot_description -x 0 -y 0 -z 1"/>
 
   <!-- Spawn controllers -->
-  <include file="$(find roar_half_sus_description)/launch/spawn_controllers.launch">
+  <include file="$(find roar_gazebo)/launch/spawn_controllers.launch">
     <!-- <arg name="robot_ns" value="$(arg robot_ns)" /> -->
   </include>
 

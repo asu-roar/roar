@@ -1,0 +1,10 @@
+/roar:
+  gazebo_ros_control:
+    pid_gains:
+      wheel_lhs_front_joint: {p: 1.0, i: 3.0, d: 0.0, i_clamp: 2.0}
+      wheel_lhs_mid_joint: {p: 1.0, i: 3.0, d: 0.0, i_clamp: 2.0}
+      wheel_lhs_rear_joint: {p: 1.0, i: 3.0, d: 0.0, i_clamp: 2.0}
+      wheel_rhs_front_joint: {p: 1.0, i: 3.0, d: 0.0, i_clamp: 2.0}
+      wheel_rhs_mid_joint: {p: 1.0, i: 3.0, d: 0.0, i_clamp: 2.0}
+      wheel_rhs_rear_joint: {p: 1.0, i: 3.0, d: 0.0, i_clamp: 2.0}
+

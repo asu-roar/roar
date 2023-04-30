@@ -1,6 +1,6 @@
 <launch>
 
-  <include file="$(find roar_half_sus_description)/launch/roar_gazebo.launch"
+  <include file="$(find roar_gazebo)/launch/roar_gazebo.launch"
     pass_all_args="true">
     <arg name="world_name" value="$(find leo_gazebo_worlds)/worlds/marsyard2022.world" />
     <arg name="x" value="-17.003807" />

@@ -18,7 +18,7 @@
     <arg name="verbose" value="$(arg verbose)"/>
   </include>
 
-  <include file="$(find roar_half_sus_description)/launch/spawn_rover.launch"
+  <include file="$(find roar_gazebo)/launch/spawn_rover.launch"
            pass_all_args="true"/>
 
 </launch>
