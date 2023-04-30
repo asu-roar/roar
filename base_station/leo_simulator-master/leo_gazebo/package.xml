@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>leo_gazebo</name>
+  <version>1.1.0</version>
+  <description>
+    Launch files and other resources for simulating Leo Rover in Gazebo.
+  </description>
+
+  <maintainer email="support@fictionlab.pl">Fictionlab</maintainer>
+  <author email="blazej@fictionlab.pl">Błażej Sowa</author>
+
+  <license>MIT</license>
+
+  <url type="website">http://wiki.ros.org/leo_gazebo</url>
+  <url type="bugtracker">https://github.com/LeoRover/leo_simulator/issues</url>
+  <url type="repository">https://github.com/LeoRover/leo_simulator</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <exec_depend>gazebo_ros</exec_depend>
+  <exec_depend>controller_manager</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>gazebo_ros_control</exec_depend>
+  <exec_depend>gazebo_plugins</exec_depend>
+  <exec_depend>joint_state_controller</exec_depend>
+  <exec_depend>diff_drive_controller</exec_depend>
+  <exec_depend>topic_tools</exec_depend>
+  <exec_depend>compressed_image_transport</exec_depend>
+
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>nav_msgs</exec_depend>
+
+  <exec_depend>leo_description</exec_depend>
+  <exec_depend>leo_gazebo_plugins</exec_depend>
+  <exec_depend>leo_gazebo_worlds</exec_depend>
+ 
+</package>
