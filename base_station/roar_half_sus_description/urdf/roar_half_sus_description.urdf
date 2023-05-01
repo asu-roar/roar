@@ -9,7 +9,7 @@
     <inertial>
       <origin
         xyz="0.628154468741611 0.22696721067361 0.102881142020051"
-        rpy="0 0 0" />
+        rpy="0 1.5708 0" />
       <mass
         value="10.4781846932198" />
       <inertia
@@ -355,7 +355,7 @@
   </link>
   <joint
     name="rocker_lhs_joint"
-    type="continuous">
+    type="fixed">
     <origin
       xyz="0.87735 -0.17534 0.22095"
       rpy="1.5932 0 0" />

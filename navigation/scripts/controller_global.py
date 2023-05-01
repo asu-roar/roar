@@ -1,137 +1,137 @@
 import rospy
 import math
 from gazebo_msgs.msg import ModelStates
-from geometry_msgs.msg import Twist
-from nav_msgs.msg import Odometry, Path
+from std_msgs.msg import Float64
+from nav_msgs.msg import Path
+from geometry_msgs.msg import Point, PoseStamped
 from tf.transformations import euler_from_quaternion
 
 
 class Handler:
 
-    def __init__(self):
-
-        self.path_list=[]
-
+    def __init__(self) -> None:
         # Node and rate initialization
         rospy.init_node("controller_node")
-        self.rate = rospy.Rate(10)
-
+        self.rate = rospy.Rate(5)
+        self.wait_rate = rospy.Rate(1)
+        # Initialize variables
+        self.velocity: float= 0.4
+        self.lookahead_dist: float = 1.0
+        self.orientation_threshold: float = 10.0
+        self.path: Path = None
+        self.position: Point = None
+        self.orientation: float = None
+        self.target_position: Point = None
         # Publishers
-        #self.speeds_pub = rospy.Publisher("/cmd_vel", Twist, queue_size= 10)
-
+        self.wheel_lhs_front_velocity_pub = rospy.Publisher("/roar/wheel_lhs_front_velocity_controller/command", Float64, queue_size= 10)
+        self.wheel_lhs_mid_velocity_pub = rospy.Publisher("/roar/wheel_lhs_mid_velocity_controller/command", Float64, queue_size= 10)
+        self.wheel_lhs_rear_velocity_pub = rospy.Publisher("/roar/wheel_lhs_rear_velocity_controller/command", Float64, queue_size= 10)
+        self.wheel_rhs_front_velocity_pub = rospy.Publisher("/roar/wheel_rhs_front_velocity_controller/command", Float64, queue_size= 10)
+        self.wheel_rhs_mid_velocity_pub = rospy.Publisher("/roar/wheel_rhs_mid_velocity_controller/command", Float64, queue_size= 10)
+        self.wheel_rhs_rear_velocity_pub = rospy.Publisher("/roar/wheel_rhs_rear_velocity_controller/command", Float64, queue_size= 10)
+        self.right_pub_list = [self.wheel_rhs_front_velocity_pub, self.wheel_rhs_mid_velocity_pub, self.wheel_rhs_rear_velocity_pub]
+        self.left_pub_list = [self.wheel_lhs_front_velocity_pub, self.wheel_lhs_mid_velocity_pub, self.wheel_lhs_rear_velocity_pub]
         # Subscribers
-        #rospy.Subscriber("/gazebo/model_states", ModelStates, self.model_states_callback)
+        rospy.Subscriber("/gazebo/model_states", ModelStates, self.pose_callback)
         rospy.Subscriber("/path", Path,  self.path_callback)
+        # Loop
+        self.wait()
+        self.controller()
 
-        
-        
-        # # Control parameters
-        # self.lookahead_distance = 1
-        # self.orientation_threshold = 7
+    def path_callback(self, rec_path: Path) -> None:
+        self.path = rec_path
 
-        # self.roar_pose = None
-        # self.roar_orientation = None
+    def pose_callback(self, rec_msg: ModelStates) -> None:
+        self.orientation = math.degrees(euler_from_quaternion([rec_msg.pose[1].orientation.x, 
+                                                               rec_msg.pose[1].orientation.y, 
+                                                               rec_msg.pose[1].orientation.z, 
+                                                               rec_msg.pose[1].orientation.w])[2]) - 90
+        self.position = rec_msg.pose[1].position
 
-        
-        # # Path information
-        # # Path given globally
-        # self.global_path = None
-        # self.path = []
-        # self.goal = None
-        # # Wait for odometry and path information
-        # rospy.loginfo("Waiting for odometry and path information")
-        # self.wait()
-        # # Run the main loop after receiving odometry and path information
-        # rospy.loginfo("Received odometry and path information")
-        # self.controller()
-        
-    # def wait(self):
-    #     while not rospy.is_shutdown():
-    #         if self.position is not None:
-    #             if self.global_path is not None:
-    #                 break
-    #             # rospy.logwarn("No path received yet!")
-    #         # elif self.global_path is not None:
-    #             # rospy.logwarn("No odometry received yet!")
-    #         # else:
-    #             # rospy.logwarn("No path and odometry received yet!")
-    #         self.rate.sleep()
+    def move_forward(self) -> None:
+        msg = Float64()
+        msg.data = self.velocity
+        for pub in self.right_pub_list:
+            pub.publish(msg)
+        for pub in self.left_pub_list:
+            pub.publish(msg)
 
-    # def model_states_callback(self, msg):
-    #     index = msg.name.index("roar")
-    #     pose = msg.pose[index]
-    #     orientation = pose.orientation
-    #     self.roar_pose = (pose.position.x, pose.position.y, pose.position.z)
-    #     self.roar_orientation = (orientation.x, orientation.y, orientation.z, orientation.w)
-    #     print("Robot pose: x={}, y={}, z={}, roll={}, pitch={}, yaw={}".format(
-    #         self.robot_pose[0], self.robot_pose[1], self.robot_pose[2],
-    #         self.robot_orientation[0], self.robot_orientation[1], self.robot_orientation[2]))
+    def turn_right(self) -> None:
+        msg_right = Float64()
+        msg_left = Float64()
+        msg_right.data = -self.velocity
+        msg_left.data = self.velocity
+        for pub in self.right_pub_list:
+            pub.publish(msg_right)
+        for pub in self.left_pub_list:
+            pub.publish(msg_left)
+      
+    def turn_left(self) -> None:
+        msg_right = Float64()
+        msg_left = Float64()
+        msg_right.data = self.velocity
+        msg_left.data = -self.velocity
+        for pub in self.right_pub_list:
+            pub.publish(msg_right)
+        for pub in self.left_pub_list:
+            pub.publish(msg_left)
     
-    # def callback(self,rec_msg):
-    #     # Get orientation around the Z-axis (yaw angle)
-    #     self.orientation = math.degrees(euler_from_quaternion([rec_msg.pose.pose.orientation.x, 
-    #                                                            rec_msg.pose.pose.orientation.y, 
-    #                                                            rec_msg.pose.pose.orientation.z, 
-    #                                                            rec_msg.pose.pose.orientation.w
-    #                                                            ])
-    #                                                            [2])
-    #     # rospy.loginfo("Current orientation in degrees:\n{}"
-    #     #              .format(self.orientation))
-    #     self.position = rec_msg.pose.pose.position
+    def stop(self) -> None:
+        for pub in self.right_pub_list:
+            pub.publish(Float64())
+        for pub in self.left_pub_list:
+            pub.publish(Float64())
 
-    def path_callback(self, path_msg):
-        path = []
-        for pose_stamped in path_msg.poses:
-            x = pose_stamped.pose.position.x
-            y = pose_stamped.pose.position.y
-            path.append([x, y])
-        self.path_list = [path]  # set the list of paths to contain only the new path
-        print("Received new path:")
-        print(self.path_list)  # print the list of paths to the console
+    def wait(self) -> None:
+        while not rospy.is_shutdown():
+            if (self.position is not None) and (self.orientation is not None) and (self.path is not None):
+                break
+            rospy.logwarn("No path or pose received yet!")
+            self.wait_rate.sleep()
 
-    # def controller(self):
-    #     while not rospy.is_shutdown():
-    #         self.msg = Twist()
-    #         for pose in self.global_path[:]:
-    #             self.path.append(pose.pose.position-self.position)
-    #         for point in self.path[:]:
-    #             if math.sqrt((point[0]*point[0])+(point[1]*point[1])) > self.lookahead_distance:
-    #                 self.goal = point
-    #                 rospy.loginfo("Heading to:\n{}"
-    #                             .format(self.goal))
-    #                 break
-    #             else:
-    #                 self.path.remove(point)
-    #         rospy.loginfo("Path:\n{}"
-    #                     .format(self.path))
-    #         if len(self.path) > 0:
-    #             # Goal orientation from -180 to 180 degrees
-    #             self.goal_orientation = math.degrees(math.atan2(self.goal[1], self.goal[0]))
-    #             # rospy.loginfo("Goal orientation:\n{}"
-    #             #              .format(self.goal_orientation))
-    #             # Check if error in rover orientation wrt to goal is bigger than threshold
-    #             if abs(self.goal_orientation-self.orientation) > self.orientation_threshold:
-    #                 if math.sin(math.radians(self.goal_orientation - self.orientation)) > 0:
-    #                     self.msg.angular.z = 0.5
-    #                 else:
-    #                     self.msg.angular.z = -0.5
-    #             else:
-    #                 self.msg.angular.z = 0
-    #                 self.msg.linear.x = 1
-    #             self.speeds_pub.publish(self.msg)
-    #         else:
-    #             rospy.loginfo("Waypoint reached!")
-    #         self.rate.sleep()
+    def filter_path(self) -> None:
+        for pose in self.path.poses:
+            if (((pose.pose.position.x-self.position.x) ** 2 + (pose.pose.position.y-self.position.y) ** 2) > self.lookahead_dist):
+                self.target_position = pose.pose.position
+                return
+        self.target_position = None
 
-    
-
-
+    def controller(self) -> None:
+        while not rospy.is_shutdown():
+            self.filter_path()
+            # position_to_target = None
+            if self.target_position is not None:
+                rospy.loginfo(
+                    "Heading towards point:\n{}".format(self.target_position))
+                rospy.loginfo(
+                    "Current position:\n{}".format(self.position))
+                rospy.loginfo(
+                    "Current orientation:\n{}".format(self.orientation))
+                # position_to_target = ((self.target_position.x - self.position.x)**2) + ((self.target_position.y - self.position.y )**2)
+                # rospy.loginfo(
+                #     "position to target:\n{}".format(self.position_to_target))
+                # self.target_position.x = self.target_position.x - self.position.x
+                # self.target_position.y = self.target_position.y - self.position.y
+                orientation_to_target = math.degrees(math.atan2(self.target_position.y, self.target_position.x)) - self.orientation
+                rospy.loginfo("orientation to target: {}".format(orientation_to_target))
+                # Check if error in rover orientation wrt to goal is bigger than threshold
+                if abs(orientation_to_target) > self.orientation_threshold:
+                    if (orientation_to_target) > 0:
+                        self.turn_left()
+                    else:
+                        self.turn_right()
+                else:
+                    self.move_forward()
+            else:
+                rospy.loginfo(
+                    "Waypoint reached! current rover position:\n{}".format(self.position))
+                self.stop()
+            self.rate.sleep()
 
 
 if __name__ == '__main__':
-    # Create an instance of the Handler class and keep it alive
-    handler = Handler()
-    rospy.spin()
-
-    # This line will not be reached until the node is shut down
-    rospy.logerr("controller_node terminated!")
+    try:
+        Handler()
+    except rospy.ROSInterruptException():
+        rospy.loginfo("controller node terminated!")
+        pass
