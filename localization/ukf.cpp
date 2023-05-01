@@ -11,7 +11,7 @@ using Eigen::VectorXd;
 using namespace std::chrono;
 
 std::vector<float> Vel_arr = {10, 10, 10, 10, 10, 10};
-std::vector<float> IMU_arr = {3.14/4, 0};                                                                                    // omega and theta absoulute respectively
+std::vector<float> IMU_arr = {M_PI/2, 0};                                                                                    // omega and theta absoulute respectively
 std::vector<float> CAM_arr;
 auto time_start = high_resolution_clock::now(); 
 auto time_stop = high_resolution_clock::now();
@@ -156,7 +156,6 @@ void PredictIMU(float IMU_arr, VectorXd* z_pred_out, MatrixXd* Zsig_out, MatrixX
 {
   int size = 3;
   int size_aug = 5;
-  double lambda = 3 - size_aug;
   int size_z = 1;
   MatrixXd Zsig = MatrixXd(size_z, 2 * size_aug + 1);
   VectorXd z_pred = VectorXd(size_z);  
@@ -188,20 +187,29 @@ void PredictIMU(float IMU_arr, VectorXd* z_pred_out, MatrixXd* Zsig_out, MatrixX
   *z_pred_out = z_pred;
   *S_out = S;
   *Zsig_out = Zsig;
+  //std::cout << "Zsig is" << std::endl;
+  //std::cout << *Zsig_out << std::endl;
 }
 
 
 void Estimate(float IMU_arr, MatrixXd Xsig_pred, VectorXd z_pred, MatrixXd Zsig, MatrixXd S, Eigen::Vector3d* position, Eigen::Matrix3d* covariance, VectorXd weights, MatrixXd position_pred, MatrixXd covariance_pred)                                                                                                              // estimation function (where we update prediction readings using IMU)
 {
+  //ROS_INFO("i have entered the estimation function");
   int size = 3;
   int size_aug = 5;
   int size_z = 1; 
   MatrixXd Tc = MatrixXd(size, size_z);
   MatrixXd K = MatrixXd(size,2*size_aug + 1);
   Tc.fill(0.0);
+  //ROS_INFO("zsig in estimate func is");
+  //std::cout << Zsig << std::endl;
+  //ROS_INFO("zpred in estimate func is");
+  //std::cout << z_pred << std::endl;
   for (int i = 0; i < 2 * size_aug + 1; ++i) 
   {
     VectorXd z_diff = Zsig.col(i) - z_pred;
+    //ROS_INFO("zsig in estimate func loop is");
+    //std::cout << Zsig.col(i) << std::endl;
     while (z_diff(0)> M_PI) z_diff(0)-=2.*M_PI;
     while (z_diff(0)<-M_PI) z_diff(0)+=2.*M_PI;
     VectorXd x_diff = Xsig_pred.col(i) - position_pred;
@@ -209,13 +217,13 @@ void Estimate(float IMU_arr, MatrixXd Xsig_pred, VectorXd z_pred, MatrixXd Zsig,
     while (x_diff(2)<-M_PI) x_diff(2)+=2.*M_PI;
     Tc = Tc + weights(i) * x_diff * z_diff.transpose();
   }
-  std::cout << "TC is" << std::endl;
-  std::cout << Tc << std::endl;
-  std::cout << "S is" << std::endl;
-  std::cout << S << std::endl;
+  //std::cout << "TC is" << std::endl;
+  //std::cout << Tc << std::endl;
+  //std::cout << "S is" << std::endl;
+  //std::cout << S << std::endl;
   K = Tc * S.inverse();
-  std::cout << "kalman gain is" << std::endl;
-  std::cout << K << std::endl;
+  //std::cout << "kalman gain is" << std::endl;
+  //std::cout << K << std::endl;
   MatrixXd IMU_vec = MatrixXd(1,1);
   VectorXd z_diff = IMU_vec - z_pred;
   while (z_diff(0)> M_PI) z_diff(0)-=2.*M_PI;
@@ -238,13 +246,13 @@ int main(int argc, char *argv[])                                                
   MatrixXd Xsig_aug;
   Eigen::Vector3d position;
   Eigen::Matrix3d covariance;
-  position << 40, 10, 3.14/4;
+  position << 40, 10, M_PI/2;
   covariance << 1, 0, 0, 
                 0, 1, 0,
                 0, 0, 1000;
   VectorXd z_pred;
   MatrixXd S;
-  MatrixXd Zsig;
+  Eigen::MatrixXd Zsig = MatrixXd(1,11);
   MatrixXd prediction;
   MatrixXd pred_cov;
   VectorXd weights;
@@ -267,14 +275,14 @@ int main(int argc, char *argv[])                                                
 
   while (ros::ok())                                                                                                          // while (1) loop
   {
-    //ros::spinOnce();
-    //while (IMU_arr != IMU_arr_old)
-    //{
+    ros::spinOnce();
+    while (IMU_arr != IMU_arr_old)
+    {
       sigma_points(position, covariance, &Xsig_aug);
       //ROS_INFO("sigma points function done"); 
       Predict(Vel_arr, IMU_arr[1], delta_time, Xsig_aug, &prediction, &pred_cov, &weights);
       //ROS_INFO("predict function done");
-      PredictIMU(IMU_arr[0], &z_pred, &S, &Zsig, weights);
+      PredictIMU(IMU_arr[0], &z_pred, &Zsig, &S, weights);
       //ROS_INFO("predictIMU function done"); 
       Estimate(IMU_arr[0], Xsig_aug, z_pred, Zsig, S, &position, &covariance, weights, prediction, pred_cov);
       //ROS_INFO("estimate function done"); 
@@ -284,7 +292,8 @@ int main(int argc, char *argv[])                                                
       pub.publish(coordinates);
       ROS_INFO("published");
       IMU_arr_old = IMU_arr;
-    //}
+      ros::Duration(3.0).sleep();
+    }
   }
   return 0;
 }
