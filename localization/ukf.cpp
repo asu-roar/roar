@@ -12,7 +12,8 @@ using namespace std::chrono;
 
 std::vector<float> Vel_arr = {10, 10, 10, 10, 10, 10};
 std::vector<float> IMU_arr = {M_PI/2, 0};                                                                                    // omega and theta absoulute respectively
-std::vector<float> CAM_arr;
+std::vector<float> CAM_arr = {1, 5,
+                              2, 8};                                                                                         // ID then the distance from the camera to each landmark
 auto time_start = high_resolution_clock::now(); 
 auto time_stop = high_resolution_clock::now();
 auto duration = duration_cast<seconds>(time_stop - time_start);
@@ -238,11 +239,67 @@ void Estimate(float IMU_arr, MatrixXd Xsig_pred, VectorXd z_pred, MatrixXd Zsig,
 
 
 
+void PredictCAM(float IMU_arr, VectorXd* z_pred_out, MatrixXd* Zsig_out, MatrixXd* S_out, VectorXd weights)
+{
+  int size = 3;
+  int size_aug = 5;
+  int size_z = 2;
+  MatrixXd Zsig = MatrixXd(size_z, 2 * size_aug + 1);
+  VectorXd z_pred = VectorXd(size_z);  
+  MatrixXd S = MatrixXd(size_z,size_z);
+  for (int i = 0; i < 2 * size_aug + 1; ++i) 
+  {  
+    Zsig(0,i) = IMU_arr;
+  }
+
+  z_pred.fill(0.0);
+  for (int i=0; i < 2*size_aug+1; ++i) 
+  {
+    z_pred = z_pred + weights(i) * Zsig.col(i);
+  }
+
+  S.fill(0.0);
+  for (int i = 0; i < 2 * size_aug + 1; ++i) 
+  {  
+    VectorXd z_diff = Zsig.col(i) - z_pred;
+    while (z_diff(0)> M_PI) z_diff(0)-=2.*M_PI;
+    while (z_diff(0)<-M_PI) z_diff(0)+=2.*M_PI;
+    S = S + weights(i) * z_diff * z_diff.transpose();
+  }
+
+  MatrixXd R = MatrixXd(size_z,size_z);
+  R <<  0.12;
+  S = S + R;
+
+  *z_pred_out = z_pred;
+  *S_out = S;
+  *Zsig_out = Zsig;
+  //std::cout << "Zsig is" << std::endl;
+  //std::cout << *Zsig_out << std::endl;
+}
+
+
+
+void GetLandmarkPos(int ID_1, int ID_2, std::vector<int>* LM_Pos1, std::vector<int>* LM_Pos2)
+{
+  int no_landmarks = 16;
+  Eigen::MatrixXi List_LM { 0,   1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15,
+                            10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10,
+                            10,  0, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10 };
+
+  *LM_Pos1 = { List_LM(1,ID_1) , List_LM(2,ID_1) };
+  *LM_Pos2 = { List_LM(1,ID_2) , List_LM(2,ID_2) };
+}
+
+
+
 int main(int argc, char *argv[])                                                                                             // initialization of ros node and other variables
 {
 
   std::vector<float> IMU_arr_old = {5,6};
   std::vector<float> CAM_arr_old;
+  std::vector<int> LM_Pos1;
+  std::vector<int> LM_Pos2;
   MatrixXd Xsig_aug;
   Eigen::Vector3d position;
   Eigen::Matrix3d covariance;
