@@ -13,7 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
    FILES
    LandmarkArray.msg
    ModeCommand.msg
-   NodeStatus.msg
+   ModuleStatus.msg
    StateCommand.msg
  )
 
