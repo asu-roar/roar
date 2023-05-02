@@ -9,7 +9,8 @@ Provides the capabilities to launch, shutdown, monitor, and manipulate modules.
 import rospy
 import roslaunch.parent
 import roslaunch.rlutil
-from roar_msgs.msg import NodeStatus as ModuleStatus
+from typing import List
+from roar_msgs.msg import ModuleStatus
 from .supervisor_exceptions import *
 
 
@@ -37,26 +38,24 @@ class Module:
         if it is alive.
 
         :returns: `None`
-        :raises: `TypeError`: in case of non `str` arguments
+
+        :raises: `None`
         """
         # Save inputs to instance variables
-        self.name: str = name
-        self.pkg: str = pkg
-        self.launch_file: str = launch_file
+        self.launch_args: List[str] = [pkg, launch_file]
         self.heartbeat_topic: str = heartbeat_topic
         # Check if a heartbeat topic is provided
         if self.heartbeat_topic is not None:
             # Subscribe to the provided heartbeat topic
-            rospy.Subscriber(self.heartbeat_topic, int,
+            rospy.Subscriber(self.heartbeat_topic, ModuleStatus,
                              self.__heartbeat_callback)
         # Initialize status variables
-        self.up_since: rospy.Time = None
-        self.status: ModuleStatus = ModuleStatus()
-        self.status.header.stamp = rospy.Time.now()
-        self.status.header.frame_id = self.name
+        self.status = ModuleStatus()
+        self.status.name = name
+        self.status.stamp = rospy.Time.now()
         self.status.status = self.status.OFFLINE
-        self.status.message = "{} Module: Module is OFFLINE. Ready to launch.".format(
-            self.name)
+        # Module parameters
+        self.heartbeat_timeout = rospy.Duration(5)
 
     def __init_launcher(self) -> None:
         """
@@ -65,125 +64,113 @@ class Module:
         @ no params
 
         :returns: `None`
+
         :raises: `None`
         """
         # Initialize a unique idea and resolve arguments to launch file path
-        self.uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
-        launch_args = [self.pkg, self.launch_file]
-        self.launch_file_path = roslaunch.rlutil.resolve_launch_arguments(
-            launch_args)
+        uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
+        launch_file_path = roslaunch.rlutil.resolve_launch_arguments(
+            self.launch_args)
         # Initialize the module's ROSLaunchParent object
         self.module = roslaunch.parent.ROSLaunchParent(
-            self.uuid, self.launch_file_path)
+            uuid, launch_file_path)
 
-    def __heartbeat_callback(self, rec_msg: ModuleStatus) -> None:
+    def __heartbeat_callback(self, rec_status: ModuleStatus) -> None:
         """
-        Callback function for heartbeat topic. Updates module status with the received
-        message.
+        Heartbeat callback. Updates module status with the received status.
 
-        :param rec_msg: `ModuleStatus`: the received message on the heartbeat topic.
+        :param rec_msg: `ModuleStatus`: the received status on the heartbeat topic
 
         :returns: `None`
-        :raises: `None`
+
+        :raises: `ModuleStatusError`: if received status has an invalid value
         """
-        self.status = rec_msg
+        # Check that the value of the received status is valid
+        if (rec_status.status is None) or (rec_status.status > 2):
+            raise ModuleStatusError(
+                "{} module received a status of invalid value ({})".format(
+                    self.status.name, rec_status.status))
+        # Add current stamp if no stamp was added, otherwise use received stamp
+        if (rec_status.stamp is not None) and (rec_status.stamp != 0):
+            self.status.stamp = rec_status.stamp
+        else:
+            self.status.stamp = rospy.Time.now()
+        # Update current status and message
+        self.status.status = rec_status.status
+        self.status.message = rec_status.message
 
     # ------------------------------ Public Methods ------------------------------
 
-    def launch(self, delay: int = 0) -> None:
+    def launch(self) -> None:
         """
-        Launches the Module object's launch file using a `ROSLaunchParent` object. Module
-        must be in OFFLINE state before it can be launched. An optional delay can be
-        provided (in seconds) before the module is launched. If the provided delay is
-        negative, the module is launched immediately.
-
-        :param delay: `int`: (optional) delay in seconds before module launches.
-
-        :returns: `None`
-        :raises: `ModuleLaunchError`: in case of launch time-out (`pm.is_alive()`)
-        :raises: `ModuleStatusError`: if module is not in OFFLINE state
-        """
-        # Check if module status is OFFLINE before launching it
-        if self.status.status == self.status.OFFLINE:
-            # Process the provided delay and sleep accordingly
-            if delay > 0:
-                rospy.sleep(delay)
-            # Initialize the ROSLaunchParent object
-            self.__init_launcher()
-            # Start the ROSLaunchPartent object causing the module to launch
-            self.module.start()
-            # Check if the ROSLaunchParent object was successfully started
-            timeout = 0.0
-            while not self.module.pm.is_alive():
-                rospy.sleep(0.1)
-                timeout += 0.1
-                # Raise an error if launching took more than two seconds
-                if timeout > 2.0:
-                    raise ModuleLaunchError(
-                        "{} Module: Module launching timed out.. launch failed!"
-                        .format(self.name))
-            # Update module status
-            self.up_since = rospy.Time.now()
-            self.status.header.stamp = self.up_since
-            self.status.status = self.status.ONLINE
-            self.status.message = "{} Module: Module was launched successfully.".format(
-                self.name)
-        else:
-            raise ModuleStatusError(
-                """{} Module: Module status is not OFFLINE and therefore cannot be launched.. 
-                launch failed!"""
-                .format(self.name))
-
-    def shutdown(self) -> None:
-        """
-        Shuts down the module by shutting down the `ROSLaunchParent` object.
+        Launches the Module object's launch file using a `ROSLaunchParent` object. This
+        method will not return unless the module's thread is alive, otherwise
+        it will raise an error. Safe to call from any state.
 
         @ no params
 
         :returns: `None`
-        :raises: `ModuleShutdownError`: in case of shutdown time-out (`pm.is_alive()`)
-        :raises: `ModuleStatusError`: if module is in OFFLINE state
+
+        :raises: `ModuleLaunchError`: in case module was not alive after calling the
+        `start()` method, launch times-out and raises the exception if the module
+        was not alive within 3 seconds after the method is called.
         """
-        # Check if the module is running to shut it down
-        if self.status.status != self.status.OFFLINE:
+        # Initialize a ROSLaunchParent object after making sure the old one is dead
+        if self.status.status == self.status.OFFLINE:
+            self.__init_launcher()
+        # Launch the module
+        try:
+            self.module.start()
+        except:
+            # Might fail if module is already alive
+            # Dont let exceptions halt the rest of launch
+            pass
+        # Check that the module is alive now (despite possible exceptions)
+        timeout = 0.0
+        while not self.module.pm.is_alive():
+            rospy.sleep(0.1)
+            timeout += 0.1
+            # Raise an error if launching took more than two seconds
+            if timeout > 3.0:
+                raise ModuleLaunchError(
+                    "{} module launching timed out!".format(self.status.name))
+        # Update module status
+        self.status.stamp = rospy.Time.now()
+        self.status.status = self.status.ONLINE
+
+    def shutdown(self) -> None:
+        """
+        Shuts down the module by shutting down the `ROSLaunchParent` object. This
+        method will not return unless the module's thread is dead, otherwise it will
+        raise an error. Safe to call from any state.
+
+        @ no params
+
+        :returns: `None`
+
+        :raises: `ModuleShutdownError`: in case module is still alive after calling the
+        `shutdown()` method, shutdown times-out and raises the exception if the module
+        was still alive 3 seconds after the method is called.
+        """
+        # Update current status
+        try:
             self.module.shutdown()
-            # Check if the module was successfully shutdown
-            timeout = 0.0
-            while self.module.pm.is_alive():
-                rospy.sleep(0.1)
-                timeout += 0.1
-                # Raise an error if launching took more than two seconds
-                if timeout > 2.0:
-                    raise ModuleShutdownError(
-                        "{} Module: Module shutdown timed out.. shutdown failed!"
-                        .format(self.name))
-            # Update module status
-            self.up_since = None
-            self.status.header.stamp = rospy.Time.now()
-            self.status.status = self.status.OFFLINE
-            self.status.message = "{} Module: Module was shutdown successfully.".format(
-                self.name)
-        else:
-            raise ModuleStatusError(
-                "{} Module: Module status is OFFLINE and therefore module cannot be shutdown.."
-                .format(self.name))
-
-    def restart(self, delay: int = 0) -> None:
-        """
-        Shuts down the module then launches it again using a new `ROSLaunchParent`
-        object. This is done using the methods `shutdown()` and `launch()`.
-
-        :param delay: `int`: (optional) delay in seconds before module launches after
-        it shuts down
-
-        :raises: `ModuleShutdownError`: in case of shutdown time-out (`pm.is_alive()`)
-        :raises: `ModuleStatusError`: if module is in OFFLINE state
-        :raises: `ModuleLaunchError`: in case of launch time-out (`pm.is_alive()`)
-        """
-        # Shutdown the module
-        self.shutdown()
-        # Launch the module again after the required delay
-        self.launch(delay)
+        except:
+            # Might fail if module is already not alive
+            # Dont let exceptions halt the rest of shutdown
+            pass
+        # Check that the module is not alive now (despite possible exceptions)
+        timeout = 0.0
+        while self.module.pm.is_alive():
+            rospy.sleep(0.1)
+            timeout += 0.1
+            # Raise an error if shutting down took more than two seconds
+            if timeout > 3.0:
+                raise ModuleShutdownError(
+                    "{} module shutdown timed out!".format(self.status.name))
+        # Update module status
+        self.status.stamp = rospy.Time.now()
+        self.status.status = self.status.OFFLINE
 
     def get_name(self) -> str:
         """
@@ -192,73 +179,34 @@ class Module:
         @ no params
 
         :returns: `str`: name of the module
+
         :raises: `None`
         """
-        return self.name
+        return self.status.name
 
-    def get_status(self) -> ModuleStatus:
+    def get_status_update(self) -> ModuleStatus:
         """
-        Returns the current module status.
+        Updates the current status of the module to match true status and returns it.
+        If the module became unresponsive at any point, the method `get_status_reset()`
+        must be called to reset the status to match the actual status after the module
+        is restarted.
 
         @ no params
 
-        :returns: `ModuleStatus`: status of the module
+        :returns: `ModuleStatus`: the true status of the module
+
         :raises: `None`
         """
+        # Change module from OFFLINE to ONLINE or vice versa by checking if the process is alive
+        if (self.module.pm.is_alive()) and (self.status.status == self.status.OFFLINE):
+            self.status.stamp = rospy.Time.now()
+            self.status.status = self.status.ONLINE
+        if (not self.module.pm.is_alive()) and (self.status.status == self.status.ONLINE):
+            self.status.stamp = rospy.Time.now()
+            self.status.status = self.status.OFFLINE
+        # Check that the model is responsive if a heartbeat topic was provided
+        if (self.heartbeat_topic is not None) and (self.status.status == self.status.ONLINE):
+            if ((rospy.Time.now() - self.status.stamp) > self.heartbeat_timeout):
+                self.status.stamp = rospy.Time.now()
+                self.status.status = self.status.UNRESPONSIVE
         return self.status
-
-    def get_heartbeat_topic(self) -> str:
-        """
-        Returns the heartbeat topic of this module as a `str`.
-        Returns `None` if no heartbeat topic was provided.
-
-        @ no params
-
-        :returns: `str`: module hearbeat topic or `None` if no topic was provided
-        """
-        return self.get_heartbeat_topic
-
-    def get_uptime(self) -> rospy.Time:
-        """
-        Returns the uptime of the module since its `ROSLaunchParent` object' was started.
-
-        @ no params
-
-        :returns: `rospy.Time`: uptime of the module, i.e. duration outside of OFFLINE state
-        :raises: `ModuleStatusError`: if module is in OFFLINE state
-        """
-        # Check if the module is not OFFLINE
-        if self.up_since is not None:
-            return (rospy.Time.now() - self.up_since)
-        else:
-            raise ModuleStatusError(
-                "{} Module: Could not calculate uptime since the module is OFFLINE"
-                .format(self.name))
-
-    def get_up_since(self) -> rospy.Time:
-        """
-        Returns the time when the module's `ROSLaunchParent` object was started.
-
-        @ no params
-
-        :returns: `rospy.Time`: launch time of the module, i.e. when it left OFFLINE state
-        :raises: `ModuleStatusError`: if module is in OFFLINE state
-        """
-        # Check if the module is not OFFLINE
-        if self.up_since is not None:
-            return self.up_since
-        else:
-            raise ModuleStatusError(
-                "{} Module: Could not return up_since since the module is OFFLINE"
-                .format(self.name))
-
-    def update_status(self, rec_status: ModuleStatus) -> None:
-        """
-        Updates the module's status with the received status.
-
-        :param rec_status: `ModuleStatus`: new module status
-
-        :returns: `None`
-        :raises: `None`
-        """
-        self.status = rec_status
