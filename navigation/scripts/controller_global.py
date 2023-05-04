@@ -16,9 +16,8 @@ class Handler:
         self.wait_rate = rospy.Rate(1)
         # Initialize variables
         self.velocity: float= 0.4
-        self.lookahead_dist: float = 1.0
-        self.orientation_threshold: float = 10.0
-        self.path: Path = None
+        self.lookahead_dist: float = 0.5
+        self.orientation_threshold: float = 5.0
         self.position: Point = None
         self.orientation: float = None
         self.target_position: Point = None
@@ -47,6 +46,10 @@ class Handler:
                                                                rec_msg.pose[1].orientation.z, 
                                                                rec_msg.pose[1].orientation.w])[2]) - 90
         self.position = rec_msg.pose[1].position
+
+        #Rover origin correction
+        self.x_position:float = self.position.x-0.4
+        self.y_position:float = self.position.y+0.7
 
     def move_forward(self) -> None:
         msg = Float64()
@@ -91,7 +94,7 @@ class Handler:
 
     def filter_path(self) -> None:
         for pose in self.path.poses:
-            if (((pose.pose.position.x-self.position.x) ** 2 + (pose.pose.position.y-self.position.y) ** 2) > self.lookahead_dist):
+            if math.sqrt((((pose.pose.position.x-self.x_position) ** 2) + ((pose.pose.position.y-self.y_position) ** 2))) > self.lookahead_dist:
                 self.target_position = pose.pose.position
                 return
         self.target_position = None
@@ -104,14 +107,15 @@ class Handler:
                 rospy.loginfo(
                     "Heading towards point:\n{}".format(self.target_position))
                 rospy.loginfo(
-                    "Current position:\n{}".format(self.position))
+                    "Current position: \n x: {} \n y: {}".format(self.x_position,self.y_position))
                 rospy.loginfo(
                     "Current orientation:\n{}".format(self.orientation))
-                # position_to_target = ((self.target_position.x - self.position.x)**2) + ((self.target_position.y - self.position.y )**2)
+                # position_to_target = ((self.target_position.x - self.position.x)**2) + ((self.target_position.y - (self.position.y )**2)
                 # rospy.loginfo(
                 #     "position to target:\n{}".format(self.position_to_target))
                 # self.target_position.x = self.target_position.x - self.position.x
-                # self.target_position.y = self.target_position.y - self.position.y
+                # self.target_position.y = self.target_position.y - (self.position.y
+                # THIS IS WRONG:
                 orientation_to_target = math.degrees(math.atan2(self.target_position.y, self.target_position.x)) - self.orientation
                 rospy.loginfo("orientation to target: {}".format(orientation_to_target))
                 # Check if error in rover orientation wrt to goal is bigger than threshold
@@ -124,7 +128,7 @@ class Handler:
                     self.move_forward()
             else:
                 rospy.loginfo(
-                    "Waypoint reached! current rover position:\n{}".format(self.position))
+                    "Waypoint reached! current rover position:\n x: {} \n y: {}".format(self.x_position,self.y_position))
                 self.stop()
             self.rate.sleep()
 
