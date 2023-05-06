@@ -35,6 +35,8 @@ class AStarPlanner:
         self.vis_pub = rospy.Publisher('/visualization_marker', Marker, queue_size=10)
         self.vis_path_pub = rospy.Publisher('/visualization_path', Marker, queue_size=10)
 
+    #def __iter__(self):
+    #    return iter(self)             #this function will be called when the object is iterated over
 #-------------------------------------------------callbacks-------------------------------------------------------
    
     def start_callback(self, init):
@@ -85,17 +87,24 @@ class AStarPlanner:
         return heuristic
     
     def heuristic(self, start_cell, end_cell):
+        if start_cell is None or end_cell is None:
+            return None
         return np.linalg.norm(np.array(start_cell) - np.array(end_cell))
-   
+
     def pose_to_cell(self, pose):
+        if pose is None:
+            return None
         x = int((pose.x - self.origin_x) / self.grid_resolution)
         y = int((pose.y - self.origin_y) / self.grid_resolution)
         return (x, y)
+   
     def cell_to_pose(self, cell):
+        if cell is None:
+            return None
         pose_x = cell[0] * self.grid_resolution + self.origin_x
         pose_y = cell[1] * self.grid_resolution + self.origin_y
         return Point(pose_x, pose_y, 0)
-    
+   
     def plan_path(self):
         start_cell = self.pose_to_cell(self.start)
         goal_cell = self.pose_to_cell(self.goal)
@@ -125,7 +134,7 @@ class AStarPlanner:
             if current_cell == goal_cell:
                 #reconstruct the optimal path from the came_from dictionary and publish it
                 path = []
-                rospy.info("Path found")
+                rospy.loginfo("Path found")
                 while current_cell in came_from:  
                     pose = self.cell_to_pose(current_cell)  
                     path.append(pose)
@@ -162,7 +171,7 @@ class AStarPlanner:
         if not goal_reached and alternative_current_cell is not None:
             # Publish path to altnerative current cell
             path = []
-            rospy.info("Path found")
+            rospy.loginfo("Path found")
             while alternative_current_cell in came_from:
                 pose = self.cell_to_pose(alternative_current_cell)
                 path.append(pose)
@@ -182,10 +191,11 @@ class AStarPlanner:
         path_msg.header.stamp = rospy.Time.now()
         for pose in path:
             pose_msg = PoseStamped()
-            pose_msg.posepose = Pose(pose, Quaternion(0, 0, 0, 1))
+            pose_msg.pose = Pose(pose, Quaternion(0, 0, 0, 1))
+
             path_msg.poses.append(pose_msg)
         self.path_pub.publish(path_msg)
-        rospy.info("Path published")
+        rospy.loginfo("Path published")
 
     #function to publish the grid map
     def publish_grid(self):
@@ -232,6 +242,6 @@ if __name__ == '__main__':
     while not rospy.is_shutdown():
         path.publish_grid()
         path.plan_path()
-        path.publish_vis_path(path)
+        #path.publish_vis_path(path)
         rate.sleep()
     rospy.spin()    
