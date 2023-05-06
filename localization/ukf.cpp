@@ -193,12 +193,11 @@ void PredictIMU(float IMU_arr, VectorXd* z_pred_out, MatrixXd* Zsig_out, MatrixX
 }
 
 
-void Estimate(float IMU_arr, MatrixXd Xsig_pred, VectorXd z_pred, MatrixXd Zsig, MatrixXd S, Eigen::Vector3d* position, Eigen::Matrix3d* covariance, VectorXd weights, MatrixXd position_pred, MatrixXd covariance_pred)                                                                                                              // estimation function (where we update prediction readings using IMU)
+void Estimate(int size_z, float IMU_arr, MatrixXd Xsig_pred, VectorXd z_pred, MatrixXd Zsig, MatrixXd S, Eigen::Vector3d* position, Eigen::Matrix3d* covariance, VectorXd weights, MatrixXd position_pred, MatrixXd covariance_pred)                                                                                                              // estimation function (where we update prediction readings using IMU)
 {
   //ROS_INFO("i have entered the estimation function");
   int size = 3;
   int size_aug = 5;
-  int size_z = 1; 
   MatrixXd Tc = MatrixXd(size, size_z);
   MatrixXd K = MatrixXd(size,2*size_aug + 1);
   Tc.fill(0.0);
@@ -239,17 +238,24 @@ void Estimate(float IMU_arr, MatrixXd Xsig_pred, VectorXd z_pred, MatrixXd Zsig,
 
 
 
-void PredictCAM(float IMU_arr, VectorXd* z_pred_out, MatrixXd* Zsig_out, MatrixXd* S_out, VectorXd weights)
+void PredictCAM(std::vector<float> CAM_arr, VectorXd* z_pred_out, MatrixXd* Zsig_out, MatrixXd* S_out, VectorXd weights, std::vector<int> LM_Pos1, std::vector<int> LM_Pos2)
 {
   int size = 3;
   int size_aug = 5;
-  int size_z = 2;
+  int size_z = 3;
   MatrixXd Zsig = MatrixXd(size_z, 2 * size_aug + 1);
   VectorXd z_pred = VectorXd(size_z);  
   MatrixXd S = MatrixXd(size_z,size_z);
+  float dx = LM_Pos2[0] - LM_Pos1[0];
+  float dy = LM_Pos2[1] - LM_Pos1[1];
+  double d = sqrt(dx * dx + dy * dy);
+  double scale = CAM_arr[1] / (CAM_arr[1] + CAM_arr[3]);
+
   for (int i = 0; i < 2 * size_aug + 1; ++i) 
   {  
-    Zsig(0,i) = IMU_arr;
+    Zsig(0,i) = LM_Pos1[0] + scale * dx;
+    Zsig(1,i) = LM_Pos2[0] + scale * dy;
+    Zsig(2,i) = std::atan2(dy , dx);
   }
 
   z_pred.fill(0.0);
@@ -268,7 +274,7 @@ void PredictCAM(float IMU_arr, VectorXd* z_pred_out, MatrixXd* Zsig_out, MatrixX
   }
 
   MatrixXd R = MatrixXd(size_z,size_z);
-  R <<  0.12;
+  R <<  0.05;
   S = S + R;
 
   *z_pred_out = z_pred;
@@ -283,7 +289,7 @@ void PredictCAM(float IMU_arr, VectorXd* z_pred_out, MatrixXd* Zsig_out, MatrixX
 void GetLandmarkPos(int ID_1, int ID_2, std::vector<int>* LM_Pos1, std::vector<int>* LM_Pos2)
 {
   int no_landmarks = 16;
-  Eigen::MatrixXi List_LM { 0,   1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15,
+  Eigen::MatrixXi List_LM {  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15,
                             10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10,
                             10,  0, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10 };
 
@@ -313,7 +319,8 @@ int main(int argc, char *argv[])                                                
   MatrixXd prediction;
   MatrixXd pred_cov;
   VectorXd weights;
-
+  int size_z_IMU = 1;
+  int size_z_CAM = 3;
   
 
 
@@ -333,7 +340,24 @@ int main(int argc, char *argv[])                                                
   while (ros::ok())                                                                                                          // while (1) loop
   {
     ros::spinOnce();
-    while (IMU_arr != IMU_arr_old)
+    while (1)
+      if (CAM_arr != CAM_arr_old)
+      {
+        GetLandmarkPos(CAM_arr[0], CAM_arr[2], &LM_Pos1, &LM_Pos2);
+        sigma_points(position, covariance, &Xsig_aug);
+        //ROS_INFO("sigma points function done"); 
+        Predict(Vel_arr, IMU_arr[1], delta_time, Xsig_aug, &prediction, &pred_cov, &weights);
+        //ROS_INFO("predict function done");
+        PredictCAM(CAM_arr, &z_pred, &Zsig, &S, weights, LM_Pos1, LM_Pos2);
+        //ROS_INFO("predictIMU function done"); 
+        Estimate(size_z_CAM, IMU_arr[0], Xsig_aug, z_pred, Zsig, S, &position, &covariance, weights, prediction, pred_cov);
+        //ROS_INFO("estimate function done");
+        coordinates.data[0] = position[0];
+        coordinates.data[1] = position[1];
+        coordinates.data[2] = position[2]*(180/M_PI);
+        pub.publish(coordinates);
+        CAM_arr_old = CAM_arr; 
+      }
     {
       sigma_points(position, covariance, &Xsig_aug);
       //ROS_INFO("sigma points function done"); 
@@ -341,11 +365,11 @@ int main(int argc, char *argv[])                                                
       //ROS_INFO("predict function done");
       PredictIMU(IMU_arr[0], &z_pred, &Zsig, &S, weights);
       //ROS_INFO("predictIMU function done"); 
-      Estimate(IMU_arr[0], Xsig_aug, z_pred, Zsig, S, &position, &covariance, weights, prediction, pred_cov);
+      Estimate(size_z_IMU, IMU_arr[0], Xsig_aug, z_pred, Zsig, S, &position, &covariance, weights, prediction, pred_cov);
       //ROS_INFO("estimate function done"); 
       coordinates.data[0] = position[0];
       coordinates.data[1] = position[1];
-      coordinates.data[2] = position[2];
+      coordinates.data[2] = position[2]*(180/M_PI);
       pub.publish(coordinates);
       ROS_INFO("published");
       IMU_arr_old = IMU_arr;
