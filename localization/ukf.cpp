@@ -238,7 +238,7 @@ void Estimate(int size_z, float IMU_arr, MatrixXd Xsig_pred, VectorXd z_pred, Ma
 
 
 
-void PredictCAM(std::vector<float> CAM_arr, VectorXd* z_pred_out, MatrixXd* Zsig_out, MatrixXd* S_out, VectorXd weights, std::vector<int> LM_Pos1, std::vector<int> LM_Pos2)
+void PredictCAM(std::vector<float> CAM_arr, VectorXd* z_pred_out, MatrixXd* Zsig_out, MatrixXd* S_out, VectorXd weights, std::vector<double> LM_Pos1, std::vector<double> LM_Pos2)
 {
   int size = 3;
   int size_aug = 5;
@@ -286,12 +286,13 @@ void PredictCAM(std::vector<float> CAM_arr, VectorXd* z_pred_out, MatrixXd* Zsig
 
 
 
-void GetLandmarkPos(int ID_1, int ID_2, std::vector<int>* LM_Pos1, std::vector<int>* LM_Pos2)
+void GetLandmarkPos(int ID_1, int ID_2, std::vector<double>* LM_Pos1, std::vector<double>* LM_Pos2)
 {
   int no_landmarks = 16;
-  Eigen::MatrixXi List_LM {  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15,
-                            10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10,
-                            10,  0, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10 };
+  MatrixXd List_LM; 
+  List_LM << 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15,
+            10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10,
+            10,  0, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10;
 
   *LM_Pos1 = { List_LM(1,ID_1) , List_LM(2,ID_1) };
   *LM_Pos2 = { List_LM(1,ID_2) , List_LM(2,ID_2) };
@@ -304,8 +305,8 @@ int main(int argc, char *argv[])                                                
 
   std::vector<float> IMU_arr_old = {5,6};
   std::vector<float> CAM_arr_old;
-  std::vector<int> LM_Pos1;
-  std::vector<int> LM_Pos2;
+  std::vector<double> LM_Pos1;
+  std::vector<double> LM_Pos2;
   MatrixXd Xsig_aug;
   Eigen::Vector3d position;
   Eigen::Matrix3d covariance;
