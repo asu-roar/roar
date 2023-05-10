@@ -6,19 +6,25 @@ def path_publisher():
     rospy.init_node('path_publisher')
     pub = rospy.Publisher('/path', Path, queue_size=10)
     rate = rospy.Rate(5)
+    rospy.sleep(1)
+    path = Path()
+    path.header.frame_id = "map"
+    pose1 = PoseStamped()
+    pose1.header.stamp = rospy.Time.now()
+    pose1.header.frame_id = "map"
+    pose1.pose.position.x = 2
+    pose1.pose.position.y = -4
+    path.poses.append(pose1)
+    pose2 = PoseStamped()
+    pose2.header.stamp = rospy.Time.now()
+    pose2.header.frame_id = "map"
+    pose2.pose.position.x = 4
+    pose2.pose.position.y = 6
+    path.poses.append(pose2)
+    path.header.stamp = rospy.Time.now()
+    pub.publish(path)
 
     while not rospy.is_shutdown():
-        path = Path()
-        path.header.frame_id = "map"
-        path.header.stamp = rospy.Time.now()
-        # Append points to the path
-        pose = PoseStamped()
-        pose.header.stamp = rospy.Time.now()
-        pose.header.frame_id = "map"
-        pose.pose.position.x = 5
-        pose.pose.position.y = 5
-        path.poses.append(pose)
-        pub.publish(path)
         rate.sleep()
 
 if __name__ == '__main__':
