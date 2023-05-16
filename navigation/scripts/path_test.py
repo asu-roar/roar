@@ -12,14 +12,14 @@ def path_publisher():
     pose1 = PoseStamped()
     pose1.header.stamp = rospy.Time.now()
     pose1.header.frame_id = "map"
-    pose1.pose.position.x = 2
-    pose1.pose.position.y = -4
+    pose1.pose.position.x = -2
+    pose1.pose.position.y = 4
     path.poses.append(pose1)
     pose2 = PoseStamped()
     pose2.header.stamp = rospy.Time.now()
     pose2.header.frame_id = "map"
-    pose2.pose.position.x = 4
-    pose2.pose.position.y = 6
+    pose2.pose.position.x = 2
+    pose2.pose.position.y = -4
     path.poses.append(pose2)
     path.header.stamp = rospy.Time.now()
     pub.publish(path)
@@ -37,3 +37,4 @@ if __name__ == '__main__':
 
 
 
+[2.0, 4.0]

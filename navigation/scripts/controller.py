@@ -15,16 +15,16 @@ class Handler:
         rospy.Subscriber("/odom", 
                          Odometry, 
                          self.callback) # might not be needed.
-        #rospy.Subscriber("/path", 
-        #                 Path, 
-        #                 self.path_callback)
+        rospy.Subscriber("/path", 
+                        Path, 
+                        self.path_callback)
         # Path given locally
-        self.path = [[0.1, 0.1], 
-                     [0.2, 0.2], 
-                     [0.5, 0.5], 
-                     [0.3, 0.3], 
-                     [-2, 4]
-                     ]
+        # self.path = [[0.1, 0.1], 
+        #              [0.2, 0.2], 
+        #              [0.5, 0.5], 
+        #              [0.3, 0.3], 
+        #              [-2, 4]
+        #              ]
         self.lookahead_distance = 1
         self.orientation_threshold = 7
         # Orientation from -180 to 180 degrees
@@ -41,8 +41,12 @@ class Handler:
         # rospy.loginfo("Current orientation in degrees:\n{}"
         #              .format(self.orientation))
 
-    #def path_callback(self, rec_msg):
-    #    self.path = rec_msg.poses
+    def path_callback(self, rec_msg):
+        self.path = []
+        for pose_stamped in rec_msg.poses:
+            x = pose_stamped.pose.position.x
+            y = pose_stamped.pose.position.y
+            self.path.append([x, y])
 
     def controller(self):
         if (self.orientation is not None):
