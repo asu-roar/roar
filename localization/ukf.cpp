@@ -237,7 +237,25 @@ void Estimate(int size_z, float IMU_arr, MatrixXd Xsig_pred, VectorXd z_pred, Ma
   std::cout << *covariance << std::endl;
 }
 
+double triangulate(std::vector<double> landmark1, std::vector<double> landmark2, std::vector<double> landmark3, std::vector<float> CAM_arr)
+{
+    double estimatedX, estimatedY;
+    double x1 = landmark1[0], y1 = landmark1[1];
+    double x2 = landmark2[0], y2 = landmark2[1];
+    double x3 = landmark3[0], y3 = landmark3[1];
+    
+    double A = 2 * (x2 - x1); 
+    double B = 2 * (y2 - y1);
+    double C = CAM_arr[1]*CAM_arr[1] - CAM_arr[4]*CAM_arr[4] - CAM_arr[2]*CAM_arr[2] + CAM_arr[5]*CAM_arr[5] + x1*x1 - x2*x2 + y1*y1 - y2*y2;
+    double D = 2 * (x3 - x2);
+    double E = 2 * (y3 - y2);
+    double F = CAM_arr[4]*CAM_arr[4] - CAM_arr[7]*CAM_arr[7] - CAM_arr[5]*CAM_arr[5] + CAM_arr[8]*CAM_arr[8] + x2*x2 - x3*x3 + y2*y2 - y3*y3;
+    
+    estimatedX = (B*F - E*C) / (B*D - E*A);
+    estimatedY = (D*C - A*F) / (B*D - E*A);
 
+    return estimatedX, estimatedY;
+}
 
 void PredictCAM(std::vector<float> CAM_arr_old, std::vector<float> CAM_arr, VectorXd* z_pred_out, MatrixXd* Zsig_out, MatrixXd* S_out, VectorXd weights, std::vector<double> LM_Pos1, std::vector<double> LM_Pos2, std::vector<double> LM_Pos3, std::vector<double>LM_Pos_old_1, std::vector<double>LM_Pos_old_2, std::vector<double>LM_Pos_old_3)
 {
@@ -355,25 +373,6 @@ void GetLandmarkPos_3(int ID_1, int ID_2, int ID_3, std::vector<double>* LM_Pos1
   *LM_Pos3 = { List_LM(1,ID_3) , List_LM(2,ID_3) };
 }
 
-double triangulate(std::vector<double> landmark1, std::vector<double> landmark2, std::vector<double> landmark3, std::vector<float> CAM_arr)
-{
-    double estimatedX, estimatedY;
-    double x1 = landmark1[0], y1 = landmark1[1];
-    double x2 = landmark2[0], y2 = landmark2[1];
-    double x3 = landmark3[0], y3 = landmark3[1];
-    
-    double A = 2 * (x2 - x1); 
-    double B = 2 * (y2 - y1);
-    double C = CAM_arr[1]*CAM_arr[1] - CAM_arr[4]*CAM_arr[4] - CAM_arr[2]*CAM_arr[2] + CAM_arr[5]*CAM_arr[5] + x1*x1 - x2*x2 + y1*y1 - y2*y2;
-    double D = 2 * (x3 - x2);
-    double E = 2 * (y3 - y2);
-    double F = CAM_arr[4]*CAM_arr[4] - CAM_arr[7]*CAM_arr[7] - CAM_arr[5]*CAM_arr[5] + CAM_arr[8]*CAM_arr[8] + x2*x2 - x3*x3 + y2*y2 - y3*y3;
-    
-    estimatedX = (B*F - E*C) / (B*D - E*A);
-    estimatedY = (D*C - A*F) / (B*D - E*A);
-
-    return estimatedX, estimatedY;
-}
 
 int main(int argc, char *argv[])                                                                                             // initialization of ros node and other variables
 {
