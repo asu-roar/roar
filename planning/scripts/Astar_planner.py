@@ -10,24 +10,24 @@ from std_msgs.msg import  ColorRGBA
 
 class AStarPlanner:
     def __init__(self):
-        self.grid_resolution = 0.02
-        self.grid_width = 500
-        self.grid_height = 500
-        self.origin_x = -5
-        self.origin_y = -5
+        self.grid_resolution = 0.01
+        self.grid_width = 1000
+        self.grid_height = 1000
+        self.origin_x = 0.01
+        self.origin_y = 0.01
         
 
         self.occupancy_threshold = 80
         self.unknown_threshold = -1
         
         self.goal = None
-        self.start = None
+        self.start = Pose()
         self.grid_ready = False
         self.grid_updated = False
 
         self.grid_map = np.zeros((self.grid_width, self.grid_height), dtype=np.int8)
 
-        self.start_sub = rospy.Subscriber('/initialpose', PoseWithCovarianceStamped, self.start_callback)
+        self.start_sub = rospy.Subscriber('/current_pose', PoseWithCovarianceStamped, self.start_callback)
         self.goal_sub = rospy.Subscriber('/goal', PoseStamped, self.goal_callback)
         self.grid_sub = rospy.Subscriber('/occupancy_grid', OccupancyGrid, self.grid_callback)
 
@@ -40,16 +40,16 @@ class AStarPlanner:
 #-------------------------------------------------callbacks-------------------------------------------------------
    
     def start_callback(self, init):
-        self.start = init.pose.pose.position
+        self.start = init.pose.pose
         rospy.loginfo("New start is set")
         if self.goal is not None and self.grid_ready:
             self.plan_path()   
 
     def goal_callback(self, goal):
         if self.start is None:
-            self.start = self.pose_to_cell(goal.pose)
+            self.start = goal.pose
         else:
-            self.goal = self.pose_to_cell(goal.pose)
+            self.goal = goal.pose
         rospy.loginfo("New goal is set: {}".format(goal.pose))
         if self.grid_ready:
             self.plan_path()
@@ -66,15 +66,19 @@ class AStarPlanner:
 #-------------------------------------------------A* algorithm-------------------------------------------------------
   
     #calculate the coordinates of the neighboring node for each of the eight possible movements
-    def get_neighbors(self, current_cell):
-        x, y = current_cell                                                             #get the coordinates of the current cell
-        neighbors = [(x+i, y+j)             
-                     for i in range(-1, 2) for j in range(-1, 2)    
-                     if not(i==0 and j==0)                                                   #exclude the current cell 
-                     and (0<=x+i<self.grid_width and 0<=y+j<self.grid_height)                #check if the neighbor is inside the grid
-                     and not(self.grid_map[current_cell[0], current_cell[1]] == 100 or -1)]  #check if the neighbor is an obstacle or unknown 
-                   
-        return neighbors
+    def get_neighbors(self, current_cell: tuple) -> list:
+        if current_cell is not None: 
+            x, y = current_cell                                                             #get the coordinates of the current cell
+            neighbors = [(x+i, y+j)             
+                        for i in range(-1, 2) for j in range(-1, 2)    
+                        if not(i==0 and j==0)                                                   #exclude the current cell 
+                        and (0<= x+i <=self.grid_width and 0<= y+j <=self.grid_height)                #check if the neighbor is inside the grid
+                        and not (self.grid_map[x + i, y + j] == 100 or self.grid_map[x + i, y + j] == -1)]  # check if the neighbor is an obstacle or unknown
+            #rospy.loginfo('neighbors:{}'.format(neighbors))
+            return neighbors
+        else:
+            return []
+   
 
     #the distance in a straight line between two points on the grid
     #def distance(self,start_cell,end_cell):      
@@ -88,14 +92,16 @@ class AStarPlanner:
     
     def heuristic(self, start_cell, end_cell):
         if start_cell is None or end_cell is None:
-            return None
+            return 0
         return np.linalg.norm(np.array(start_cell) - np.array(end_cell))
 
-    def pose_to_cell(self, pose):
+    def pose_to_cell(self, pose: Pose):
         if pose is None:
             return None
-        x = int((pose.x - self.origin_x) / self.grid_resolution)
-        y = int((pose.y - self.origin_y) / self.grid_resolution)
+        if type(pose) is not Pose:
+            raise TypeError("pose must be of type Pose: Pose is {}".format(type(pose)))
+        x = int((pose.position.x - self.origin_x) / self.grid_resolution)
+        y = int((pose.position.y - self.origin_y) / self.grid_resolution)
         return (x, y)
    
     def cell_to_pose(self, cell):
@@ -103,7 +109,7 @@ class AStarPlanner:
             return None
         pose_x = cell[0] * self.grid_resolution + self.origin_x
         pose_y = cell[1] * self.grid_resolution + self.origin_y
-        return Point(pose_x, pose_y, 0)
+        return Pose(pose_x, pose_y, 0)
    
     def plan_path(self):
         start_cell = self.pose_to_cell(self.start)
@@ -123,7 +129,6 @@ class AStarPlanner:
 
         #Goal Reached Flag
         goal_reached = False
-
         # Alternative Path
         alternative_current_cell = None
 
@@ -131,7 +136,7 @@ class AStarPlanner:
             #remove and return the lowest f_score cell from the opened list
             current_cell = heapq.heappop(opened)[1]                      #[1] to get the cell of the lowest f_score from the tuple (f_score, cell)
            
-            if current_cell == goal_cell:
+            if (current_cell == goal_cell) and  (goal_cell is not None):
                 #reconstruct the optimal path from the came_from dictionary and publish it
                 path = []
                 rospy.loginfo("Path found")
@@ -143,6 +148,7 @@ class AStarPlanner:
                 path.reverse()
                 self.publish_path(path)                               #publish the path
                 goal_reached = True
+                rospy.loginfo('Goal reached: {}'.format(path))
                 break
             
             closed.append(current_cell)                               #add the current cell to the closed list
@@ -150,8 +156,9 @@ class AStarPlanner:
 
             if len(neighbors) == 0:
                 # Replace alternative current cell with current cell if it has a lower cost or alternative current cell is None
-                if alternative_current_cell is None or g_scores[current_cell] < g_scores[alternative_current_cell]:
+                if alternative_current_cell is None or g_scores[current_cell] > g_scores[alternative_current_cell]:
                     alternative_current_cell = current_cell
+                    rospy.loginfo('Alternative cell')
                 continue
 
             for neighbor in neighbors:
@@ -166,12 +173,14 @@ class AStarPlanner:
 
                         if neighbor not in opened:  
                             heapq.heappush(opened, (f_scores[neighbor], neighbor))              #add the neighbor to the opened list
+                        
+                        #rospy.loginfo('opened : {}'.format(opened))
+                        #rospy.loginfo('closed : {}'.format(closed))
         
-        
-        if not goal_reached and alternative_current_cell is not None:
+        if (goal_reached is False) and (alternative_current_cell is not None):      
             # Publish path to altnerative current cell
             path = []
-            rospy.loginfo("Path found")
+            rospy.loginfo("Current Path")
             while alternative_current_cell in came_from:
                 pose = self.cell_to_pose(alternative_current_cell)
                 path.append(pose)
@@ -180,7 +189,7 @@ class AStarPlanner:
             path.reverse()
             self.publish_path(path)                             #publish the path
             
-        elif not goal_reached:
+        elif goal_reached is False:
             rospy.loginfo("No path found")
 
 #-------------------------------------------------Publishers and visualizations-----------------------------------------------------------
@@ -195,7 +204,7 @@ class AStarPlanner:
 
             path_msg.poses.append(pose_msg)
         self.path_pub.publish(path_msg)
-        rospy.loginfo("Path published")
+        rospy.loginfo("Path published: {}".format(path_msg))
 
     #function to publish the grid map
     def publish_grid(self):
@@ -240,8 +249,8 @@ if __name__ == '__main__':
     rate = rospy.Rate(10)
     path = AStarPlanner()
     while not rospy.is_shutdown():
-        path.publish_grid()
         path.plan_path()
+        #path.publish_grid()
         #path.publish_vis_path(path)
         rate.sleep()
     rospy.spin()    
