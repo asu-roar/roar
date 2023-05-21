@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 import rospy
 import numpy as np
+import math
 import heapq
+import matplotlib.pyplot as plt
 from nav_msgs.msg import OccupancyGrid, Path
 from visualization_msgs.msg import Marker
 from geometry_msgs.msg import PoseStamped,PoseWithCovarianceStamped, Pose, Point, Quaternion, Vector3
@@ -35,17 +37,15 @@ class AStarPlanner:
         self.vis_pub = rospy.Publisher('/visualization_marker', Marker, queue_size=10)
         self.vis_path_pub = rospy.Publisher('/visualization_path', Marker, queue_size=10)
 
-    #def __iter__(self):
-    #    return iter(self)             #this function will be called when the object is iterated over
 #-------------------------------------------------callbacks-------------------------------------------------------
    
-    def start_callback(self, init):
+    def start_callback(self, init:PoseWithCovarianceStamped):
         self.start = init.pose.pose
         rospy.loginfo("New start is set")
         if self.goal is not None and self.grid_ready:
             self.plan_path()   
 
-    def goal_callback(self, goal):
+    def goal_callback(self, goal:PoseStamped):
         if self.start is None:
             self.start = goal.pose
         else:
@@ -54,7 +54,7 @@ class AStarPlanner:
         if self.grid_ready:
             self.plan_path()
 
-    def grid_callback(self, map):
+    def grid_callback(self, map:OccupancyGrid):
         #make a 2D array from the 1D array and reshape it to the correct dimensions (width, height)
         self.grid_map = np.array(map.data).reshape((self.grid_width, self.grid_height))
         self.grid_ready = True
@@ -80,22 +80,23 @@ class AStarPlanner:
             return []
    
 
-    #the distance in a straight line between two points on the grid
-    #def distance(self,start_cell,end_cell):      
-        x = start_cell.x - end_cell.x
-        y = start_cell.y - end_cell.y
-        return 1 * max(abs(x),abs(y))
-
-    #def heuristic(self,start_cell,end_cell):
-        heuristic = self.distance(start_cell,end_cell)
-        return heuristic
-    
     def heuristic(self, start_cell, end_cell):
         if start_cell is None or end_cell is None:
             return 0
-        return np.linalg.norm(np.array(start_cell) - np.array(end_cell))
+        #distances 
+        euclidean_distance = math.sqrt((start_cell[0] - end_cell[0])**2 + (start_cell[1] - end_cell[1])**2)
+        angle = math.atan2(start_cell[1] - end_cell[1], start_cell[0] - end_cell[0])
+        #obstacle_distance = min([self.distance_to_obstacle(start_cell, obstacle) for obstacle in obstacles])
+        
+        #costss
+        cost_of_moving_forward = 1
+        cost_of_turning_left = 3
+        cost_of_turning_right = 3
 
-    def pose_to_cell(self, pose: Pose):
+        heuristic_value = euclidean_distance * (1 + 0.2* angle)  + cost_of_moving_forward + cost_of_turning_left * 0.1 + cost_of_turning_right * 0.1
+        return heuristic_value
+
+    def pose_to_cell(self, pose: Pose) -> float:
         if pose is None:
             return None
         if type(pose) is not Pose:
@@ -109,7 +110,7 @@ class AStarPlanner:
             return None
         pose_x = cell[0] * self.grid_resolution + self.origin_x
         pose_y = cell[1] * self.grid_resolution + self.origin_y
-        return Pose(pose_x, pose_y, 0)
+        return Pose(position=Point(x=pose_x, y=pose_y, z=0), orientation=Quaternion(x=0, y=0, z=0, w=1))
    
     def plan_path(self):
         start_cell = self.pose_to_cell(self.start)
@@ -139,20 +140,21 @@ class AStarPlanner:
             if (current_cell == goal_cell) and  (goal_cell is not None):
                 #reconstruct the optimal path from the came_from dictionary and publish it
                 path = []
-                rospy.loginfo("Path found")
+                rospy.loginfo("Goal reached & Path found")
                 while current_cell in came_from:  
                     pose = self.cell_to_pose(current_cell)  
                     path.append(pose)
                     current_cell = came_from[current_cell]
-                path.append(self.goal)
-                path.reverse()
-                self.publish_path(path)                               #publish the path
+                #path.append(self.goal)
+                path.reverse()                
                 goal_reached = True
-                rospy.loginfo('Goal reached: {}'.format(path))
+                self.publish_path(path)                               #publish the path
                 break
             
             closed.append(current_cell)                               #add the current cell to the closed list
+            rospy.loginfo("Current cell: {}".format(current_cell))
             neighbors = self.get_neighbors(current_cell)              #get the neighbors of the current cell
+            rospy.loginfo('goal_cell : {}'.format(goal_cell))
 
             if len(neighbors) == 0:
                 # Replace alternative current cell with current cell if it has a lower cost or alternative current cell is None
@@ -205,7 +207,14 @@ class AStarPlanner:
             path_msg.poses.append(pose_msg)
         self.path_pub.publish(path_msg)
         rospy.loginfo("Path published: {}".format(path_msg))
-
+        
+        fig, ax = plt.subplots()
+        ax.set(xlabel='x (m)', ylabel='y (m)', title='Path')
+        ax.plot([pose.position.x for pose in path], [pose.position.y for pose in path], 'r--')
+        ax.grid()      
+        #fig.savefig('path.png') 
+        plt.show()
+        
     #function to publish the grid map
     def publish_grid(self):
         marker = Marker()
