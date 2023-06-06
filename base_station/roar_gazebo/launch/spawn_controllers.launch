@@ -1,0 +1,21 @@
+<launch>
+
+  <!-- load URDF model into parameter server -->
+  <param name="robot_description" textfile= "$(find roar_half_sus_description)/urdf/roar_half_sus_description.urdf" />
+
+  <!-- Load joint controller configurations from YAML file to parameter server -->
+  <rosparam file="$(find roar_gazebo)/config/roar_controllers.yaml" command="load"/>
+
+  <!-- load the controllers -->
+  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
+    output="screen" ns="/roar" args="wheel_lhs_front_velocity_controller wheel_lhs_mid_velocity_controller wheel_lhs_rear_velocity_controller wheel_rhs_front_velocity_controller wheel_rhs_mid_velocity_controller wheel_rhs_rear_velocity_controller joint_state_controller --timeout 50" />
+
+  <!-- convert joint states to TF transforms for rviz, etc -->
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"
+    respawn="false" output="screen">
+    <remap from="/joint_states" to="/roar/joint_states" />
+  </node>
+
+
+
+</launch>

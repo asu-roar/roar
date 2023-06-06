@@ -1,0 +1,62 @@
+roar:
+  # Publish all joint states -----------------------------------
+  joint_state_controller:
+    type: joint_state_controller/JointStateController
+    publish_rate: 10  
+
+  # Velocity Controllers ---------------------------------------
+  wheel_lhs_front_velocity_controller:
+    type: velocity_controllers/JointVelocityController
+    joint: wheel_lhs_front_joint
+    
+  wheel_lhs_mid_velocity_controller:
+    type: velocity_controllers/JointVelocityController
+    joint: wheel_lhs_mid_joint
+    
+  wheel_lhs_rear_velocity_controller:
+    type: velocity_controllers/JointVelocityController
+    joint: wheel_lhs_rear_joint
+    
+  wheel_rhs_front_velocity_controller:
+    type: velocity_controllers/JointVelocityController
+    joint: wheel_rhs_front_joint
+    
+  wheel_rhs_mid_velocity_controller:
+    type: velocity_controllers/JointVelocityController
+    joint: wheel_rhs_mid_joint
+    
+  wheel_rhs_rear_velocity_controller:
+    type: velocity_controllers/JointVelocityController
+    joint: wheel_rhs_rear_joint
+    
+
+  # roar:
+#   # Publish all joint states -----------------------------------
+#   joint_state_controller:
+#     type: joint_state_controller/JointStateController
+#     publish_rate: 50
+
+#   # Diff Drive Controller ---------------------------------------
+#   diff_drive_controller:
+#     type: diff_drive_controller/DiffDriveController
+#     left_wheel: ['wheel_lhs_front_joint', 'wheel_lhs_mid_joint', 'wheel_lhs_rear_joint']
+#     right_wheel: ['wheel_rhs_front_joint', 'wheel_rhs_mid_joint', 'wheel_rhs_rear_joint']
+#     wheel_separation_multiplier: 1.0
+#     wheel_radius_multiplier: 1.0
+#     enable_odom_tf: true
+#     publish_rate: 50
+#     cmd_vel_timeout: 0.25
+#     pose_covariance_diagonal: [0.001, 0.001, 1000000.0, 1000000.0, 1000000.0, 0.03]
+#     twist_covariance_diagonal: [0.001, 0.001, 0.001, 1000000.0, 1000000.0, 0.03]
+#     linear:
+#       x:
+#         has_velocity_limits: true
+#         max_velocity: 0.1 # m/s
+#         has_acceleration_limits: true
+#         max_acceleration: 1 # m/s^2
+#     angular:
+#       z:
+#         has_velocity_limits: true
+#         max_velocity: 0.4 # rad/s
+#         has_acceleration_limits: true
+#         max_acceleration: 2.5 # rad/s^2

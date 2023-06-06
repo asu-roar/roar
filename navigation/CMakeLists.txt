@@ -20,7 +20,8 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-# catkin_install_python(PROGRAMS
-#   src/script.py
-#   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
+catkin_install_python(PROGRAMS
+  scripts/path_test.py
+  scripts/controller_global.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
