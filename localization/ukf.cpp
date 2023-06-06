@@ -10,8 +10,8 @@ using Eigen::MatrixXd;
 using Eigen::VectorXd;
 using namespace std::chrono;
 
-std::vector<float> Vel_arr = {10, 10, 10, 10, 10, 10};
-std::vector<float> IMU_arr = {M_PI/2, 0};                                                                                    // omega and theta absoulute respectively
+std::vector<float> Vel_arr = {0, 0, 0, 0, 0, 0};
+std::vector<float> IMU_arr = {0, 0};                                                                                    // omega and theta absoulute respectively
 std::vector<float> CAM_arr = {595468, 5,
                               2, 8};                                                                                         // ID then the distance from the camera to each landmark
 auto time_start = high_resolution_clock::now(); 
@@ -28,7 +28,7 @@ double delta_time_cam = 0;
 
 void Vel_Callback(const std_msgs::Float32MultiArray::ConstPtr& msg)                                                          // callback of encoder readings
 {
-  ROS_INFO("I heard Velocities");
+  //ROS_INFO("I heard Velocities");
   Vel_arr = msg->data;
 }
 
@@ -36,7 +36,7 @@ void Vel_Callback(const std_msgs::Float32MultiArray::ConstPtr& msg)             
 
 void IMU_Callback(const std_msgs::Float32MultiArray::ConstPtr& msg)                                                          // callback of IMU readings
 {
-  ROS_INFO("I heard IMU");
+  //ROS_INFO("I heard IMU");
   IMU_arr = msg->data;
   time_stop = high_resolution_clock::now();
   auto duration = duration_cast<seconds>(time_stop - time_start);
@@ -48,7 +48,7 @@ void IMU_Callback(const std_msgs::Float32MultiArray::ConstPtr& msg)             
 
 void CAM_Callback(const std_msgs::Float32MultiArray::ConstPtr& msg)                                                          // callback of landmarks captured by camera
 {
-  ROS_INFO("I heard Camera");
+  //ROS_INFO("I heard Camera");
   CAM_arr = msg->data;
   time_stop_cam = high_resolution_clock::now();
   auto duration_cam = duration_cast<seconds>(time_stop - time_start);
@@ -150,8 +150,8 @@ void Predict(std::vector<float> velocity, float omega, float delta_t, MatrixXd X
   }
   *prediction = x;
   *covariance = P;
-  std::cout << "Predicted state" << std::endl;
-  std::cout << x << std::endl;
+  //std::cout << "Predicted state" << std::endl;
+  //std::cout << x << std::endl;
 }
 
 void PredictIMU(float IMU_arr, VectorXd* z_pred_out, MatrixXd* Zsig_out, MatrixXd* S_out, VectorXd weights)
@@ -231,10 +231,10 @@ void Estimate(int size_z, float IMU_arr, MatrixXd Xsig_pred, VectorXd z_pred, Ma
   while (z_diff(0)<-M_PI) z_diff(0)+=2.*M_PI;
   *position = position_pred.col(0) + K * z_diff;
   *covariance = covariance_pred.topLeftCorner(3,3) - K*S*K.transpose();
-  std::cout << "estimation is" << std::endl;
-  std::cout << *position << std::endl;
-  std::cout << "estimation covariance is" << std::endl;
-  std::cout << *covariance << std::endl;
+  //std::cout << "estimation is" << std::endl;
+  //std::cout << *position << std::endl;
+  //std::cout << "estimation covariance is" << std::endl;
+  //std::cout << *covariance << std::endl;
 }
 
 double triangulate(std::vector<double> landmark1, std::vector<double> landmark2, std::vector<double> landmark3, std::vector<float> CAM_arr)
@@ -388,7 +388,7 @@ int main(int argc, char *argv[])                                                
   MatrixXd Xsig_aug;
   Eigen::Vector3d position;
   Eigen::Matrix3d covariance;
-  position << 40, 10, M_PI/2;
+  position <<   0, 0, M_PI/2;
   covariance << 1, 0, 0, 
                 0, 1, 0,
                 0, 0, 1000;
@@ -421,7 +421,7 @@ int main(int argc, char *argv[])                                                
   while (ros::ok())                                                                                                          // while (1) loop
   {
     ros::spinOnce();
-    while(CAM_arr[0] == 595468);
+    /*while(CAM_arr[0] == 595468);
     if (CAM_arr != CAM_arr_old)
       {
         if (CAM_arr.size() < 7)
@@ -466,7 +466,7 @@ int main(int argc, char *argv[])                                                
           CAM_arr_old = CAM_arr;
         } 
       }
-
+*/
       sigma_points(position, covariance, &Xsig_aug);
       //ROS_INFO("sigma points function done"); 
       Predict(Vel_arr, IMU_arr[1], delta_time, Xsig_aug, &prediction, &pred_cov, &weights);
@@ -479,7 +479,7 @@ int main(int argc, char *argv[])                                                
       coordinates.data[1] = position[1];
       coordinates.data[2] = position[2]*(180/M_PI);
       pub.publish(coordinates);
-      ROS_INFO("published");
+      //ROS_INFO("published");
       IMU_arr_old = IMU_arr;
       ros::Duration(3.0).sleep();
   }
