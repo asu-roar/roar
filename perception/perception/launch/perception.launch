@@ -1,0 +1,9 @@
+<launch>
+
+  <include file="$(find perception)/launch/cameras_ros.launch" />
+
+  <include file="$(find perception)/launch/artag_alvar.launch" />
+
+  <node name="perception_node" pkg="perception" type="perception" respawn="false" output="screen" />
+
+</launch>
