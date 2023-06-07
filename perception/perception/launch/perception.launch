@@ -4,6 +4,6 @@
 
   <include file="$(find perception)/launch/artag_alvar.launch" />
 
-  <node name="perception_node" pkg="perception" type="perception" respawn="false" output="screen" />
+  <node name="perception_node" pkg="perception" type="perception.py" respawn="false" output="screen" />
 
 </launch>
