@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import rospy
 import random
+import math
 from std_msgs.msg import Float64
 from std_msgs.msg import Float32MultiArray
 from tf.transformations import euler_from_quaternion
@@ -38,16 +39,16 @@ def velocity_callback6(msg):
 
 def imu_callback(msg):   
     global orientation 
-    orientation[1] = (euler_from_quaternion([msg.pose[1].orientation.x, msg.pose[1].orientation.y, msg.pose[1].orientation.z, msg.pose[1].orientation.w])[2])
+    zd, dfs, orientation[1] = euler_from_quaternion([msg.pose[1].orientation.x, msg.pose[1].orientation.y, msg.pose[1].orientation.z, msg.pose[1].orientation.w])
+    orientation[1] = math.degrees(orientation[1])
     if (orientation[1] < 90):
         orientation[1] += 270
     elif (orientation[1] > 90):
         orientation[1] -= 90
-    orientation[1] = orientation[1] + random.gauss(0, std_dev_imu)
-    rospy.loginfo(orientation)
+    orientation[1] = math.radians(orientation[1] + random.gauss(0, std_dev_imu))
+    rospy.loginfo(math.degrees(orientation[1]))
 
 rospy.init_node('velocity_combiner')
-
 combined_pub = rospy.Publisher('velocity', Float32MultiArray, queue_size=10)
 combined_pub_IMU = rospy.Publisher('IMU', Float32MultiArray, queue_size=10)
 

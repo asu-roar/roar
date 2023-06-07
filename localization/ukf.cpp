@@ -36,7 +36,7 @@ void Vel_Callback(const std_msgs::Float32MultiArray::ConstPtr& msg)             
 
 void IMU_Callback(const std_msgs::Float32MultiArray::ConstPtr& msg)                                                          // callback of IMU readings
 {
-  //ROS_INFO("I heard IMU");
+  ROS_INFO("I heard IMU");
   IMU_arr = msg->data;
   time_stop = high_resolution_clock::now();
   auto duration = duration_cast<seconds>(time_stop - time_start);
@@ -194,7 +194,7 @@ void PredictIMU(float IMU_arr, VectorXd* z_pred_out, MatrixXd* Zsig_out, MatrixX
 }
 
 
-void Estimate(int size_z, float IMU_arr, MatrixXd Xsig_pred, VectorXd z_pred, MatrixXd Zsig, MatrixXd S, Eigen::Vector3d* position, Eigen::Matrix3d* covariance, VectorXd weights, MatrixXd position_pred, MatrixXd covariance_pred)                                                                                                              // estimation function (where we update prediction readings using IMU)
+void Estimate(int size_z, MatrixXd Xsig_pred, VectorXd z_pred, MatrixXd Zsig, MatrixXd S, Eigen::Vector3d* position, Eigen::Matrix3d* covariance, VectorXd weights, MatrixXd position_pred, MatrixXd covariance_pred)                                                                                                              // estimation function (where we update prediction readings using IMU)
 {
   //ROS_INFO("i have entered the estimation function");
   int size = 3;
@@ -376,8 +376,7 @@ void GetLandmarkPos_3(int ID_1, int ID_2, int ID_3, std::vector<double>* LM_Pos1
 
 int main(int argc, char *argv[])                                                                                             // initialization of ros node and other variables
 {
-
-  std::vector<float> IMU_arr_old = {5,6};
+  std::vector<float> IMU_arr_old = {0.0,6.5};
   std::vector<float> CAM_arr_old;
   std::vector<double> LM_Pos1;
   std::vector<double> LM_Pos2;
@@ -388,10 +387,10 @@ int main(int argc, char *argv[])                                                
   MatrixXd Xsig_aug;
   Eigen::Vector3d position;
   Eigen::Matrix3d covariance;
-  position <<   0, 0, M_PI/2;
-  covariance << 1, 0, 0, 
-                0, 1, 0,
-                0, 0, 1000;
+  position <<   0, 0, 0;
+  covariance << 3, 0, 0, 
+                0, 3, 0,
+                0, 0, 10;
   VectorXd z_pred;
   MatrixXd S;
   Eigen::MatrixXd Zsig = MatrixXd(1,11);
@@ -407,20 +406,21 @@ int main(int argc, char *argv[])                                                
 
   ros::init(argc, argv, "localization");
   ros::NodeHandle nh;
-  ros::Publisher pub = nh.advertise<std_msgs::Float32MultiArray>("coordinates", 30);
-  ros::Subscriber sub1 = nh.subscribe("velocity", 30, Vel_Callback);
-  ros::Subscriber sub2 = nh.subscribe("IMU", 30, IMU_Callback);
-  ros::Subscriber sub3 = nh.subscribe("CAM", 30, CAM_Callback);
+  ros::Publisher pub = nh.advertise<std_msgs::Float32MultiArray>("coordinates", 10);
+  ros::Subscriber sub1 = nh.subscribe("velocity", 10, Vel_Callback);
+  ros::Subscriber sub2 = nh.subscribe("IMU", 10, IMU_Callback);
+  ros::Subscriber sub3 = nh.subscribe("CAM", 10, CAM_Callback);
   std_msgs::Float32MultiArray coordinates;
   coordinates.data = {0.0, 0.0, 0.0};
   ros::Rate rate(10);
   ROS_INFO("Node initialized succesfully");         
 
 
-
-  while (ros::ok())                                                                                                          // while (1) loop
+while (ros::ok)
+{
+  ros::spinOnce();
+  while (IMU_arr_old != IMU_arr)                                                                                                          // while (1) loop
   {
-    ros::spinOnce();
     /*while(CAM_arr[0] == 595468);
     if (CAM_arr != CAM_arr_old)
       {
@@ -469,19 +469,20 @@ int main(int argc, char *argv[])                                                
 */
       sigma_points(position, covariance, &Xsig_aug);
       //ROS_INFO("sigma points function done"); 
-      Predict(Vel_arr, IMU_arr[1], delta_time, Xsig_aug, &prediction, &pred_cov, &weights);
+      Predict(Vel_arr, IMU_arr[0], delta_time, Xsig_aug, &prediction, &pred_cov, &weights);
       //ROS_INFO("predict function done");
-      PredictIMU(IMU_arr[0], &z_pred, &Zsig, &S, weights);
+      PredictIMU(IMU_arr[1], &z_pred, &Zsig, &S, weights);
       //ROS_INFO("predictIMU function done"); 
-      Estimate(size_z_IMU, IMU_arr[0], Xsig_aug, z_pred, Zsig, S, &position, &covariance, weights, prediction, pred_cov);
+      Estimate(size_z_IMU, Xsig_aug, z_pred, Zsig, S, &position, &covariance, weights, prediction, pred_cov);
       //ROS_INFO("estimate function done"); 
       coordinates.data[0] = position[0];
       coordinates.data[1] = position[1];
       coordinates.data[2] = position[2]*(180/M_PI);
       pub.publish(coordinates);
-      //ROS_INFO("published");
+      ROS_INFO("published");
       IMU_arr_old = IMU_arr;
-      ros::Duration(3.0).sleep();
+      //ros::Duration(1).sleep();
   }
-  return 0;
+ }
+ return 0;
 }
