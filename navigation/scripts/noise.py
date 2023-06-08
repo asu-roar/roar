@@ -10,7 +10,7 @@ from gazebo_msgs.msg import ModelStates
 
 std_dev_vel = 0.05  # Standard deviation for velocity noise
 std_dev_imu = 0.05  # Standard deviation for IMU noise
-orientation = [0,0]
+orientation = [0.0,0.0]
 velocities = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
 def velocity_callback1(msg):

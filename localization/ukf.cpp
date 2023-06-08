@@ -20,7 +20,7 @@ auto duration = duration_cast<seconds>(time_stop - time_start);
 auto time_start_cam = high_resolution_clock::now(); 
 auto time_stop_cam = high_resolution_clock::now();
 auto duration_cam = duration_cast<seconds>(time_stop - time_start);
-double delta_time = 1;
+double delta_time = 0.1;
 double delta_time_cam = 0;
 
 
@@ -36,12 +36,12 @@ void Vel_Callback(const std_msgs::Float32MultiArray::ConstPtr& msg)             
 
 void IMU_Callback(const std_msgs::Float32MultiArray::ConstPtr& msg)                                                          // callback of IMU readings
 {
-  ROS_INFO("I heard IMU");
+  //ROS_INFO("I heard IMU");
   IMU_arr = msg->data;
-  time_stop = high_resolution_clock::now();
-  auto duration = duration_cast<seconds>(time_stop - time_start);
-  delta_time = duration.count();
-  time_start = high_resolution_clock::now();  
+  //time_stop = high_resolution_clock::now();
+  //auto duration = duration_cast<seconds>(time_stop - time_start);
+  //delta_time = duration.count();
+  //time_start = high_resolution_clock::now();  
 }
 
 
@@ -63,8 +63,8 @@ void sigma_points(Eigen::Vector3d x, Eigen::Matrix3d X_cov, MatrixXd* Xsig_aug)
   int size = 3;
   int size_aug = 5;
   double lambda = 1.62;
-  double std_a = 0.12;
-  double std_yawdd = 0.12;
+  double std_a = 0.0;
+  double std_yawdd = 0.0;
   VectorXd x_aug = VectorXd(size_aug);
   MatrixXd P_aug = MatrixXd(size_aug, size_aug);
   MatrixXd Xsig_in = MatrixXd(size_aug, 2 * size_aug + 1);
@@ -105,6 +105,9 @@ void Predict(std::vector<float> velocity, float omega, float delta_t, MatrixXd X
 
     double sum = std::accumulate(velocity.begin(), velocity.end(), 0.0);
     double avg_v = sum / velocity.size();
+    //ROS_INFO("Velocity is ");
+    //std::cout << avg_v << std::endl;
+
 
     px_p = p_x + avg_v*cos(yaw)*delta_t;
     py_p = p_y + avg_v*sin(yaw)*delta_t;
@@ -150,8 +153,8 @@ void Predict(std::vector<float> velocity, float omega, float delta_t, MatrixXd X
   }
   *prediction = x;
   *covariance = P;
-  //std::cout << "Predicted state" << std::endl;
-  //std::cout << x << std::endl;
+  std::cout << "Predicted state" << std::endl;
+  std::cout << x << std::endl;
 }
 
 void PredictIMU(float IMU_arr, VectorXd* z_pred_out, MatrixXd* Zsig_out, MatrixXd* S_out, VectorXd weights)
@@ -176,14 +179,14 @@ void PredictIMU(float IMU_arr, VectorXd* z_pred_out, MatrixXd* Zsig_out, MatrixX
   S.fill(0.0);
   for (int i = 0; i < 2 * size_aug + 1; ++i) 
   {  
-    VectorXd z_diff = Zsig.col(i) - z_pred;
+    VectorXd z_diff = Zsig.col(i);// - z_pred;
     while (z_diff(0)> M_PI) z_diff(0)-=2.*M_PI;
     while (z_diff(0)<-M_PI) z_diff(0)+=2.*M_PI;
     S = S + weights(i) * z_diff * z_diff.transpose();
   }
 
   MatrixXd R = MatrixXd(size_z,size_z);
-  R <<  0.12;
+  R <<  0.05;
   S = S + R;
 
   *z_pred_out = z_pred;
@@ -231,8 +234,8 @@ void Estimate(int size_z, MatrixXd Xsig_pred, VectorXd z_pred, MatrixXd Zsig, Ma
   while (z_diff(0)<-M_PI) z_diff(0)+=2.*M_PI;
   *position = position_pred.col(0) + K * z_diff;
   *covariance = covariance_pred.topLeftCorner(3,3) - K*S*K.transpose();
-  //std::cout << "estimation is" << std::endl;
-  //std::cout << *position << std::endl;
+  std::cout << "estimation is" << std::endl;
+  std::cout << *position << std::endl;
   //std::cout << "estimation covariance is" << std::endl;
   //std::cout << *covariance << std::endl;
 }
@@ -388,9 +391,9 @@ int main(int argc, char *argv[])                                                
   Eigen::Vector3d position;
   Eigen::Matrix3d covariance;
   position <<   0, 0, 0;
-  covariance << 3, 0, 0, 
-                0, 3, 0,
-                0, 0, 10;
+  covariance << 30, 0, 0, 
+                0, 30, 0,
+                0, 0, 100;
   VectorXd z_pred;
   MatrixXd S;
   Eigen::MatrixXd Zsig = MatrixXd(1,11);
@@ -479,10 +482,10 @@ while (ros::ok)
       coordinates.data[1] = position[1];
       coordinates.data[2] = position[2]*(180/M_PI);
       pub.publish(coordinates);
-      ROS_INFO("published");
+      //ROS_INFO("published");
       IMU_arr_old = IMU_arr;
       //ros::Duration(1).sleep();
   }
- }
+}
  return 0;
 }
