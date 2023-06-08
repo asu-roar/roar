@@ -81,6 +81,11 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
+        camera_link_optical:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: false
         rocker_lhs:
           Alpha: 1
           Show Axes: false
@@ -220,17 +225,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: -0.7533085942268372
-        Y: 0.34006330370903015
-        Z: 0.6443907618522644
+        X: -0.7633346915245056
+        Y: 0.3630053997039795
+        Z: 0.5892728567123413
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.39979636669158936
+      Pitch: 0.5497962236404419
       Target Frame: <Fixed Frame>
-      Yaw: 2.3585822582244873
+      Yaw: 1.6535816192626953
     Saved: ~
 Window Geometry:
   Camera:
