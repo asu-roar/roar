@@ -8,13 +8,14 @@ from nav_msgs.msg import OccupancyGrid, Path
 from visualization_msgs.msg import Marker
 from geometry_msgs.msg import PoseStamped,PoseWithCovarianceStamped, Pose, Point, Quaternion, Vector3
 from std_msgs.msg import  ColorRGBA
+from gazebo_msgs.msg import ModelStates
 
 
 class AStarPlanner:
     def __init__(self):
         self.grid_resolution = 0.01
-        self.grid_width = 1000
-        self.grid_height = 1000
+        self.grid_width = 2500
+        self.grid_height = 2500
         self.origin_x = 0.01
         self.origin_y = 0.01
         
@@ -29,7 +30,8 @@ class AStarPlanner:
 
         self.grid_map = np.zeros((self.grid_width, self.grid_height), dtype=np.int8)
 
-        self.start_sub = rospy.Subscriber('/current_pose', PoseWithCovarianceStamped, self.start_callback)
+        #self.start_sub = rospy.Subscriber('/current_pose', PoseWithCovarianceStamped, self.start_callback)
+        self.start_sub = rospy.Subscriber('/gazebo/model_states', ModelStates, self.start_callback)
         self.goal_sub = rospy.Subscriber('/goal', PoseStamped, self.goal_callback)
         self.grid_sub = rospy.Subscriber('/occupancy_grid', OccupancyGrid, self.grid_callback)
 
@@ -39,8 +41,9 @@ class AStarPlanner:
 
 #-------------------------------------------------callbacks-------------------------------------------------------
    
-    def start_callback(self, init:PoseWithCovarianceStamped):
-        self.start = init.pose.pose
+    def start_callback(self, init:ModelStates):
+        #self.start = init.pose.pose
+        self.start = init.pose
         rospy.loginfo("New start is set")
         if self.goal is not None and self.grid_ready:
             self.plan_path()   
@@ -124,6 +127,7 @@ class AStarPlanner:
         #initialize dictionaries to store the g_score and f_score of each cell
         g_scores = {start_cell: 0}                                       #distance from start to current node
         f_scores = {start_cell: self.heuristic(start_cell, goal_cell)}   #distance from start to goal through current node
+        rospy.loginfo('goal_cell : {}'.format(goal_cell))
 
         #initialize the parent dictionary to store the optimal path
         came_from = {}    
@@ -255,11 +259,11 @@ class AStarPlanner:
 #-------------------------------------------------Main--------------------------------------------------------
 if __name__ == '__main__':
     rospy.init_node('Astar_planner', anonymous=True)
-    rate = rospy.Rate(10)
+    rate = rospy.Rate(2)
     path = AStarPlanner()
     while not rospy.is_shutdown():
         path.plan_path()
-        #path.publish_grid()
-        #path.publish_vis_path(path)
+        path.publish_grid()
+        path.publish_vis_path(path)
         rate.sleep()
     rospy.spin()    
