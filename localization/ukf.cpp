@@ -62,7 +62,7 @@ void sigma_points(Eigen::Vector3d x, Eigen::Matrix3d X_cov, MatrixXd* Xsig_aug)
 {
   int size = 3;
   int size_aug = 5;
-  double lambda = 1.62;
+  double lambda = 3 - size_aug;
   double std_a = 0.03;
   double std_yawdd = 0.03;
   VectorXd x_aug = VectorXd(size_aug);
@@ -88,12 +88,12 @@ void sigma_points(Eigen::Vector3d x, Eigen::Matrix3d X_cov, MatrixXd* Xsig_aug)
 
 
 
-void Predict(std::vector<float> velocity, float omega, float delta_t, MatrixXd Xsig_aug, MatrixXd* prediction, MatrixXd* covariance, VectorXd* weights_out)            // prediction function (where system model goes)
+void Predict(std::vector<float> velocity, float omega, float delta_t, MatrixXd Xsig_aug, MatrixXd* prediction, MatrixXd* covariance, VectorXd* weights_out, MatrixXd* Xsig_predion)            // prediction function (where system model goes)
 {
  int size = 3;
  int size_aug = 5;
- double lambda = 1.62;                  //
- MatrixXd Xsig_pred = MatrixXd(size, 2 * size_aug + 1);
+ double lambda = 3 - size_aug;
+ MatrixXd Xsig_pred = MatrixXd(size, 2 * size_aug + 1);                  
  for (int i = 0; i< 2*size_aug+1; ++i)
    {
     double p_x = Xsig_aug(0,i);
@@ -153,11 +153,12 @@ void Predict(std::vector<float> velocity, float omega, float delta_t, MatrixXd X
   }
   *prediction = x;
   *covariance = P;
+  *Xsig_predion = Xsig_pred;
   //std::cout << "Predicted state" << std::endl;
   //std::cout << x << std::endl;
 }
 
-void PredictIMU(float IMU_arr, VectorXd* z_pred_out, MatrixXd* Zsig_out, MatrixXd* S_out, VectorXd weights)
+void PredictIMU(VectorXd* z_pred_out, MatrixXd* Zsig_out, MatrixXd* S_out, VectorXd weights, MatrixXd Xsig_prediction)
 {
   int size = 3;
   int size_aug = 5;
@@ -167,7 +168,7 @@ void PredictIMU(float IMU_arr, VectorXd* z_pred_out, MatrixXd* Zsig_out, MatrixX
   MatrixXd S = MatrixXd(size_z,size_z);
   for (int i = 0; i < 2 * size_aug + 1; ++i) 
   {  
-    Zsig(0,i) = IMU_arr;
+    Zsig(0,i) = Xsig_prediction(2,i);
   }
 
   z_pred.fill(0.0);
@@ -192,12 +193,12 @@ void PredictIMU(float IMU_arr, VectorXd* z_pred_out, MatrixXd* Zsig_out, MatrixX
   *z_pred_out = z_pred;
   *S_out = S;
   *Zsig_out = Zsig;
-  //std::cout << "Zsig is" << std::endl;
-  //std::cout << *Zsig_out << std::endl;
+  std::cout << "s is" << std::endl;
+  std::cout << S << std::endl;
 }
 
 
-void Estimate(float IMU_reading, int size_z, MatrixXd Xsig_pred, VectorXd z_pred, MatrixXd Zsig, MatrixXd S, Eigen::Vector3d* position, Eigen::Matrix3d* covariance, VectorXd weights, MatrixXd position_pred, MatrixXd covariance_pred)                                                                                                              // estimation function (where we update prediction readings using IMU)
+void Estimate(float IMU_reading, int size_z, VectorXd z_pred, MatrixXd Zsig, MatrixXd S, Eigen::Vector3d* position, Eigen::Matrix3d* covariance, VectorXd weights, MatrixXd position_pred, MatrixXd covariance_pred, MatrixXd Xsig_prediction)                                                                                                              // estimation function (where we update prediction readings using IMU)
 {
   //ROS_INFO("i have entered the estimation function");
   int size = 3;
@@ -212,13 +213,19 @@ void Estimate(float IMU_reading, int size_z, MatrixXd Xsig_pred, VectorXd z_pred
   for (int i = 0; i < 2 * size_aug + 1; ++i) 
   {
     VectorXd z_diff = Zsig.col(i) - z_pred;
-    //z_diff(0) = 0;
-    //z_diff(1) = 0;
-    //ROS_INFO("zsig in estimate func loop is");
-    //std::cout << Zsig.col(i) << std::endl;
-    while (z_diff(0)> M_PI) z_diff(0)-=2.*M_PI;
-    while (z_diff(0)<-M_PI) z_diff(0)+=2.*M_PI;
-    VectorXd x_diff = Xsig_pred.col(i) - position_pred;
+    if (size_z == 1)
+    {
+      while (z_diff(0)> M_PI) z_diff(0)-=2.*M_PI;
+      while (z_diff(0)<-M_PI) z_diff(0)+=2.*M_PI;
+    }
+
+    if (size_z == 3)
+    {
+      while (z_diff(2)> M_PI) z_diff(2)-=2.*M_PI;
+      while (z_diff(2)<-M_PI) z_diff(2)+=2.*M_PI;
+    }
+
+    VectorXd x_diff = Xsig_prediction.col(i) - position_pred;
     while (x_diff(2)> M_PI) x_diff(2)-=2.*M_PI;
     while (x_diff(2)<-M_PI) x_diff(2)+=2.*M_PI;
     Tc = Tc + weights(i) * x_diff * z_diff.transpose();
@@ -229,16 +236,16 @@ void Estimate(float IMU_reading, int size_z, MatrixXd Xsig_pred, VectorXd z_pred
   }
   std::cout << "TC is" << std::endl;
   std::cout << Tc << std::endl;
-  //std::cout << "S is" << std::endl;
-  //std::cout << S << std::endl;
+  std::cout << "S is" << std::endl;
+  std::cout << S << std::endl;
   K = Tc * S.inverse();
   //std::cout << "kalman gain is" << std::endl;
   //std::cout << K << std::endl;
   MatrixXd IMU_vec = MatrixXd(1,1);
-  //IMU_vec(0,0) = IMU_reading;
+  IMU_vec(0,0) = IMU_reading;
   //std::cout << "z angle is" << std::endl;
   //std::cout <<  IMU_vec << std::endl;
-  VectorXd z_diff = Zsig.col(0) - z_pred;
+  VectorXd z_diff = IMU_vec - z_pred;
   if (size_z == 1)
   {
     while (z_diff(0)> M_PI) z_diff(0)-=2.*M_PI;
@@ -260,7 +267,7 @@ void Estimate(float IMU_reading, int size_z, MatrixXd Xsig_pred, VectorXd z_pred
   //std::cout << "estimation covariance is" << std::endl;
   //std::cout << *covariance << std::endl;
 }
-
+/*
 double triangulate(std::vector<double> landmark1, std::vector<double> landmark2, std::vector<double> landmark3, std::vector<float> CAM_arr)
 {
     double estimatedX, estimatedY;
@@ -280,7 +287,8 @@ double triangulate(std::vector<double> landmark1, std::vector<double> landmark2,
 
     return estimatedX, estimatedY;
 }
-
+*/
+/*
 void PredictCAM(std::vector<float> CAM_arr_old, std::vector<float> CAM_arr, VectorXd* z_pred_out, MatrixXd* Zsig_out, MatrixXd* S_out, VectorXd weights, std::vector<double> LM_Pos1, std::vector<double> LM_Pos2, std::vector<double> LM_Pos3, std::vector<double>LM_Pos_old_1, std::vector<double>LM_Pos_old_2, std::vector<double>LM_Pos_old_3)
 {
   int size = 3;
@@ -369,9 +377,9 @@ void PredictCAM(std::vector<float> CAM_arr_old, std::vector<float> CAM_arr, Vect
     //std::cout << *Zsig_out << std::endl;
   }
 }
+*/
 
-
-
+/*
 void GetLandmarkPos_2(int ID_1, int ID_2, std::vector<double>* LM_Pos1, std::vector<double>* LM_Pos2)
 {
   int no_landmarks = 16;
@@ -383,7 +391,8 @@ void GetLandmarkPos_2(int ID_1, int ID_2, std::vector<double>* LM_Pos1, std::vec
   *LM_Pos1 = { List_LM(1,ID_1) , List_LM(2,ID_1) };
   *LM_Pos2 = { List_LM(1,ID_2) , List_LM(2,ID_2) };
 }
-
+*/
+/*
 void GetLandmarkPos_3(int ID_1, int ID_2, int ID_3, std::vector<double>* LM_Pos1, std::vector<double>* LM_Pos2, std::vector<double>* LM_Pos3)
 {
   int no_landmarks = 16;
@@ -396,7 +405,7 @@ void GetLandmarkPos_3(int ID_1, int ID_2, int ID_3, std::vector<double>* LM_Pos1
   *LM_Pos2 = { List_LM(1,ID_2) , List_LM(2,ID_2) };
   *LM_Pos3 = { List_LM(1,ID_3) , List_LM(2,ID_3) };
 }
-
+*/
 
 int main(int argc, char *argv[])                                                                                             // initialization of ros node and other variables
 {
@@ -409,6 +418,7 @@ int main(int argc, char *argv[])                                                
   std::vector<double> LM_Pos_old_2;
   std::vector<double> LM_Pos_old_3;
   MatrixXd Xsig_aug;
+  MatrixXd Xsig_pred = MatrixXd(3, 11);
   Eigen::Vector3d position;
   Eigen::Matrix3d covariance;
   position <<   0, 0, 0;
@@ -493,11 +503,11 @@ while (ros::ok)
 */
       sigma_points(position, covariance, &Xsig_aug);
       //ROS_INFO("sigma points function done"); 
-      Predict(Vel_arr, IMU_arr[0], delta_time, Xsig_aug, &prediction, &pred_cov, &weights);
+      Predict(Vel_arr, IMU_arr[0], delta_time, Xsig_aug, &prediction, &pred_cov, &weights, &Xsig_pred);
       //ROS_INFO("predict function done");
-      PredictIMU(IMU_arr[1], &z_pred, &Zsig, &S, weights);
+      PredictIMU(&z_pred, &Zsig, &S, weights, Xsig_pred);
       //ROS_INFO("predictIMU function done"); 
-      Estimate(IMU_arr[1], size_z_IMU, Xsig_aug, z_pred, Zsig, S, &position, &covariance, weights, prediction, pred_cov);
+      Estimate(IMU_arr[1], size_z_IMU, z_pred, Zsig, S, &position, &covariance, weights, prediction, pred_cov, Xsig_pred);
       //ROS_INFO("estimate function done"); 
       coordinates.data[0] = position[0];
       coordinates.data[1] = position[1];
