@@ -14,7 +14,7 @@ class Handler:
         # Node initialization
         rospy.init_node("controller_node")
         # Control loop rate
-        self.rate = rospy.Rate(5)
+        self.rate = rospy.Rate(60)
         # Rate at which to wait for pose and path information
         self.wait_rate = rospy.Rate(1)
 
@@ -32,17 +32,17 @@ class Handler:
 
         # Publishers for wheel velocities
         self.wheel_lhs_front_velocity_pub = rospy.Publisher(
-            "/roar/wheel_lhs_front_velocity_controller/command", Float64, queue_size=10)
+            "/roar/wheel_lhs_front_velocity_controller/command", Float64, queue_size=60)
         self.wheel_lhs_mid_velocity_pub = rospy.Publisher(
-            "/roar/wheel_lhs_mid_velocity_controller/command", Float64, queue_size=10)
+            "/roar/wheel_lhs_mid_velocity_controller/command", Float64, queue_size=60)
         self.wheel_lhs_rear_velocity_pub = rospy.Publisher(
-            "/roar/wheel_lhs_rear_velocity_controller/command", Float64, queue_size=10)
+            "/roar/wheel_lhs_rear_velocity_controller/command", Float64, queue_size=60)
         self.wheel_rhs_front_velocity_pub = rospy.Publisher(
-            "/roar/wheel_rhs_front_velocity_controller/command", Float64, queue_size=10)
+            "/roar/wheel_rhs_front_velocity_controller/command", Float64, queue_size=60)
         self.wheel_rhs_mid_velocity_pub = rospy.Publisher(
-            "/roar/wheel_rhs_mid_velocity_controller/command", Float64, queue_size=10)
+            "/roar/wheel_rhs_mid_velocity_controller/command", Float64, queue_size=60)
         self.wheel_rhs_rear_velocity_pub = rospy.Publisher(
-            "/roar/wheel_rhs_rear_velocity_controller/command", Float64, queue_size=10)
+            "/roar/wheel_rhs_rear_velocity_controller/command", Float64, queue_size=60)
         self.right_pub_list = [self.wheel_rhs_front_velocity_pub,
                                self.wheel_rhs_mid_velocity_pub, self.wheel_rhs_rear_velocity_pub]
         self.left_pub_list = [self.wheel_lhs_front_velocity_pub,
