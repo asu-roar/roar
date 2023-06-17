@@ -604,14 +604,14 @@
     </inertial>
   </link>
   <joint name="camera_joint" type="fixed">
-    <origin xyz="0.62 -0.47 0.15" rpy="3.14159 3.14159 1.5708"/>
+    <origin xyz="0.62 -0.5 0.25" rpy="3.14159 3.14159 1.5708"/>
     <parent link="base_link"/>
     <child link="camera_link"/>
 
   </joint>
   <link name="camera_link_optical">
     <visual>
-      <origin xyz="0.0 0.0 0.0" rpy="-1.5708 0 -1.5708"/>
+      <origin xyz="0.0 -0.12 0.0" rpy="-1.5708 0 -1.5708"/>
       <geometry>
         <box size="0.1 0.1 0.1"/>
       </geometry>
@@ -640,15 +640,15 @@
     <sensor name="camera_sensor" type="depth">
       <update_rate>20</update_rate>
       <camera>
-        <horizontal_fov>1.047198</horizontal_fov>
+        <horizontal_fov>2.0944</horizontal_fov>
         <image>
           <width>640</width>
           <height>480</height>
           <format>R8G8B8</format>
         </image>
         <clip>
-          <near>0.05</near>
-          <far>5</far>
+          <near>0.03</near>
+          <far>4</far>
         </clip>
       </camera>
       <plugin name="camera_plugin" filename="libgazebo_ros_openni_kinect.so">
