@@ -343,7 +343,7 @@ void PredictCAM(std::vector<float> CAM_arr_old, std::vector<float> CAM_arr, Vect
     for (int i = 0; i < 2 * size_aug + 1; ++i) 
     {  
       Zsig(0,i) = x_new;
-      Zsig(1,i) = x_new;
+      Zsig(1,i) = y_new;
       Zsig(2,i) = std::atan2(y_new - y_old , x_new - x_old);
     }
 
