@@ -8,6 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   roar_msgs
+  tf2_ros
 )
 
 catkin_package(
@@ -16,6 +17,7 @@ catkin_package(
   rospy
   std_msgs
   roar_msgs
+  tf2_ros
 )
 
 include_directories(

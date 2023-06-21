@@ -5,6 +5,8 @@
 #include <cmath>
 #include <chrono>
 #include <numeric>
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2_ros/transform_broadcaster.h>
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
@@ -438,11 +440,12 @@ int main(int argc, char *argv[])                                                
 
   ros::init(argc, argv, "localization");
   ros::NodeHandle nh;
-  ros::Publisher pub = nh.advertise<std_msgs::Float32MultiArray>("coordinates", 10);
+  ros::Publisher pub = nh.advertise<std_msgs/*geometry_msgs*/::Float32MultiArray/*PoseStamped*/>("coordinates", 10);
   ros::Subscriber sub1 = nh.subscribe("velocity", 10, Vel_Callback);
   ros::Subscriber sub2 = nh.subscribe("IMU", 10, IMU_Callback);
   ros::Subscriber sub3 = nh.subscribe("CAM", 10, CAM_Callback);
   std_msgs::Float32MultiArray coordinates;
+  tf2_ros::TransformBroadcaster broadcaster;
   coordinates.data = {0.0, 0.0, 0.0};
   ros::Rate rate(100);
   ROS_INFO("Node initialized succesfully");         
@@ -511,9 +514,22 @@ while (ros::ok)
       coordinates.data[1] = position[1];
       coordinates.data[2] = position[2]*(180/M_PI);
       pub.publish(coordinates);
-      //ROS_INFO("published");
+
+      geometry_msgs::TransformStamped transform_stamped;
+      transform_stamped.header.stamp = ros::Time::now();
+      transform_stamped.header.frame_id = "map"; 
+      transform_stamped.child_frame_id = "rover_pose"; 
+      transform_stamped.transform.translation.x = position[0];
+      transform_stamped.transform.translation.y = position[1];
+      tf2::Quaternion quat;
+      quat.setRPY(0, 0, position[2]);  
+      transform_stamped.transform.rotation.x = quat.x();
+      transform_stamped.transform.rotation.y = quat.y();
+      transform_stamped.transform.rotation.z = quat.z();
+      transform_stamped.transform.rotation.w = quat.w();
+      broadcaster.sendTransform(transform_stamped);
+
       IMU_arr_old = IMU_arr;
-      //ros::Duration(1).sleep();
   }
 }
  return 0;
