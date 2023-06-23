@@ -64,13 +64,13 @@ class Handler:
 
     # Callback function for receiving the pose information
     def pose_callback(self, rec_msg: ModelStates) -> None:
-        orientation = math.degrees(euler_from_quaternion([rec_msg.pose[15].orientation.x,
-                                                          rec_msg.pose[15].orientation.y,
-                                                          rec_msg.pose[15].orientation.z,
-                                                          rec_msg.pose[15].orientation.w])[2])
+        orientation = math.degrees(euler_from_quaternion([rec_msg.pose[1].orientation.x,
+                                                          rec_msg.pose[1].orientation.y,
+                                                          rec_msg.pose[1].orientation.z,
+                                                          rec_msg.pose[1].orientation.w])[2])
         # Rover origin correction
-        x_position: float = rec_msg.pose[15].position.x+0.8
-        y_position: float = rec_msg.pose[15].position.y+0.4
+        x_position: float = rec_msg.pose[1].position.x+0.8
+        y_position: float = rec_msg.pose[1].position.y+0.4
         # Wrap gazebo orientation from [-180 to 180] to [0 to 360]
         if (orientation < 90):
             orientation += 270
