@@ -1,8 +1,8 @@
 <launch>
 
   <arg name="fixed" default="false"/>
-  <!-- <arg name="robot_ns" default="/roar"/> -->
-  <arg name="model_name" default="roar"/>
+  <arg name="robot_ns" default="/"/>
+  <arg name="model_name" default="leo"/>
 
   <arg name="world_name" default="worlds/empty.world"/>
   <arg name="paused" default="false"/>
@@ -18,7 +18,7 @@
     <arg name="verbose" value="$(arg verbose)"/>
   </include>
 
-  <include file="$(find roar_gazebo)/launch/spawn_rover.launch"
+  <include file="$(find roar_gazebo)/launch/spawner.launch"
            pass_all_args="true"/>
 
 </launch>

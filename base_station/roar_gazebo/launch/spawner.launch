@@ -1,0 +1,13 @@
+<launch>
+  <!-- Load URDF model -->
+  <param name="robot_description" command="cat $(find roar_half_sus_description)/urdf/roar_half_sus_description.urdf"/>
+
+  <!-- Spawn robot in Gazebo -->
+  <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-urdf -model roar -param robot_description -x -0.62 -y 0.15 -z 0.3 "/>
+
+  <!-- Spawn controllers -->
+  <include file="$(find roar_gazebo)/launch/spawn_controllers.launch">
+    <!-- <arg name="robot_ns" value="$(arg robot_ns)" /> -->
+  </include>
+
+</launch>
