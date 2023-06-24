@@ -39,7 +39,7 @@ def velocity_callback6(msg):
 
 def imu_callback(msg):   
     global orientation 
-    zd, dfs, orientation[1] = euler_from_quaternion([msg.pose[1].orientation.x, msg.pose[1].orientation.y, msg.pose[1].orientation.z, msg.pose[1].orientation.w])
+    zd, dfs, orientation[1] = euler_from_quaternion([msg.pose[15].orientation.x, msg.pose[15].orientation.y, msg.pose[15].orientation.z, msg.pose[15].orientation.w])
     orientation[1] = orientation[1] + random.gauss(0, std_dev_imu) - ( math.pi / 2 )
     rospy.loginfo(math.degrees(orientation[1]))
 

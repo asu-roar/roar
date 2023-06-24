@@ -7,6 +7,7 @@
     <arg name="y" value="7.617856" />
     <arg name="z" value="1.5" />
   </include>
-
+  <node name="controller_node" pkg="navigation" type="controller_global.py"/>
+  <node name="path_publisher" pkg="navigation" type="path_test.py"/>
 
 </launch>

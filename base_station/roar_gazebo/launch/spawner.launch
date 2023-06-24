@@ -3,7 +3,7 @@
   <param name="robot_description" command="cat $(find roar_half_sus_description)/urdf/roar_half_sus_description.urdf"/>
 
   <!-- Spawn robot in Gazebo -->
-  <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-urdf -model roar -param robot_description -x -0.62 -y 0.15 -z 0.3 "/>
+  <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-urdf -model roar -param robot_description -x -0.15 -y -0.62 -z 0.3  -Y 1.57079632679 "/>
 
   <!-- Spawn controllers -->
   <include file="$(find roar_gazebo)/launch/spawn_controllers.launch">
