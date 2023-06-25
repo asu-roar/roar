@@ -20,59 +20,42 @@ class OccupancyGridMap:
         self.origin_y = int(height//2)
         self.grid_map = np.zeros((width, height), dtype=np.int)
 
-        self.occupancy_threshold = 0.1  # minimum occupancy probability required for a grid cell to be considered as an obstacle
-                                        # the lower value, the higher the sensitivity
-
+        self.occupancy_threshold = 0.1
         self.pc_sub = rospy.Subscriber("/roar/camera/depth/points", PointCloud2, self.pc_callback)
         self.grid_pub = rospy.Publisher("/occupancy_grid", OccupancyGrid, queue_size=10)
-        # self.vis_pub = rospy.Publisher('/visualization_marker', Marker, queue_size=10)
 
-
+    
     def pc_callback(self, pc_msg:PointCloud2):
-        # convert 3D point cloud to numpy array nx4. (horizontal pos, vertical pos, depth, intensity)
         point_cloud = np.frombuffer(pc_msg.data, dtype=np.float32).reshape(-1, 4)
-        # calculate the coordinates of each point with its corresponding cell index in the occupancy grid = 2.6
-        # np.floor to round down the float = 2.
-        # astype to force int32 data type =2
-        x = np.floor(((point_cloud[:, 0] - 0) / self.grid_resolution) + self.origin_x).astype(np.int)
-        y = np.floor(((point_cloud[:, 2] - 0) / self.grid_resolution) + self.origin_y).astype(np.int)
+        x =  np.floor(((point_cloud[:, 0] - 0) / self.grid_resolution) + self.origin_x).astype(np.int)
+        y =  np.floor(((point_cloud[:, 2] - 0) / self.grid_resolution) + self.origin_y).astype(np.int)
+        valid_indices = np.in1d(x, np.arange(self.grid_width)) & np.in1d(y, np.arange(self.grid_height))     
 
-        #filteration based on occupancy grid's boundaries 
-        valid_indices = np.in1d(x, np.arange(self.grid_width)) & np.in1d(y, np.arange(self.grid_height))
-        # valid_indices = np.in1d(x, np.arange(self.grid_width)) & np.in1d(y, np.arange(self.grid_height)) | np.in1d(x, np.arange(-self.grid_width,0)) & np.in1d(y, np.arange(-self.grid_height,0))
+        # rospy.loginfo('pointcloud: {}'.format(point_cloud))
+               
         x = x[valid_indices]
         y = y[valid_indices]
         point_cloud = point_cloud[valid_indices]
-        # rospy.loginfo('pointcloud: {}'.format(point_cloud))
-        # rospy.loginfo('x points: {}'.format(x))
-        #filteration based on z-xis
-        #set the occupancy threshold based on z-axis of points in the pointcloud
-        z =  - (point_cloud[:, 1])
-        # rospy.loginfo('z points: {}'.format(z))
+        rospy.loginfo('pointcloud: {}'.format(point_cloud))
 
-        # rover_height = 0.5 
-        # occupancy_threshold_z = rover_height + 0.6      #to filter out the points above rover's height before updating the occupancy grid
-        # valid_indices = np.where(z <= occupancy_threshold_z )[0]
-        # x = x[valid_indices]
-        # y = y[valid_indices]
-        # z = z[valid_indices]
+        z = - (point_cloud[:, 1])
+        rospy.loginfo('z values {}'.format(z))
 
         heights = np.zeros((self.grid_width, self.grid_height))
         for i in range (len(x)):
             xi = x[i]
             yi = y[i]
             zi = z[i]
-            heights[yi, xi] = np.maximum(self.grid_map[yi, xi], zi)
+            heights[yi,xi] = np.maximum(self.grid_map[yi, xi], zi)
             # rospy.loginfo("Height at ({}, {}) = {}".format(xi, yi, heights[xi, yi]))
 
-        #set the maximum z value in each  cell as its cost
-        #determine whether the cell is considered occupied or not based on an occupancy threshold
         for i in range(self.grid_height):
             for j in range(self.grid_width):
-                if heights[i, j] >= self.occupancy_threshold:
-                    self.grid_map[i, j] = 100
+                if heights[i,j] >=self.occupancy_threshold:
+                    self.grid_map[i,j] = 100
         # rospy.loginfo('heights: {}'.format(heights))
-
+        
+        
         # publish the occupancy grid
         header = Header()
         header.stamp = rospy.Time.now()
@@ -85,8 +68,9 @@ class OccupancyGridMap:
         grid_msg.info.origin = Pose(Point(0, 0, 0), 
                                     Quaternion(0, 0, 0, 1))
 
+
         #obstacles inflation
-        inflation_size = 2         #half the cells track width of the rover 
+        inflation_size = 5         #half the cells track width of the rover 
         grid_image = np.array(self.grid_map, dtype=np.uint8)  
         kernel_size = (2 * inflation_size) + 1 
         kernel = np.ones((kernel_size, kernel_size), np.uint8)     
@@ -95,8 +79,8 @@ class OccupancyGridMap:
         #convert grid map from 2D numpy array to a 1D list
         grid_msg.data = self.grid_map.flatten().tolist()
         self.grid_pub.publish(grid_msg)
-        # rospy.loginfo('Grid: {}'.format(self.grid_map))
-        # check if all the cells in the self.grid_map array is zero then print something
+        
+        rospy.loginfo('Grid: {}'.format(self.grid_map))
         if np.all(self.grid_map == 0):
             rospy.loginfo('grid is empty')
         elif np.all(self.grid_map == 100):
@@ -131,18 +115,18 @@ class OccupancyGridMap:
         
 if __name__ == '__main__':
     rospy.init_node('occupancy_grid', anonymous=True)
-    rate = rospy.Rate(2)
+    rate = rospy.Rate(10)
     occupancy_grid_map = OccupancyGridMap()        
-    # occupancy_grid_map.publish_grid()
-    # tf_listener = tf.TransformListener()
-    # while not rospy.is_shutdown():
-    #     try:
-    #         tf_listener.waitForTransform("map", "base_link", rospy.Time(0), rospy.Duration(1.0))            
-    #         tf_listener.waitForTransform("base_link", 'bogie_lhs', rospy.Time(0), rospy.Duration(1.0))
+    occupancy_grid_map.publish_grid()
+    tf_listener = tf.TransformListener()
+    while not rospy.is_shutdown():
+        try:
+            tf_listener.waitForTransform("map", "base_link", rospy.Time(0), rospy.Duration(1.0))            
+            tf_listener.waitForTransform("base_link", 'bogie_lhs', rospy.Time(0), rospy.Duration(1.0))
 
-    #         (trans, rot) = tf_listener.lookupTransform("map", "base_link", rospy.Time(0))
-    #         (trans_lhs, rot_lhs) = tf_listener.lookupTransform("base_link", 'bogie_lhs', rospy.Time(0))                                            
-    #     except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
-    #         rospy.logwarn("Failed to retrieve transform from map to base_link")
-    #         continue
+            (trans, rot) = tf_listener.lookupTransform("map", "base_link", rospy.Time(0))
+            (trans_lhs, rot_lhs) = tf_listener.lookupTransform("base_link", 'bogie_lhs', rospy.Time(0))                                            
+        except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+            rospy.logwarn("Failed to retrieve transform from map to base_link")
+            continue
     rospy.spin()

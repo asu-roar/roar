@@ -607,7 +607,6 @@
     <origin xyz="0.62 -0.5 0.25" rpy="3.14159 3.14159 1.5708"/>
     <parent link="base_link"/>
     <child link="camera_link"/>
-
   </joint>
   <link name="camera_link_optical">
     <visual>
@@ -628,8 +627,6 @@
       <inertia ixx="0.0001" ixy="0.0" ixz="0.0" iyy="0.0001" iyz="0.0" izz="0.0001"/>
     </inertial>
   </link>
-
-  
   <joint name="camera_joint_optical" type="fixed">
     <origin xyz="0 0 0" rpy="-1.5708 0 -1.5708" />
     <parent link="camera_link" />
@@ -644,14 +641,22 @@
         <image>
           <width>640</width>
           <height>480</height>
-          <format>R8G8B8</format>
+          <format>B8G8R8</format>
         </image>
         <clip>
           <near>0.03</near>
           <far>4</far>
         </clip>
-      </camera>
-      <plugin name="camera_plugin" filename="libgazebo_ros_openni_kinect.so">
+      </camera>     
+       
+      <!-- <plugin name="camera_plugin" filename="libgazebo_ros_depth_camera.so">
+      <plugin name="camera_plugin" filename="libgazebo_ros_camera.so">
+          <frameName>camera_link_optical</frameName>
+          <min_depth>0.1</min_depth>
+          <max_depth>100.0</max_depth>
+      </plugin> -->
+
+      <plugin name="kinect" filename="libgazebo_ros_openni_kinect.so">
         <robotNamespace>/roar</robotNamespace>
         <alwaysOn>true</alwaysOn>
         <updateRate>0.0</updateRate>
@@ -663,7 +668,6 @@
         <pointCloudTopicName>depth/points</pointCloudTopicName>
         <!-- <depthFrameName>camera_link_optical</depthFrameName>  -->
         <frameName>camera_link_optical</frameName>
-
         <pointCloudCutoff>0.4</pointCloudCutoff>
         <pointCloudCutoffMax>10.0</pointCloudCutoffMax>
         <hackBaseline>0.07</hackBaseline>
