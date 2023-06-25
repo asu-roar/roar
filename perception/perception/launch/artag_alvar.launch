@@ -1,0 +1,17 @@
+<launch>
+  <!-- args -->
+  <arg name="marker_size" default="16.0" />
+  <arg name="max_new_marker_error" default="0.1" />
+  <arg name="max_track_error" default="0.1" />
+  
+  <!-- ar_track_alvar nodes -->
+  <node name="ar_track_node" pkg="ar_track_alvar" type="individualMarkersNoKinect" respawn="false" output="screen" >
+    <param name="marker_size" type="double" value="$(arg marker_size)" />
+    <param name="max_new_marker_error" type="double" value="$(arg max_new_marker_error)" />
+    <param name="max_track_error" type="double" value="$(arg max_track_error)" />
+    <param name="output_frame" type="string" value="rear_cam_frame" />
+
+    <remap from="camera_image" to="rear_cam/image_raw" />
+	<remap from="camera_info" to="rear_cam/camera_info" />
+  </node>
+</launch>

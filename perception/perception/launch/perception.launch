@@ -1,0 +1,57 @@
+<launch>
+
+  <!-- USB CAM -->
+
+  <!-- args -->
+  <arg name="image_view" default="true" />
+  <arg name="rear_cam" default="rear_cam" />
+
+  <!-- cam nodes -->
+  <node name="$(arg rear_cam)" pkg="usb_cam" type="usb_cam_node" output="screen" >
+    <rosparam command="load" file="$(find usb_cam)/config/usb_cam.yml"/>
+    <param name="video_device" value="/dev/video0" />
+    <param name="camera_name" value="/$(arg rear_cam)" />
+    <param name="camera_frame_id" value="$(arg rear_cam)_frame" />
+  </node>
+
+  <!-- cam output nodes -->
+  <node if="$(arg image_view)" name="image_view" pkg="image_view" type="image_view" respawn="false" output="screen" >
+    <remap from="image" to="$(arg rear_cam)/image_raw"/>
+    <param name="autosize" value="true" />
+  </node>
+
+   <!-- args -->
+  <arg name="marker_size" default="13.0" />
+  <arg name="max_new_marker_error" default="0.05" />
+  <arg name="max_track_error" default="0.05" />
+  
+  <!--  -->
+  
+  <!-- ARTACK ALVAR -->
+
+  <!-- ar_track_alvar nodes -->
+  <node name="ar_track_node" pkg="ar_track_alvar" type="individualMarkersNoKinect" respawn="false" output="screen" >
+    <param name="marker_size" type="double" value="$(arg marker_size)" />
+    <param name="max_new_marker_error" type="double" value="$(arg max_new_marker_error)" />
+    <param name="max_track_error" type="double" value="$(arg max_track_error)" />
+    <param name="output_frame" type="string" value="rear_cam_frame" />
+    <remap from="camera_image" to="rear_cam/image_raw" />
+	  <remap from="camera_info" to="rear_cam/camera_info" />
+  </node>
+
+  <!--  -->
+
+  <!-- PERCEPTION -->
+
+  <!-- perception node -->
+  <node name="perception_node" pkg="perception" type="perception.py" respawn="false" output="screen" />
+
+  <!--  -->
+
+  <!-- RVIZ -->
+
+  <arg name="rviz_config" default="$(find perception)/config/perception.rviz" />
+  
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rviz_config)" />
+  
+</launch>
