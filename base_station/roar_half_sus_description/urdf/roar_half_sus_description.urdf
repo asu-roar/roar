@@ -3,7 +3,7 @@
      Commit Version: 1.6.0-4-g7f85cfe  Build Version: 1.6.7995.38578
      For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
 <robot
-  name="roar_half_sus_description">
+  name="roar_half_sus_description">   
   <link
     name="base_link">
     <inertial>
@@ -582,14 +582,254 @@
     <axis
       xyz="0 0 1" />
   </joint>
+<!--  zed camera  -->
+  <link name="camera_link">
+    <visual>
+      <origin xyz="0.0 0.0 0.0" rpy="3.14159 3.14159 1.5708"/>
+      <geometry>
+        <box size="0.3 0.1 0.1"/>
+      </geometry>
+      <material name="red"/>
+    </visual>
+    <collision>
+      <origin xyz="0.0 0.0 0.0" rpy="3.14159 3.14159 1.5708"/>
+      <geometry>
+        <box size="0.3 0.1 0.1"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.01"/>
+      <origin xyz="0 0 0" rpy="3.14159 3.14159 1.5708"/>
+      <inertia ixx="0.0001" ixy="0.0" ixz="0.0" iyy="0.0001" iyz="0.0" izz="0.0001"/>
+    </inertial>
+  </link>
+  <joint name="camera_joint" type="fixed">
+    <origin xyz="0.62 -0.5 0.25" rpy="3.14159 3.14159 1.5708"/>
+    <parent link="base_link"/>
+    <child link="camera_link"/>
+  </joint>
+  <link name="camera_link_optical">
+    <visual>
+      <origin xyz="0.0 -0.12 0.0" rpy="-1.5708 0 -1.5708"/>
+      <geometry>
+        <box size="0.1 0.1 0.1"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0.0 0.0 0.0" rpy="-1.5708 0 -1.5708"/>
+      <geometry>
+        <box size="0.1 0.1 0.1"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.01"/>
+      <origin xyz="0 0 0" rpy="-1.5708 0 -1.5708"/>
+      <inertia ixx="0.0001" ixy="0.0" ixz="0.0" iyy="0.0001" iyz="0.0" izz="0.0001"/>
+    </inertial>
+  </link>
+  <joint name="camera_joint_optical" type="fixed">
+    <origin xyz="0 0 0" rpy="-1.5708 0 -1.5708" />
+    <parent link="camera_link" />
+    <child link="camera_link_optical" />
+  </joint>
 
+  <gazebo reference="camera_link">
+    <sensor name="camera_sensor" type="depth">
+      <update_rate>20</update_rate>
+      <camera>
+        <horizontal_fov>2.0944</horizontal_fov>
+        <image>
+          <width>640</width>
+          <height>480</height>
+          <format>B8G8R8</format>
+        </image>
+        <clip>
+          <near>0.03</near>
+          <far>4</far>
+        </clip>
+      </camera>     
+      <plugin name="kinect" filename="libgazebo_ros_openni_kinect.so">
+        <robotNamespace>/roar</robotNamespace>
+        <alwaysOn>true</alwaysOn>
+        <updateRate>0.0</updateRate>
+        <cameraName>camera</cameraName>
+        <imageTopicName>rgb/image_raw</imageTopicName>
+        <depthImageTopicName>depth/image_raw</depthImageTopicName>
+        <cameraInfoTopicName>rgb/camera_info</cameraInfoTopicName>
+        <depthImageCameraInfoTopicName>depth/camera_info</depthImageCameraInfoTopicName>
+        <pointCloudTopicName>depth/points</pointCloudTopicName>
+        <!-- <depthFrameName>camera_link_optical</depthFrameName>  -->
+        <frameName>camera_link_optical</frameName>
+        <pointCloudCutoff>0.4</pointCloudCutoff>
+        <pointCloudCutoffMax>10.0</pointCloudCutoffMax>
+        <hackBaseline>0.07</hackBaseline>
+        <distortionK1>0.0</distortionK1>
+        <distortionK2>0.0</distortionK2>
+        <distortionK3>0.0</distortionK3>
+        <distortionT1>0.0</distortionT1>
+        <distortionT2>0.0</distortionT2>
+      </plugin>
+    </sensor>
+  </gazebo>
+
+ <!-- right camera    -->
+ <link name="right_camera_link">
+    <visual>
+      <origin xyz=" -0.35 0 0.0" rpy="3.14159 3.14159 0 "/>
+      <geometry>
+        <box size="0.1 0.1 0.1"/>
+      </geometry>
+      <material name="green"/>
+    </visual>
+    <collision>
+      <origin xyz=" -0.35 0 0.0" rpy=" 3.14159 3.14159 0"/>
+      <geometry>
+        <box size="0.1 0.1 0.1"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.01"/>
+      <origin xyz="-0.35 0 0" rpy="3.14159 3.14159 0"/>
+      <inertia ixx="0.0001" ixy="0.0" ixz="0.0" iyy="0.0001" iyz="0.0" izz="0.0001"/>
+    </inertial>
+  </link>
+  <joint name="right_camera_joint" type="fixed">
+    <origin xyz="0.0 0.0 0.25" rpy="3.14159 3.14159 0"/>
+    <parent link="base_link"/>
+    <child link="right_camera_link"/>
+  </joint>
+  <link name="right_camera_link_optical">
+    <visual>
+      <origin xyz="0 0.0 -0.35" rpy="-1.5708 3.14159 -1.5708"/>
+      <geometry>
+        <box size="0.1 0.1 0.1"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0.0 -0.35" rpy="-1.5708 3.14159 -1.5708"/>
+      <geometry>
+        <box size="0.1 0.1 0.1"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.01"/>
+      <origin xyz="0 0 -0.35" rpy="-1.5708 3.14159 -1.5708"/>
+      <inertia ixx="0.0001" ixy="0.0" ixz="0.0" iyy="0.0001" iyz="0.0" izz="0.0001"/>
+    </inertial>
+  </link>
+  <joint name="right_camera_joint_optical" type="fixed">
+    <origin xyz="0 0 0" rpy="-1.5708 3.14159 -1.5708" />
+    <parent link="right_camera_link" />
+    <child link="right_camera_link_optical" />
+  </joint>
+  <gazebo reference="right_camera_link">
+    <sensor name="right_camera_sensor" type="camera">
+      <update_rate>20</update_rate>
+      <camera>
+        <horizontal_fov>2.0944</horizontal_fov>
+        <image>
+          <width>640</width>
+          <height>480</height>
+          <format>B8G8R8</format>
+        </image>
+        <clip>
+          <near>0.03</near>
+          <far>4</far>
+        </clip>
+      </camera>     
+      <plugin name="right_camera_plugin" filename="libgazebo_ros_camera.so">
+          <robotNamespace>/roar</robotNamespace>
+          <frameName>right_camera_link_optical</frameName>
+          <min_depth>0.1</min_depth>
+          <max_depth>100.0</max_depth>
+          <cameraName>right_camera</cameraName>
+          <imageTopic>right_camera/image_raw</imageTopic>
+      </plugin> 
+    </sensor>
+  </gazebo>
+
+     <!-- left camera     -->
+ <link name="left_camera_link">
+    <visual>
+      <origin xyz="-0.3 0 0" rpy="3.14159 3.14159 3.14159"/>
+      <geometry>
+        <box size="0.1 0.1 0.1"/>
+      </geometry>
+      <material name="blue"/>
+    </visual>
+    <collision>
+      <origin xyz="-0.3 0 0" rpy=" 3.14159 3.14159 3.14159"/>
+      <geometry>
+        <box size="0.1 0.1 0.1"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.01"/>
+      <origin xyz="-0.3 0 0" rpy="3.14159 3.14159 3.14159"/>
+      <inertia ixx="0.0001" ixy="0.0" ixz="0.0" iyy="0.0001" iyz="0.0" izz="0.0001"/>
+    </inertial>
+  </link>
+  <joint name="left_camera_joint" type="fixed">
+    <origin xyz="1.2 0.0 0.25" rpy="3.14159 3.14159 3.14159"/>
+    <parent link="base_link"/>
+    <child link="left_camera_link"/>
+  </joint>
+  <!-- <link name="left_camera_link_optical">
+    <visual>
+      <origin xyz="0 -2 0" rpy="1.5708 3.14159 1.5708"/>
+      <geometry>
+        <box size="0.1 0.1 0.1"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 -2 0" rpy="1.5708 3.14159 1.5708"/>
+      <geometry>
+        <box size="0.1 0.1 0.1"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.01"/>
+      <origin xyz="0 -2 0" rpy="1.5708 3.14159 1.5708"/>
+      <inertia ixx="0.0001" ixy="0.0" ixz="0.0" iyy="0.0001" iyz="0.0" izz="0.0001"/>
+    </inertial>
+  </link>
+  <joint name="left_camera_joint_optical" type="fixed">
+    <origin xyz="-2 0 0" rpy="3.14159 3.14159 4.71239"/>
+    <parent link="left_camera_link" />
+    <child link="left_camera_link_optical" />
+  </joint> -->
+  <gazebo reference="left_camera_link">
+    <sensor name="left_camera_sensor" type="camera">
+      <update_rate>20</update_rate>
+      <camera>
+        <horizontal_fov>2.0944</horizontal_fov>
+        <image>
+          <width>640</width>
+          <height>480</height>
+          <format>B8G8R8</format>
+        </image>
+        <clip>
+          <near>0.03</near>
+          <far>4</far>
+        </clip>
+      </camera>     
+      <plugin name="left_camera_plugin" filename="libgazebo_ros_camera.so">
+          <robotNamespace>/roar</robotNamespace>
+          <frameName>left_camera_link</frameName>
+          <min_depth>0.1</min_depth>
+          <max_depth>100.0</max_depth>
+          <cameraName>left_camera</cameraName>
+          <imageTopic>left_camera/image_raw</imageTopic>
+      </plugin> 
+    </sensor>
+  </gazebo>
   <!-- ROS Control plugin for Gazebo-->
   <gazebo>
     <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
       <robotNamespace>/roar</robotNamespace>
     </plugin>
   </gazebo>
-  
+ 
   <!--transmission-->
   <transmission name="wheel_lhs_front_transmission">
     <type>transmission_interface/SimpleTransmission</type>
@@ -650,5 +890,5 @@
       <mechanicalReduction>1</mechanicalReduction>
     </actuator>
   </transmission>
-  
+
 </robot>

@@ -1,0 +1,941 @@
+<sdf version='1.7'>
+  <world name='default'>
+    <light name='sun' type='directional'>
+      <cast_shadows>1</cast_shadows>
+      <pose>0 0 10 0 -0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+      <spot>
+        <inner_angle>0</inner_angle>
+        <outer_angle>0</outer_angle>
+        <falloff>0</falloff>
+      </spot>
+    </light>
+    <model name='ground_plane'>
+      <static>1</static>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <surface>
+            <contact>
+              <collide_bitmask>65535</collide_bitmask>
+              <ode/>
+            </contact>
+            <friction>
+              <ode>
+                <mu>100</mu>
+                <mu2>50</mu2>
+              </ode>
+              <torsional>
+                <ode/>
+              </torsional>
+            </friction>
+            <bounce/>
+          </surface>
+          <max_contacts>10</max_contacts>
+        </collision>
+        <visual name='visual'>
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Grey</name>
+            </script>
+          </material>
+        </visual>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+    </model>
+    <gravity>0 0 -9.8</gravity>
+    <magnetic_field>6e-06 2.3e-05 -4.2e-05</magnetic_field>
+    <atmosphere type='adiabatic'/>
+    <physics type='ode'>
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1</real_time_factor>
+      <real_time_update_rate>1000</real_time_update_rate>
+    </physics>
+    <scene>
+      <ambient>0.4 0.4 0.4 1</ambient>
+      <background>0.7 0.7 0.7 1</background>
+      <shadows>1</shadows>
+    </scene>
+    <wind/>
+    <spherical_coordinates>
+      <surface_model>EARTH_WGS84</surface_model>
+      <latitude_deg>0</latitude_deg>
+      <longitude_deg>0</longitude_deg>
+      <elevation>0</elevation>
+      <heading_deg>0</heading_deg>
+    </spherical_coordinates>
+    <model name='roar'>
+      <link name='base_link'>
+        <inertial>
+          <pose>0.628887 0.216168 0.072395 3.14159 1.57079 3.14159</pose>
+          <mass>13.5968</mass>
+          <inertia>
+            <ixx>0.470467</ixx>
+            <ixy>0.0125246</ixy>
+            <ixz>-0.000842942</ixz>
+            <iyy>0.542947</iyy>
+            <iyz>0.000515232</iyz>
+            <izz>0.111005</izz>
+          </inertia>
+        </inertial>
+        <collision name='base_link_collision'>
+          <pose>0 0 0 0 -0 0</pose>
+          <geometry>
+            <mesh>
+              <scale>1 1 1</scale>
+              <uri>/home/tasneem/roar_ws/src/base_station/roar_half_sus_description/meshes/base_link.STL</uri>
+            </mesh>
+          </geometry>
+          <max_contacts>10</max_contacts>
+          <surface>
+            <contact>
+              <ode/>
+            </contact>
+            <bounce/>
+            <friction>
+              <torsional>
+                <ode/>
+              </torsional>
+              <ode/>
+            </friction>
+          </surface>
+        </collision>
+        <collision name='base_link_fixed_joint_lump__camera_link_collision_1'>
+          <pose>0 0 0 0 -0 0</pose>
+          <geometry>
+            <box>
+              <size>0.3 0.1 0.1</size>
+            </box>
+          </geometry>
+          <surface>
+            <contact>
+              <ode/>
+            </contact>
+            <friction>
+              <ode/>
+              <torsional>
+                <ode/>
+              </torsional>
+            </friction>
+            <bounce/>
+          </surface>
+          <max_contacts>10</max_contacts>
+        </collision>
+        <collision name='base_link_fixed_joint_lump__rocker_lhs_collision_2'>
+          <pose>0.87735 -0.17534 0.22095 1.5932 -0 0</pose>
+          <geometry>
+            <mesh>
+              <scale>1 1 1</scale>
+              <uri>/home/tasneem/roar_ws/src/base_station/roar_half_sus_description/meshes/rocker_lhs.STL</uri>
+            </mesh>
+          </geometry>
+          <max_contacts>10</max_contacts>
+          <surface>
+            <contact>
+              <ode/>
+            </contact>
+            <bounce/>
+            <friction>
+              <torsional>
+                <ode/>
+              </torsional>
+              <ode/>
+            </friction>
+          </surface>
+        </collision>
+        <collision name='base_link_fixed_joint_lump__rocker_rhs_collision_3'>
+          <pose>0.86385 -0.29752 0.15697 1.6032 -0 0</pose>
+          <geometry>
+            <mesh>
+              <scale>1 1 1</scale>
+              <uri>/home/tasneem/roar_ws/src/base_station/roar_half_sus_description/meshes/rocker_rhs.STL</uri>
+            </mesh>
+          </geometry>
+          <max_contacts>10</max_contacts>
+          <surface>
+            <contact>
+              <ode/>
+            </contact>
+            <bounce/>
+            <friction>
+              <torsional>
+                <ode/>
+              </torsional>
+              <ode/>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='base_link_visual'>
+          <pose>0 0 0 0 -0 0</pose>
+          <geometry>
+            <mesh>
+              <scale>1 1 1</scale>
+              <uri>/home/tasneem/roar_ws/src/base_station/roar_half_sus_description/meshes/base_link.STL</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <visual name='base_link_fixed_joint_lump__camera_link_visual_1'>
+          <pose>0.6 -0.2 0.32 0 -0 0</pose>
+          <geometry>
+            <box>
+              <size>0.3 0.1 0.1</size>
+            </box>
+          </geometry>
+        </visual>
+        <visual name='base_link_fixed_joint_lump__rocker_lhs_visual_2'>
+          <pose>0.87735 -0.17534 0.22095 1.5932 -0 0</pose>
+          <geometry>
+            <mesh>
+              <scale>1 1 1</scale>
+              <uri>/home/tasneem/roar_ws/src/base_station/roar_half_sus_description/meshes/rocker_lhs.STL</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <visual name='base_link_fixed_joint_lump__rocker_rhs_visual_3'>
+          <pose>0.86385 -0.29752 0.15697 1.6032 -0 0</pose>
+          <geometry>
+            <mesh>
+              <scale>1 1 1</scale>
+              <uri>/home/tasneem/roar_ws/src/base_station/roar_half_sus_description/meshes/rocker_rhs.STL</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <sensor name='camera_sensor' type='depth'>
+          <update_rate>20</update_rate>
+          <camera>
+            <horizontal_fov>1.0472</horizontal_fov>
+            <image>
+              <width>640</width>
+              <height>480</height>
+              <format>R8G8B8</format>
+            </image>
+            <clip>
+              <near>0.05</near>
+              <far>3</far>
+            </clip>
+          </camera>
+          <plugin name='camera_plugin' filename='libgazebo_ros_openni_kinect.so'>
+            <robotNamespace>/roar</robotNamespace>
+            <alwaysOn>1</alwaysOn>
+            <updateRate>0.0</updateRate>
+            <cameraName>camera</cameraName>
+            <imageTopicName>rgb/image_raw</imageTopicName>
+            <depthImageTopicName>depth/image_raw</depthImageTopicName>
+            <cameraInfoTopicName>rgb/camera_info</cameraInfoTopicName>
+            <depthImageCameraInfoTopicName>depth/camera_info</depthImageCameraInfoTopicName>
+            <pointCloudTopicName>depth/points</pointCloudTopicName>
+            <frameName>camera_link</frameName>
+            <depthFrameName>camera_link</depthFrameName>
+            <pointCloudCutoff>0.4</pointCloudCutoff>
+            <pointCloudCutoffMax>10.0</pointCloudCutoffMax>
+            <hackBaseline>0.07</hackBaseline>
+            <distortionK1>0.0</distortionK1>
+            <distortionK2>0.0</distortionK2>
+            <distortionK3>0.0</distortionK3>
+            <distortionT1>0.0</distortionT1>
+            <distortionT2>0.0</distortionT2>
+          </plugin>
+          <pose>0 0 0 0 -0 0</pose>
+        </sensor>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+      <joint name='bogie_lhs_joint' type='revolute'>
+        <pose relative_to='base_link'>0.881995 -0.400284 0.054216 1.58658 -0 -3.14159</pose>
+        <parent>base_link</parent>
+        <child>bogie_lhs</child>
+        <axis>
+          <xyz>1 0 0</xyz>
+          <limit>
+            <lower>-1e+16</lower>
+            <upper>1e+16</upper>
+          </limit>
+          <dynamics>
+            <spring_reference>0</spring_reference>
+            <spring_stiffness>0</spring_stiffness>
+          </dynamics>
+        </axis>
+      </joint>
+      <link name='bogie_lhs'>
+        <pose relative_to='bogie_lhs_joint'>0 0 0 0 -0 0</pose>
+        <inertial>
+          <pose>-0.12178 -0.14701 0.004286 0 -0 0</pose>
+          <mass>2.56789</mass>
+          <inertia>
+            <ixx>0.00354223</ixx>
+            <ixy>-9.37079e-05</ixy>
+            <ixz>3.07032e-06</ixz>
+            <iyy>0.0044572</iyy>
+            <iyz>-9.23137e-06</iyz>
+            <izz>0.00417626</izz>
+          </inertia>
+        </inertial>
+        <collision name='bogie_lhs_collision'>
+          <pose>0 0 0 0 -0 0</pose>
+          <geometry>
+            <mesh>
+              <scale>1 1 1</scale>
+              <uri>/home/tasneem/roar_ws/src/base_station/roar_half_sus_description/meshes/bogie_lhs.STL</uri>
+            </mesh>
+          </geometry>
+          <max_contacts>10</max_contacts>
+          <surface>
+            <contact>
+              <ode/>
+            </contact>
+            <bounce/>
+            <friction>
+              <torsional>
+                <ode/>
+              </torsional>
+              <ode/>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='bogie_lhs_visual'>
+          <pose>0 0 0 0 -0 0</pose>
+          <geometry>
+            <mesh>
+              <scale>1 1 1</scale>
+              <uri>/home/tasneem/roar_ws/src/base_station/roar_half_sus_description/meshes/bogie_lhs.STL</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+      <joint name='wheel_lhs_front_joint' type='revolute'>
+        <pose relative_to='bogie_lhs'>-0.105835 -0.16804 -0.22397 1.5708 1.55499 -1.5708</pose>
+        <parent>bogie_lhs</parent>
+        <child>wheel_lhs_front</child>
+        <axis>
+          <xyz>0 0 1</xyz>
+          <limit>
+            <lower>-1e+16</lower>
+            <upper>1e+16</upper>
+          </limit>
+          <dynamics>
+            <spring_reference>0</spring_reference>
+            <spring_stiffness>0</spring_stiffness>
+          </dynamics>
+        </axis>
+      </joint>
+      <link name='wheel_lhs_front'>
+        <pose relative_to='wheel_lhs_front_joint'>0 0 0 0 -0 0</pose>
+        <inertial>
+          <pose>0 0.000306 0.060016 0 -0 0</pose>
+          <mass>1.55167</mass>
+          <inertia>
+            <ixx>0.00800323</ixx>
+            <ixy>8.91853e-17</ixy>
+            <ixz>-4.17317e-17</ixz>
+            <iyy>0.00800315</iyy>
+            <iyz>-1.09713e-10</iyz>
+            <izz>0.0125935</izz>
+          </inertia>
+        </inertial>
+        <collision name='wheel_lhs_front_collision'>
+          <pose>0 0 0 0 -0 0</pose>
+          <geometry>
+            <mesh>
+              <scale>1 1 1</scale>
+              <uri>/home/tasneem/roar_ws/src/base_station/roar_half_sus_description/meshes/wheel_lhs_front.STL</uri>
+            </mesh>
+          </geometry>
+          <max_contacts>10</max_contacts>
+          <surface>
+            <contact>
+              <ode/>
+            </contact>
+            <bounce/>
+            <friction>
+              <torsional>
+                <ode/>
+              </torsional>
+              <ode/>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='wheel_lhs_front_visual'>
+          <pose>0 0 0 0 -0 0</pose>
+          <geometry>
+            <mesh>
+              <scale>1 1 1</scale>
+              <uri>/home/tasneem/roar_ws/src/base_station/roar_half_sus_description/meshes/wheel_lhs_front.STL</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+      <joint name='wheel_lhs_mid_joint' type='revolute'>
+        <pose relative_to='bogie_lhs'>-0.105849 -0.15299 0.234508 1.5708 1.55499 -1.5708</pose>
+        <parent>bogie_lhs</parent>
+        <child>wheel_lhs_mid</child>
+        <axis>
+          <xyz>0 0 1</xyz>
+          <limit>
+            <lower>-1e+16</lower>
+            <upper>1e+16</upper>
+          </limit>
+          <dynamics>
+            <spring_reference>0</spring_reference>
+            <spring_stiffness>0</spring_stiffness>
+          </dynamics>
+        </axis>
+      </joint>
+      <link name='wheel_lhs_mid'>
+        <pose relative_to='wheel_lhs_mid_joint'>0 0 0 0 -0 0</pose>
+        <inertial>
+          <pose>0 0.00031 0.060006 0 -0 0</pose>
+          <mass>1.59767</mass>
+          <inertia>
+            <ixx>0.00836783</ixx>
+            <ixy>1.29374e-16</ixy>
+            <ixz>-2.80059e-16</ixz>
+            <iyy>0.00836775</iyy>
+            <iyz>-6.25095e-14</iyz>
+            <izz>0.0132447</izz>
+          </inertia>
+        </inertial>
+        <collision name='wheel_lhs_mid_collision'>
+          <pose>0 0 0 0 -0 0</pose>
+          <geometry>
+            <mesh>
+              <scale>1 1 1</scale>
+              <uri>/home/tasneem/roar_ws/src/base_station/roar_half_sus_description/meshes/wheel_lhs_mid.STL</uri>
+            </mesh>
+          </geometry>
+          <max_contacts>10</max_contacts>
+          <surface>
+            <contact>
+              <ode/>
+            </contact>
+            <bounce/>
+            <friction>
+              <torsional>
+                <ode/>
+              </torsional>
+              <ode/>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='wheel_lhs_mid_visual'>
+          <pose>0 0 0 0 -0 0</pose>
+          <geometry>
+            <mesh>
+              <scale>1 1 1</scale>
+              <uri>/home/tasneem/roar_ws/src/base_station/roar_half_sus_description/meshes/wheel_lhs_mid.STL</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+      <joint name='wheel_lhs_rear_joint' type='revolute'>
+        <pose relative_to='base_link'>0.986116 0.291889 -0.087753 -1.5708 2.2e-05 -1.5708</pose>
+        <parent>base_link</parent>
+        <child>wheel_lhs_rear</child>
+        <axis>
+          <xyz>0 0 1</xyz>
+          <limit>
+            <lower>-1e+16</lower>
+            <upper>1e+16</upper>
+          </limit>
+          <dynamics>
+            <spring_reference>0</spring_reference>
+            <spring_stiffness>0</spring_stiffness>
+          </dynamics>
+        </axis>
+      </joint>
+      <link name='wheel_lhs_rear'>
+        <pose relative_to='wheel_lhs_rear_joint'>0 0 0 0 -0 0</pose>
+        <inertial>
+          <pose>0 0.000306 0.061734 0 -0 0</pose>
+          <mass>1.55167</mass>
+          <inertia>
+            <ixx>0.00800333</ixx>
+            <ixy>1.77188e-16</ixy>
+            <ixz>4.18999e-16</ixz>
+            <iyy>0.00800325</iyy>
+            <iyz>2.69449e-12</iyz>
+            <izz>0.0125934</izz>
+          </inertia>
+        </inertial>
+        <collision name='wheel_lhs_rear_collision'>
+          <pose>0 0 0 0 -0 0</pose>
+          <geometry>
+            <mesh>
+              <scale>1 1 1</scale>
+              <uri>/home/tasneem/roar_ws/src/base_station/roar_half_sus_description/meshes/wheel_lhs_rear.STL</uri>
+            </mesh>
+          </geometry>
+          <max_contacts>10</max_contacts>
+          <surface>
+            <contact>
+              <ode/>
+            </contact>
+            <bounce/>
+            <friction>
+              <torsional>
+                <ode/>
+              </torsional>
+              <ode/>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='wheel_lhs_rear_visual'>
+          <pose>0 0 0 0 -0 0</pose>
+          <geometry>
+            <mesh>
+              <scale>1 1 1</scale>
+              <uri>/home/tasneem/roar_ws/src/base_station/roar_half_sus_description/meshes/wheel_lhs_rear.STL</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+      <joint name='bogie_rhs_joint' type='revolute'>
+        <pose relative_to='base_link'>0.384705 -0.400282 0.054227 1.60278 -0 0</pose>
+        <parent>base_link</parent>
+        <child>bogie_rhs</child>
+        <axis>
+          <xyz>1 0 0</xyz>
+          <limit>
+            <lower>-1e+16</lower>
+            <upper>1e+16</upper>
+          </limit>
+          <dynamics>
+            <spring_reference>0</spring_reference>
+            <spring_stiffness>0</spring_stiffness>
+          </dynamics>
+        </axis>
+      </joint>
+      <link name='bogie_rhs'>
+        <pose relative_to='bogie_rhs_joint'>0 0 0 0 -0 0</pose>
+        <inertial>
+          <pose>-0.12178 -0.14701 0.004286 0 -0 0</pose>
+          <mass>2.56789</mass>
+          <inertia>
+            <ixx>0.00354223</ixx>
+            <ixy>-9.37079e-05</ixy>
+            <ixz>3.07032e-06</ixz>
+            <iyy>0.0044572</iyy>
+            <iyz>-9.23137e-06</iyz>
+            <izz>0.00417626</izz>
+          </inertia>
+        </inertial>
+        <collision name='bogie_rhs_collision'>
+          <pose>0 0 0 0 -0 0</pose>
+          <geometry>
+            <mesh>
+              <scale>1 1 1</scale>
+              <uri>/home/tasneem/roar_ws/src/base_station/roar_half_sus_description/meshes/bogie_rhs.STL</uri>
+            </mesh>
+          </geometry>
+          <max_contacts>10</max_contacts>
+          <surface>
+            <contact>
+              <ode/>
+            </contact>
+            <bounce/>
+            <friction>
+              <torsional>
+                <ode/>
+              </torsional>
+              <ode/>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='bogie_rhs_visual'>
+          <pose>0 0 0 0 -0 0</pose>
+          <geometry>
+            <mesh>
+              <scale>1 1 1</scale>
+              <uri>/home/tasneem/roar_ws/src/base_station/roar_half_sus_description/meshes/bogie_rhs.STL</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+      <joint name='wheel_rhs_front_joint' type='revolute'>
+        <pose relative_to='bogie_rhs'>-0.10412 -0.15299 0.234508 1.5708 -1.39574 -1.5708</pose>
+        <parent>bogie_rhs</parent>
+        <child>wheel_rhs_front</child>
+        <axis>
+          <xyz>0 0 -1</xyz>
+          <limit>
+            <lower>-1e+16</lower>
+            <upper>1e+16</upper>
+          </limit>
+          <dynamics>
+            <spring_reference>0</spring_reference>
+            <spring_stiffness>0</spring_stiffness>
+          </dynamics>
+        </axis>
+      </joint>
+      <link name='wheel_rhs_front'>
+        <pose relative_to='wheel_rhs_front_joint'>0 0 0 0 -0 0</pose>
+        <inertial>
+          <pose>0 -0.000306 0.061734 0 -0 0</pose>
+          <mass>1.55167</mass>
+          <inertia>
+            <ixx>0.00800333</ixx>
+            <ixy>-1.55691e-16</ixy>
+            <ixz>1.99651e-16</ixz>
+            <iyy>0.00800325</iyy>
+            <iyz>2.69511e-12</iyz>
+            <izz>0.0125934</izz>
+          </inertia>
+        </inertial>
+        <collision name='wheel_rhs_front_collision'>
+          <pose>0 0 0 0 -0 0</pose>
+          <geometry>
+            <mesh>
+              <scale>1 1 1</scale>
+              <uri>/home/tasneem/roar_ws/src/base_station/roar_half_sus_description/meshes/wheel_rhs_front.STL</uri>
+            </mesh>
+          </geometry>
+          <max_contacts>10</max_contacts>
+          <surface>
+            <contact>
+              <ode/>
+            </contact>
+            <bounce/>
+            <friction>
+              <torsional>
+                <ode/>
+              </torsional>
+              <ode/>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='wheel_rhs_front_visual'>
+          <pose>0 0 0 0 -0 0</pose>
+          <geometry>
+            <mesh>
+              <scale>1 1 1</scale>
+              <uri>/home/tasneem/roar_ws/src/base_station/roar_half_sus_description/meshes/wheel_rhs_front.STL</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+      <joint name='wheel_rhs_mid_joint' type='revolute'>
+        <pose relative_to='bogie_rhs'>-0.105844 -0.16804 -0.22397 -1.5708 -1.55436 1.5708</pose>
+        <parent>bogie_rhs</parent>
+        <child>wheel_rhs_mid</child>
+        <axis>
+          <xyz>0 0 -1</xyz>
+          <limit>
+            <lower>-1e+16</lower>
+            <upper>1e+16</upper>
+          </limit>
+          <dynamics>
+            <spring_reference>0</spring_reference>
+            <spring_stiffness>0</spring_stiffness>
+          </dynamics>
+        </axis>
+      </joint>
+      <link name='wheel_rhs_mid'>
+        <pose relative_to='wheel_rhs_mid_joint'>0 0 0 0 -0 0</pose>
+        <inertial>
+          <pose>0 -0.00031 0.060006 0 -0 0</pose>
+          <mass>1.59767</mass>
+          <inertia>
+            <ixx>0.00836783</ixx>
+            <ixy>7.83336e-18</ixy>
+            <ixz>-5.80929e-16</ixz>
+            <iyy>0.00836775</iyy>
+            <iyz>-6.24422e-14</iyz>
+            <izz>0.0132447</izz>
+          </inertia>
+        </inertial>
+        <collision name='wheel_rhs_mid_collision'>
+          <pose>0 0 0 0 -0 0</pose>
+          <geometry>
+            <mesh>
+              <scale>1 1 1</scale>
+              <uri>/home/tasneem/roar_ws/src/base_station/roar_half_sus_description/meshes/wheel_rhs_mid.STL</uri>
+            </mesh>
+          </geometry>
+          <max_contacts>10</max_contacts>
+          <surface>
+            <contact>
+              <ode/>
+            </contact>
+            <bounce/>
+            <friction>
+              <torsional>
+                <ode/>
+              </torsional>
+              <ode/>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='wheel_rhs_mid_visual'>
+          <pose>0 0 0 0 -0 0</pose>
+          <geometry>
+            <mesh>
+              <scale>1 1 1</scale>
+              <uri>/home/tasneem/roar_ws/src/base_station/roar_half_sus_description/meshes/wheel_rhs_mid.STL</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+      <joint name='wheel_rhs_rear_joint' type='revolute'>
+        <pose relative_to='base_link'>0.27887 0.29189 -0.08774 -1.5708 2.4e-05 -1.5708</pose>
+        <parent>base_link</parent>
+        <child>wheel_rhs_rear</child>
+        <axis>
+          <xyz>0 0 1</xyz>
+          <limit>
+            <lower>-1e+16</lower>
+            <upper>1e+16</upper>
+          </limit>
+          <dynamics>
+            <spring_reference>0</spring_reference>
+            <spring_stiffness>0</spring_stiffness>
+          </dynamics>
+        </axis>
+      </joint>
+      <link name='wheel_rhs_rear'>
+        <pose relative_to='wheel_rhs_rear_joint'>0 0 0 0 -0 0</pose>
+        <inertial>
+          <pose>0 -0.000152 -0.060015 0 -0 0</pose>
+          <mass>1.55167</mass>
+          <inertia>
+            <ixx>0.00800323</ixx>
+            <ixy>1.03608e-16</ixy>
+            <ixz>1.81788e-17</ixz>
+            <iyy>0.00800315</iyy>
+            <iyz>-1.09713e-10</iyz>
+            <izz>0.0125935</izz>
+          </inertia>
+        </inertial>
+        <collision name='wheel_rhs_rear_collision'>
+          <pose>0 0 0 0 -0 0</pose>
+          <geometry>
+            <mesh>
+              <scale>1 1 1</scale>
+              <uri>/home/tasneem/roar_ws/src/base_station/roar_half_sus_description/meshes/wheel_rhs_rear.STL</uri>
+            </mesh>
+          </geometry>
+          <max_contacts>10</max_contacts>
+          <surface>
+            <contact>
+              <ode/>
+            </contact>
+            <bounce/>
+            <friction>
+              <torsional>
+                <ode/>
+              </torsional>
+              <ode/>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='wheel_rhs_rear_visual'>
+          <pose>0 0 0 0 -0 0</pose>
+          <geometry>
+            <mesh>
+              <scale>1 1 1</scale>
+              <uri>/home/tasneem/roar_ws/src/base_station/roar_half_sus_description/meshes/wheel_rhs_rear.STL</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+      <static>0</static>
+      <plugin name='gazebo_ros_control' filename='libgazebo_ros_control.so'>
+        <robotNamespace>/roar</robotNamespace>
+      </plugin>
+      <pose>-0.4 -0.2 0.5 0 -0 1.5708</pose>
+    </model>
+    <model name='unit_box'>
+      <pose>3.5227 2.50318 0.5 0 -0 0</pose>
+      <link name='link'>
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.166667</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.166667</iyy>
+            <iyz>0</iyz>
+            <izz>0.166667</izz>
+          </inertia>
+          <pose>0 0 0 0 -0 0</pose>
+        </inertial>
+        <collision name='collision'>
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+          <max_contacts>10</max_contacts>
+          <surface>
+            <contact>
+              <ode/>
+            </contact>
+            <bounce/>
+            <friction>
+              <torsional>
+                <ode/>
+              </torsional>
+              <ode/>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <name>Gazebo/Grey</name>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+            </script>
+          </material>
+        </visual>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+    </model>
+    <state world_name='default'>
+      <sim_time>590 961000000</sim_time>
+      <real_time>662 803096322</real_time>
+      <wall_time>1686190954 883527998</wall_time>
+      <iterations>590961</iterations>
+      <model name='ground_plane'>
+        <pose>0 0 0 0 -0 0</pose>
+        <scale>1 1 1</scale>
+        <link name='link'>
+          <pose>0 0 0 0 -0 0</pose>
+          <velocity>0 0 0 0 -0 0</velocity>
+          <acceleration>0 0 0 0 -0 0</acceleration>
+          <wrench>0 0 0 0 -0 0</wrench>
+        </link>
+      </model>
+      <model name='roar'>
+        <pose>0.195061 -0.347059 0.220002 -0.026672 -0.000681 1.99442</pose>
+        <scale>1 1 1</scale>
+        <link name='base_link'>
+          <pose>0.195061 -0.347059 0.220002 -0.026672 -0.000681 1.99442</pose>
+          <velocity>0.000341 -0.002154 -0.002804 0.006849 0.009226 -0.001728</velocity>
+          <acceleration>0.398908 -1.81691 9.37637 -1.1674 0.932508 0.584815</acceleration>
+          <wrench>5.42387 -24.7041 127.489 0 -0 0</wrench>
+        </link>
+        <link name='bogie_lhs'>
+          <pose>0.195971 0.620822 0.285466 1.60505 0.00069 -1.14715</pose>
+          <velocity>0.001429 -0.003259 0.002279 0.005001 0.009894 0.009791</velocity>
+          <acceleration>-2.95707 -3.14227 8.8425 -0.985778 -1.03357 2.27751</acceleration>
+          <wrench>-7.59344 -8.069 22.7066 0 -0 0</wrench>
+        </link>
+        <link name='bogie_rhs'>
+          <pose>0.400389 0.167488 0.285175 1.60372 -0.000674 1.99442</pose>
+          <velocity>0.002702 -0.003845 0.005369 0.012992 -0.002853 0.000985</velocity>
+          <acceleration>2.51216 -2.57641 8.01826 -2.76202 -1.14461 0.397856</acceleration>
+          <wrench>6.45096 -6.61595 20.59 0 -0 0</wrench>
+        </link>
+        <link name='wheel_lhs_front'>
+          <pose>0.361716 0.811785 0.125272 -1.5697 0.873623 0.424489</pose>
+          <velocity>-0.001239 -0.001167 0.003429 0.008195 0.009675 0.009399</velocity>
+          <acceleration>-3.37583 -1.4886 9.87021 2.40187 -1.56996 1.56449</acceleration>
+          <wrench>-5.23818 -2.30981 15.3153 0 -0 0</wrench>
+        </link>
+        <link name='wheel_lhs_mid'>
+          <pose>-0.056465 0.623225 0.124592 1.56956 0.961202 -2.71897</pose>
+          <velocity>-0.002443 -0.002523 0.000421 0.020773 -0.01967 0.000499</velocity>
+          <acceleration>-4.88722 -1.65348 6.41232 -0.638801 0.096012 2.48202</acceleration>
+          <wrench>-7.80816 -2.64171 10.2448 0 -0 0</wrench>
+        </link>
+        <link name='wheel_lhs_rear'>
+          <pose>-0.474185 0.432966 0.12517 -1.56987 -0.756703 0.422986</pose>
+          <velocity>0.001331 -0.000319 0.009823 0.002548 0.011049 -0.001375</velocity>
+          <acceleration>0.272406 2.24409 20.8267 -1.07466 0.301362 2.65198</acceleration>
+          <wrench>0.422685 3.48209 32.3162 0 -0 0</wrench>
+        </link>
+        <link name='wheel_rhs_front'>
+          <pose>0.652204 0.166951 0.124484 -1.57163 -0.615188 -2.71747</pose>
+          <velocity>0.001319 -0.00108 0.006823 0.008599 0.011197 0.002987</velocity>
+          <acceleration>-0.963671 -1.01911 12.077 -0.321965 -0.690273 -1.59613</acceleration>
+          <wrench>-1.4953 -1.58132 18.7396 0 -0 0</wrench>
+        </link>
+        <link name='wheel_rhs_mid'>
+          <pose>0.234754 -0.023192 0.124559 -1.57151 -0.022864 -2.71793</pose>
+          <velocity>0.003931 -0.000966 0.008875 0.007051 0.032559 0.001458</velocity>
+          <acceleration>3.83009 -0.521112 15.2493 1.38375 0.22434 -0.395785</acceleration>
+          <wrench>6.11923 -0.832565 24.3633 0 -0 0</wrench>
+        </link>
+        <link name='wheel_rhs_rear'>
+          <pose>-0.183461 -0.211763 0.124696 -1.56998 -0.588839 0.423168</pose>
+          <velocity>-0.000383 -0.000912 0.001676 0.005976 0.00866 -0.001682</velocity>
+          <acceleration>-4.57931 0.352725 0.345689 2.08325 1.28259 1.59005</acceleration>
+          <wrench>-7.10557 0.547313 0.536395 0 -0 0</wrench>
+        </link>
+      </model>
+      <model name='unit_box'>
+        <pose>3.5227 2.50318 0.5 0 -0 0</pose>
+        <scale>1 1 1</scale>
+        <link name='link'>
+          <pose>3.5227 2.50318 0.5 0 -0 0</pose>
+          <velocity>0 0 0 0 -0 0</velocity>
+          <acceleration>-0.004709 -9.78112 9.78158 0.712677 -0.009414 -4.3e-05</acceleration>
+          <wrench>-0.004709 -9.78112 9.78158 0 -0 0</wrench>
+        </link>
+      </model>
+      <light name='sun'>
+        <pose>0 0 10 0 -0 0</pose>
+      </light>
+    </state>
+    <gui fullscreen='0'>
+      <camera name='user_camera'>
+        <pose>-5.28198 6.26806 5.24731 0 0.475643 -0.603803</pose>
+        <view_controller>orbit</view_controller>
+        <projection_type>perspective</projection_type>
+      </camera>
+    </gui>
+  </world>
+</sdf>
