@@ -32,8 +32,8 @@ class AStarPlanner:
         self.goal_sub = rospy.Subscriber('/goal', PoseStamped, self.goal_callback)
         self.grid_sub = rospy.Subscriber('/occupancy_grid', OccupancyGrid, self.grid_callback)
         
-        self.path_pub = rospy.Publisher('/path', Path, queue_size=10, latch = True)
-        self.vis_path_pub = rospy.Publisher('/visualization_path', Marker, queue_size=10, latch = True)
+        self.path_pub = rospy.Publisher('/path', Path, queue_size=10)
+        # self.vis_path_pub = rospy.Publisher('/visualization_path', Marker, queue_size=10, latch = True)
 
 #-------------------------------------------------callbacks-------------------------------------------------------
    
@@ -88,9 +88,9 @@ class AStarPlanner:
         #obstacle_distance = min([self.distance_to_obstacle(start_cell, obstacle) for obstacle in obstacles])
         
         #costss
-        cost_of_moving_forward = 1
-        cost_of_turning_left = 2
-        cost_of_turning_right = 2
+        cost_of_moving_forward = 2
+        cost_of_turning_left = 1
+        cost_of_turning_right = 1
 
         heuristic_value = euclidean_distance * (1 + 0.2* angle)  + cost_of_moving_forward + cost_of_turning_left * 0.1 + cost_of_turning_right * 0.1
         return heuristic_value
