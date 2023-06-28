@@ -13,24 +13,17 @@ using Eigen::VectorXd;
 using namespace std::chrono;
 
 std::vector<float> Vel_arr = {0, 0, 0, 0, 0, 0};
-std::vector<float> IMU_arr = {0, 0};                                                                                    // omega and theta absoulute respectively
+std::vector<float> IMU_arr = {0, 0};                                                                                         // omega and theta absoulute respectively
 std::vector<float> CAM_arr = {595468, 5,
                               2, 8};                                                                                         // ID then the distance from the camera to each landmark
-//auto time_start = high_resolution_clock::now(); 
-//auto time_stop = high_resolution_clock::now();
-//auto duration = duration_cast<seconds>(time_stop - time_start);
-//auto time_start_cam = high_resolution_clock::now(); 
-//auto time_stop_cam = high_resolution_clock::now();
-//auto duration_cam = duration_cast<seconds>(time_stop - time_start);
 double delta_time = 0.014917;
-double delta_time_cam = 0;
+double delta_time_cam = 0.014917;
 
 
 
 
 void Vel_Callback(const std_msgs::Float32MultiArray::ConstPtr& msg)                                                          // callback of encoder readings
 {
-  //ROS_INFO("I heard Velocities");
   Vel_arr = msg->data;
 }
 
@@ -38,24 +31,14 @@ void Vel_Callback(const std_msgs::Float32MultiArray::ConstPtr& msg)             
 
 void IMU_Callback(const std_msgs::Float32MultiArray::ConstPtr& msg)                                                          // callback of IMU readings
 {
-  //ROS_INFO("I heard IMU");
   IMU_arr = msg->data;
-  //time_stop = high_resolution_clock::now();
-  //auto duration = duration_cast<seconds>(time_stop - time_start);
-  //delta_time = duration.count();
-  //time_start = high_resolution_clock::now();  
 }
 
 
 
 void CAM_Callback(const std_msgs::Float32MultiArray::ConstPtr& msg)                                                          // callback of landmarks captured by camera
 {
-  //ROS_INFO("I heard Camera");
   CAM_arr = msg->data;
-  //time_stop_cam = high_resolution_clock::now();
-  //auto duration_cam = duration_cast<seconds>(time_stop - time_start);
-  //delta_time_cam = duration_cam.count();
-  //time_start_cam = high_resolution_clock::now(); 
 }
 
 
@@ -153,8 +136,6 @@ void Predict(std::vector<float> velocity, float omega, float delta_t, MatrixXd X
   *prediction = x;
   *covariance = P;
   *Xsig_predion = Xsig_pred;
-  //std::cout << "Predicted state" << std::endl;
-  //std::cout << x << std::endl;
 }
 
 void PredictIMU(VectorXd* z_pred_out, MatrixXd* Zsig_out, MatrixXd* S_out, VectorXd weights, MatrixXd Xsig_prediction)
@@ -192,23 +173,17 @@ void PredictIMU(VectorXd* z_pred_out, MatrixXd* Zsig_out, MatrixXd* S_out, Vecto
   *z_pred_out = z_pred;
   *S_out = S;
   *Zsig_out = Zsig;
-  //std::cout << "s is" << std::endl;
-  //std::cout << S << std::endl;
 }
 
 
 void Estimate(float IMU_reading, int size_z, VectorXd z_pred, MatrixXd Zsig, MatrixXd S, Eigen::Vector3d* position, Eigen::Matrix3d* covariance, VectorXd weights, MatrixXd position_pred, MatrixXd covariance_pred, MatrixXd Xsig_prediction)                                                                                                              // estimation function (where we update prediction readings using IMU)
 {
-  //ROS_INFO("i have entered the estimation function");
   int size = 3;
   int size_aug = 5;
   MatrixXd Tc = MatrixXd(size, size_z);
   MatrixXd K = MatrixXd(size,2*size_aug + 1);
   Tc.fill(0.0);
-  //ROS_INFO("zsig in estimate func is");
-  //std::cout << Zsig << std::endl;
-  //ROS_INFO("zpred in estimate func is");
-  //std::cout << z_pred << std::endl;
+
   for (int i = 0; i < 2 * size_aug + 1; ++i) 
   {
     VectorXd x_diff = Xsig_prediction.col(i) - position_pred;
@@ -229,22 +204,13 @@ void Estimate(float IMU_reading, int size_z, VectorXd z_pred, MatrixXd Zsig, Mat
       Tc = Tc + weights(i) * x_diff * z_diff.transpose();
     }
 
-    //std::cout << "x diff is" << std::endl;
-    //std::cout <<  x_diff << std::endl;
-    //std::cout << "z diff is" << std::endl;
-    //std::cout <<  z_diff << std::endl;
   }
-  //std::cout << "TC is" << std::endl;
-  //std::cout << Tc << std::endl;
-  //std::cout << "S is" << std::endl;
-  //std::cout << S << std::endl;
+
   K = Tc * S.inverse();
   std::cout << "kalman gain is" << std::endl;
   std::cout << K << std::endl;
   MatrixXd IMU_vec = MatrixXd(1,1);
   IMU_vec(0,0) = IMU_reading;
-  //std::cout << "z angle is" << std::endl;
-  //std::cout <<  IMU_vec << std::endl;
   VectorXd z_diff = IMU_vec - z_pred;
   if (size_z == 1)
   {
@@ -262,13 +228,29 @@ void Estimate(float IMU_reading, int size_z, VectorXd z_pred, MatrixXd Zsig, Mat
     *covariance = covariance_pred.topLeftCorner(3,3) - K*S*K.transpose();
   }
 
-  //std::cout << "estimation is" << std::endl;
-  // 0std::cout << *position << std::endl;
-  //std::cout << "estimation covariance is" << std::endl;
-  //std::cout << *covariance << std::endl;
 }
 /*
-double triangulate(std::vector<double> landmark1, std::vector<double> landmark2, std::vector<double> landmark3, std::vector<float> CAM_arr)
+double triangulate_3(std::vector<double> landmark1, std::vector<double> landmark2, std::vector<double> landmark3, std::vector<float> CAM_arr)
+{
+    double estimatedX, estimatedY;
+    double x1 = landmark1[0], y1 = landmark1[1];
+    double x2 = landmark2[0], y2 = landmark2[1];
+    double x3 = landmark3[0], y3 = landmark3[1];
+    
+    double A = 2 * (x2 - x1); 
+    double B = 2 * (y2 - y1);
+    double C = CAM_arr[1]*CAM_arr[1] - CAM_arr[4]*CAM_arr[4] - CAM_arr[2]*CAM_arr[2] + CAM_arr[5]*CAM_arr[5] + x1*x1 - x2*x2 + y1*y1 - y2*y2;
+    double D = 2 * (x3 - x2);
+    double E = 2 * (y3 - y2);
+    double F = CAM_arr[4]*CAM_arr[4] - CAM_arr[7]*CAM_arr[7] - CAM_arr[5]*CAM_arr[5] + CAM_arr[8]*CAM_arr[8] + x2*x2 - x3*x3 + y2*y2 - y3*y3;
+    
+    estimatedX = (B*F - E*C) / (B*D - E*A);
+    estimatedY = (D*C - A*F) / (B*D - E*A);
+
+    return estimatedX, estimatedY;
+}
+
+double triangulate_2(std::vector<double> landmark1, std::vector<double> landmark2, std::vector<float> CAM_arr)
 {
     double estimatedX, estimatedY;
     double x1 = landmark1[0], y1 = landmark1[1];
@@ -288,8 +270,8 @@ double triangulate(std::vector<double> landmark1, std::vector<double> landmark2,
     return estimatedX, estimatedY;
 }
 */
-/*
-void PredictCAM(std::vector<float> CAM_arr_old, std::vector<float> CAM_arr, VectorXd* z_pred_out, MatrixXd* Zsig_out, MatrixXd* S_out, VectorXd weights, std::vector<double> LM_Pos1, std::vector<double> LM_Pos2, std::vector<double> LM_Pos3, std::vector<double>LM_Pos_old_1, std::vector<double>LM_Pos_old_2, std::vector<double>LM_Pos_old_3)
+
+void PredictCAM(VectorXd* z_pred_out, MatrixXd* Zsig_out, MatrixXd* S_out, VectorXd weights, MatrixXd Xsig_prediction)
 {
   int size = 3;
   int size_aug = 5;
@@ -298,86 +280,39 @@ void PredictCAM(std::vector<float> CAM_arr_old, std::vector<float> CAM_arr, Vect
   VectorXd z_pred = VectorXd(size_z);  
   MatrixXd S = MatrixXd(size_z,size_z);
    
-
-  if (CAM_arr.size() < 7)                                                                           // 2 landmarks case
-  {
-    for (int i = 0; i < 2 * size_aug + 1; ++i) 
-    {  
-      //Zsig(0,i) = LM_Pos1[0] + scale * dx;
-      //Zsig(1,i) = LM_Pos2[0] + scale * dy;
-      //Zsig(2,i) = std::atan2(dy , dx);
-    }
-
-    z_pred.fill(0.0);
-    for (int i=0; i < 2*size_aug+1; ++i) 
-    {
-      z_pred = z_pred + weights(i) * Zsig.col(i);
-    }
-
-    S.fill(0.0);
-    for (int i = 0; i < 2 * size_aug + 1; ++i) 
-    {  
-      VectorXd z_diff = Zsig.col(i) - z_pred;
-      while (z_diff(0)> M_PI) z_diff(0)-=2.*M_PI;
-      while (z_diff(0)<-M_PI) z_diff(0)+=2.*M_PI;
-      S = S + weights(i) * z_diff * z_diff.transpose();
-    }
-
-    MatrixXd R = MatrixXd(size_z,size_z);
-    R <<     0.05, 0,    0,
-             0,    0.05, 0,
-             0,    0,    0.05;
-    S = S + R;
-
-    *z_pred_out = z_pred;
-    *S_out = S;
-    *Zsig_out = Zsig;
-    //std::cout << "Zsig is" << std::endl;
-    //std::cout << *Zsig_out << std::endl;
+  for (int i = 0; i < 2 * size_aug + 1; ++i) 
+  {  
+    Zsig(0,i) = Xsig_prediction(0,i);
+    Zsig(1,i) = Xsig_prediction(1,i);
+    Zsig(2,i) = Xsig_prediction(2,i);
   }
 
-
-  else                                                                  // 3 landmarks case
+  z_pred.fill(0.0);
+  for (int i=0; i < 2*size_aug+1; ++i) 
   {
-    double x_old, y_old, x_new, y_new;
-    x_old, y_old = triangulate(LM_Pos_old_1, LM_Pos_old_2, LM_Pos_old_3, CAM_arr_old);
-    x_new, y_new = triangulate(LM_Pos1, LM_Pos2, LM_Pos3, CAM_arr);
-    for (int i = 0; i < 2 * size_aug + 1; ++i) 
-    {  
-      Zsig(0,i) = x_new;
-      Zsig(1,i) = y_new;
-      Zsig(2,i) = std::atan2(y_new - y_old , x_new - x_old);
-    }
-
-    z_pred.fill(0.0);
-    for (int i=0; i < 2*size_aug+1; ++i) 
-    {
-      z_pred = z_pred + weights(i) * Zsig.col(i);
-    }
-
-    S.fill(0.0);
-    for (int i = 0; i < 2 * size_aug + 1; ++i) 
-    {  
-      VectorXd z_diff = Zsig.col(i) - z_pred;
-      while (z_diff(0)> M_PI) z_diff(0)-=2.*M_PI;
-      while (z_diff(0)<-M_PI) z_diff(0)+=2.*M_PI;
-      S = S + weights(i) * z_diff * z_diff.transpose();
-    }
-
-    MatrixXd R = MatrixXd(size_z,size_z);
-    R <<     0.05,    0,    0,
-             0,       0.05, 0,
-             0,       0,    0.05;
-    S = S + R;
-
-    *z_pred_out = z_pred;
-    *S_out = S;
-    *Zsig_out = Zsig;
-    //std::cout << "Zsig is" << std::endl;
-    //std::cout << *Zsig_out << std::endl;
+    z_pred = z_pred + weights(i) * Zsig.col(i);
   }
+
+  S.fill(0.0);
+  for (int i = 0; i < 2 * size_aug + 1; ++i) 
+  {  
+    VectorXd z_diff = Zsig.col(i) - z_pred;
+    while (z_diff(0)> M_PI) z_diff(0)-=2.*M_PI;
+    while (z_diff(0)<-M_PI) z_diff(0)+=2.*M_PI;
+    S = S + weights(i) * z_diff * z_diff.transpose();
+  }
+
+  MatrixXd R = MatrixXd(size_z,size_z);
+  R <<     0.0000000001,  0,            0,
+            0,            0.0000000001, 0,
+            0,            0,            0.0000000001;
+  S = S + R;
+
+  *z_pred_out = z_pred;
+  *S_out = S;
+  *Zsig_out = Zsig;
 }
-*/
+
 
 /*
 void GetLandmarkPos_2(int ID_1, int ID_2, std::vector<double>* LM_Pos1, std::vector<double>* LM_Pos2)
@@ -407,7 +342,7 @@ void GetLandmarkPos_3(int ID_1, int ID_2, int ID_3, std::vector<double>* LM_Pos1
 }
 */
 
-int main(int argc, char *argv[])                                                                                             // initialization of ros node and other variables
+int main(int argc, char *argv[])                                                                                                          // initialization of ros node and other variables
 {
   std::vector<float> IMU_arr_old = {0.0,0.0001};
   std::vector<float> CAM_arr_old;
@@ -454,62 +389,56 @@ int main(int argc, char *argv[])                                                
 while (ros::ok)
 {
   ros::spinOnce();
-  while (IMU_arr_old != IMU_arr)                                                                                                          // while (1) loop
+  while (IMU_arr_old != IMU_arr)                                                                                                          
   {
-    /*while(CAM_arr[0] == 595468);
     if (CAM_arr != CAM_arr_old)
       {
-        if (CAM_arr.size() < 7)
+        if (CAM_arr.size() < 7)                                                                                                                   // 2 landmarks case
         {
           CAM_arr_2 = CAM_arr;
-          GetLandmarkPos_2(CAM_arr_2[0], CAM_arr_2[3], &LM_Pos_old_1, &LM_Pos_old_2);
+          //GetLandmarkPos_2(CAM_arr_2[0], CAM_arr_2[3], &LM_Pos_old_1, &LM_Pos_old_2);
           while(CAM_arr_2 == CAM_arr);
-          GetLandmarkPos_2(CAM_arr[0], CAM_arr[3], &LM_Pos1, &LM_Pos2);
-          sigma_points(position, covariance, &Xsig_aug);
-          //ROS_INFO("sigma points function done"); 
-          Predict(Vel_arr, IMU_arr[1], delta_time, Xsig_aug, &prediction, &pred_cov, &weights);
-          //ROS_INFO("predict function done");
-          PredictCAM(CAM_arr_2, CAM_arr, &z_pred, &Zsig, &S, weights, LM_Pos1, LM_Pos2, LM_Pos3, LM_Pos_old_1, LM_Pos_old_2, LM_Pos_old_3);
-          //ROS_INFO("predictIMU function done"); 
-          Estimate(size_z_CAM, IMU_arr[0], Xsig_aug, z_pred, Zsig, S, &position, &covariance, weights, prediction, pred_cov);
-          //ROS_INFO("estimate function done");
-          coordinates.data[0] = position[0];
-          coordinates.data[1] = position[1];
-          coordinates.data[2] = position[2]*(180/M_PI);
-          pub.publish(coordinates);
-          CAM_arr_old = CAM_arr;
+          //GetLandmarkPos_2(CAM_arr[0], CAM_arr[3], &LM_Pos1, &LM_Pos2);
         }
 
-        else
+        else if (CAM_arr.size() > 7)                                                                                                              // 3 landmarks case
         {
           CAM_arr_2 = CAM_arr;
-          GetLandmarkPos_3(CAM_arr_2[0], CAM_arr_2[3], CAM_arr_2[6], &LM_Pos_old_1, &LM_Pos_old_2, &LM_Pos_old_3);
+          //GetLandmarkPos_3(CAM_arr_2[0], CAM_arr_2[3], CAM_arr_2[6], &LM_Pos_old_1, &LM_Pos_old_2, &LM_Pos_old_3);
           while(CAM_arr_2 == CAM_arr);
-          GetLandmarkPos_3(CAM_arr[0], CAM_arr[3], CAM_arr[6], &LM_Pos1, &LM_Pos2, &LM_Pos3);
-          sigma_points(position, covariance, &Xsig_aug);
-          //ROS_INFO("sigma points function done"); 
-          Predict(Vel_arr, IMU_arr[1], delta_time, Xsig_aug, &prediction, &pred_cov, &weights);
-          //ROS_INFO("predict function done");
-          PredictCAM(CAM_arr_2, CAM_arr, &z_pred, &Zsig, &S, weights, LM_Pos1, LM_Pos2, LM_Pos3, LM_Pos_old_1, LM_Pos_old_2, LM_Pos_old_3);
-          //ROS_INFO("predictIMU function done"); 
-          Estimate(size_z_CAM, IMU_arr[0], Xsig_aug, z_pred, Zsig, S, &position, &covariance, weights, prediction, pred_cov);
-          //ROS_INFO("estimate function done");
-          coordinates.data[0] = position[0];
-          coordinates.data[1] = position[1];
-          coordinates.data[2] = position[2]*(180/M_PI);
-          pub.publish(coordinates);
-          CAM_arr_old = CAM_arr;
-        } 
+          //GetLandmarkPos_3(CAM_arr[0], CAM_arr[3], CAM_arr[6], &LM_Pos1, &LM_Pos2, &LM_Pos3);
+        }
+
+        sigma_points(position, covariance, &Xsig_aug);
+        Predict(Vel_arr, IMU_arr[0], delta_time, Xsig_aug, &prediction, &pred_cov, &weights, &Xsig_pred);
+        PredictCAM(&z_pred, &Zsig, &S, weights, Xsig_pred);
+        Estimate(IMU_arr[1], size_z_IMU, z_pred, Zsig, S, &position, &covariance, weights, prediction, pred_cov, Xsig_pred);
+        coordinates.data[0] = position[0];
+        coordinates.data[1] = position[1];
+        coordinates.data[2] = position[2]*(180/M_PI);
+        pub.publish(coordinates);
+
+        geometry_msgs::TransformStamped transform_stamped;
+        transform_stamped.header.stamp = ros::Time::now();
+        transform_stamped.header.frame_id = "map"; 
+        transform_stamped.child_frame_id = "rover_pose"; 
+        transform_stamped.transform.translation.x = position[0];
+        transform_stamped.transform.translation.y = position[1];
+        tf2::Quaternion quat;
+        quat.setRPY(0, 0, position[2]);  
+        transform_stamped.transform.rotation.x = quat.x();
+        transform_stamped.transform.rotation.y = quat.y();
+        transform_stamped.transform.rotation.z = quat.z();
+        transform_stamped.transform.rotation.w = quat.w();
+        broadcaster.sendTransform(transform_stamped); 
+
+        CAM_arr_old = CAM_arr;
       }
-*/
+
       sigma_points(position, covariance, &Xsig_aug);
-      //ROS_INFO("sigma points function done"); 
       Predict(Vel_arr, IMU_arr[0], delta_time, Xsig_aug, &prediction, &pred_cov, &weights, &Xsig_pred);
-      //ROS_INFO("predict function done");
       PredictIMU(&z_pred, &Zsig, &S, weights, Xsig_pred);
-      //ROS_INFO("predictIMU function done"); 
       Estimate(IMU_arr[1], size_z_IMU, z_pred, Zsig, S, &position, &covariance, weights, prediction, pred_cov, Xsig_pred);
-      //ROS_INFO("estimate function done"); 
       coordinates.data[0] = position[0];
       coordinates.data[1] = position[1];
       coordinates.data[2] = position[2]*(180/M_PI);
