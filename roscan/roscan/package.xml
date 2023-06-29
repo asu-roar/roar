@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>ros_can</name>
+  <name>roscan</name>
   <version>0.0.0</version>
-  <description>The ros_can package</description>
+  <description>The roscan package</description>
 
   <maintainer email="ahmedbelal.asurt@gmail.com">belal</maintainer>
 

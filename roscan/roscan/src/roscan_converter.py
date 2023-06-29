@@ -50,7 +50,8 @@ class Handler:
                 data_frame: bytes = self.rec_frame.data[:self.rec_frame.dlc]
                 # Encoders message
                 if self.rec_frame.id == 1:
-                    encoders_msg: Int8MultiArray = self.get_encoders(data_frame)
+                    encoders_msg: Int8MultiArray = self.get_encoders(
+                        data_frame)
                     self.encoders_pub.publish(encoders_msg)
                 # IMU message
                 elif self.rec_frame.id == 2:
@@ -77,7 +78,7 @@ class Handler:
     def get_encoders(self, data_frame: bytes) -> Int8MultiArray:
         encoders_msg = Int8MultiArray()
         encoders_msg = [rec_reading +
-                    self.encoders_map for rec_reading in data_frame]
+                        self.encoders_map for rec_reading in data_frame]
         return encoders_msg
 
     def get_imu(self, data_frame: bytes) -> Imu:
@@ -91,7 +92,7 @@ class Handler:
         imu_msg.linear_acceleration.x = lin_acc_x
         imu_msg.linear_acceleration.y = lin_acc_y
         imu_msg.orientation.z = yaw_angle
-        imu_msg.angular_velocity.z = yaw_rate    
+        imu_msg.angular_velocity.z = yaw_rate
         return imu_msg
 
 
