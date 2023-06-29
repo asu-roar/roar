@@ -209,7 +209,7 @@ void PredictIMU(VectorXd* z_pred_out, MatrixXd* Zsig_out, MatrixXd* S_out, Vecto
   }
 
   MatrixXd R = MatrixXd(size_z,size_z);
-  R << 0.0000000001;
+  R << 0.0000000000000001;
   S = S + R;
 
   *z_pred_out = z_pred;
@@ -327,7 +327,7 @@ void PredictCAM(VectorXd* z_pred_out, MatrixXd* Zsig_out, MatrixXd* S_out, Vecto
   }
 
   MatrixXd R = MatrixXd(size_z,size_z);
-  R <<     0.0000000001,  0,            0,
+  R <<      0.0000000001, 0,            0,
             0,            0.0000000001, 0,
             0,            0,            0.0000000001;
   S = S + R;
