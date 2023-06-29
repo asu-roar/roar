@@ -2,7 +2,7 @@
 
 
 import rospy
-from can_msgs.msg import Frame
+from std_msgs.msg import Int8MultiArray
 
 
 class Handler:
@@ -12,8 +12,8 @@ class Handler:
         rospy.init_node("cansend")
         self.rate = rospy.Rate(10)
         # Create required ROS publishers
-        self.can_pub = rospy.Publisher("/sent_messages", 
-                                       Frame, 
+        self.can_pub = rospy.Publisher("/nav_action/supervised", 
+                                       Int8MultiArray, 
                                        queue_size=10
                                        )
         # Initialize the received frame to None
@@ -23,20 +23,9 @@ class Handler:
             self.r.sleep()
         
     def cansend(self):
-        self.frame = Frame()
-        # Header
-        self.frame.header.stamp = rospy.Time.now()
-        self.frame.header.frame_id = "can"
-        # Message Parameters
-        self.frame.id = 12
-        self.frame.dlc = 8
-        self.frame.data = [10, 10, 10, 0, 0, 0, 0, 0]
-        # Standard Parameters
-        self.frame.is_rtr = False
-        self.frame.is_extended = False
-        self.frame.is_error = False
-        # Publish
-        self.can_pub.publish(self.frame)
+        data = Int8MultiArray()
+        data.data = [16, 16, 16, 0, 0, 0]
+        self.can_pub.publish(data)
 
 
 if __name__ == '__main__': 
