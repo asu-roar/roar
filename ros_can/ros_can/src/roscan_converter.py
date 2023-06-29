@@ -4,7 +4,6 @@ import rospy
 from std_msgs.msg import Int8MultiArray
 from sensor_msgs.msg import Imu
 from can_msgs.msg import Frame
-from ctypes import c_uint16
 
 
 class Handler:
@@ -83,10 +82,10 @@ class Handler:
 
     def get_imu(self, data_frame: bytes) -> Imu:
         imu_msg: Imu = Imu()
-        lin_acc_x: float = (((c_uint16(data_frame[1]) << 8) | data_frame[0]) / 100) - 360
-        lin_acc_y: float = (((c_uint16(data_frame[3]) << 8) | data_frame[2]) / 100) - 360
-        yaw_angle: float = (((c_uint16(data_frame[5]) << 8) | data_frame[4]) / 100) - 360
-        yaw_rate: float = (((c_uint16(data_frame[7]) << 8) | data_frame[6]) / 100) - 360
+        lin_acc_x: float = (((data_frame[1] << 8) | data_frame[0]) / 100) - 360
+        lin_acc_y: float = (((data_frame[3] << 8) | data_frame[2]) / 100) - 360
+        yaw_angle: float = (((data_frame[5] << 8) | data_frame[4]) / 100) - 360
+        yaw_rate: float = (((data_frame[7] << 8) | data_frame[6]) / 100) - 360
         imu_msg.header.stamp = rospy.Time.now()
         imu_msg.header.frame_id = "imu_frame"
         imu_msg.linear_acceleration.x = lin_acc_x
