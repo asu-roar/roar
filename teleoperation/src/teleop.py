@@ -29,7 +29,7 @@ class ControlApp(Tk, object):
         self.speeds_msg = Int8MultiArray()
 
     def keydown(self, event: Event) -> None:
-        if event.keysym == "Up" or "W":
+        if event.keysym == "Up":
             self.speeds_msg.data = [self.forw, self.forw, self.forw,
                                self.forw, self.forw, self.forw]
 
