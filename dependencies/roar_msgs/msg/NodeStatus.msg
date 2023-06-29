@@ -3,9 +3,7 @@ std_msgs/Header header
 uint8 status
 string message
 
-uint8 STARTING = 0
-uint8 READY = 1
-uint8 RUNNING = 2
-uint8 ERROR = 3
-uint8 SHUTDOWN = 4
-uint8 UNRESPONSIVE = 5
+uint8 OFFLINE = 0 # Module ready to launch node
+uint8 ONLINE = 1 # Module launched node (node running)
+uint8 UNRESPONSIVE = 2 # Node unresponsive (no heartbeat)
+uint8 ERROR = 3 # Module Error

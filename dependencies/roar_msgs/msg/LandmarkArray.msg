@@ -1,2 +1,2 @@
-geometry_msgs/Point[] positions
-uint16[] ids
+std_msgs/Header header
+roar_msgs/Landmark[] landmarks
