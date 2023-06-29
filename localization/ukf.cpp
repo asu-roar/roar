@@ -1,5 +1,6 @@
 #include <ros/ros.h>
 #include <std_msgs/Float32MultiArray.h>
+#include <std_msgs/Float64.h>
 #include <eigen3/Eigen/Dense>
 #include <eigen3/Eigen/Cholesky>
 #include <cmath>
@@ -7,31 +8,72 @@
 #include <numeric>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_ros/transform_broadcaster.h>
+#include <random>
+#include <gazebo_msgs/ModelStates.h>
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
 using namespace std::chrono;
+std::random_device rd;
+std::mt19937 gen(rd());
+std::normal_distribution<double> distribution_vel(0, 0.05);
+std::normal_distribution<double> distribution_imu(0, 0.005);
+
+struct Landmark 
+  {
+    double x;
+    double y;
+  };
 
 std::vector<float> Vel_arr = {0, 0, 0, 0, 0, 0};
 std::vector<float> IMU_arr = {0, 0};                                                                                         // omega and theta absoulute respectively
 std::vector<float> CAM_arr = {595468, 5,
                               2, 8};                                                                                         // ID then the distance from the camera to each landmark
-double delta_time = 0.014917;
-double delta_time_cam = 0.014917;
+double delta_time = 0.00075;
+double delta_time_cam = 0.00075;
 
 
 
 
-void Vel_Callback(const std_msgs::Float32MultiArray::ConstPtr& msg)                                                          // callback of encoder readings
+void Vel_Callback(const std_msgs::Float64::ConstPtr& msg)                                                           // callback of encoder readings
 {
-  Vel_arr = msg->data;
+  Vel_arr[0] = msg->data + distribution_vel(gen);
+}
+
+void Vel_Callback2(const std_msgs::Float64::ConstPtr& msg)                                                          // callback of encoder readings
+{
+  Vel_arr[1] = msg->data + distribution_vel(gen);
+}
+
+void Vel_Callback3(const std_msgs::Float64::ConstPtr& msg)                                                          // callback of encoder readings
+{
+  Vel_arr[2] = msg->data + distribution_vel(gen);
+}
+
+void Vel_Callback4(const std_msgs::Float64::ConstPtr& msg)                                                          // callback of encoder readings
+{
+  Vel_arr[3] = msg->data + distribution_vel(gen);
+}
+
+void Vel_Callback5(const std_msgs::Float64::ConstPtr& msg)                                                          // callback of encoder readings
+{
+  Vel_arr[4] = msg->data + distribution_vel(gen);
+}
+
+void Vel_Callback6(const std_msgs::Float64::ConstPtr& msg)                                                          // callback of encoder readings
+{
+  Vel_arr[5] = msg->data + distribution_vel(gen);
 }
 
 
-
-void IMU_Callback(const std_msgs::Float32MultiArray::ConstPtr& msg)                                                          // callback of IMU readings
+void IMU_Callback(const gazebo_msgs::ModelStates::ConstPtr& msg)                                                    // callback of IMU readings
 {
-  IMU_arr = msg->data;
+  geometry_msgs::Pose model_pose = msg->pose[15];
+  double x = model_pose.orientation.x;
+  double y = model_pose.orientation.y;
+  double z = model_pose.orientation.z;
+  double w = model_pose.orientation.w;
+  IMU_arr[1] = (atan2(2*(w*z + x*y), 1 - 2*(y*y + z*z))) + distribution_imu(gen) - (M_PI/2);
 }
 
 
@@ -229,47 +271,29 @@ void Estimate(float IMU_reading, int size_z, VectorXd z_pred, MatrixXd Zsig, Mat
   }
 
 }
-/*
-double triangulate_3(std::vector<double> landmark1, std::vector<double> landmark2, std::vector<double> landmark3, std::vector<float> CAM_arr)
-{
-    double estimatedX, estimatedY;
-    double x1 = landmark1[0], y1 = landmark1[1];
-    double x2 = landmark2[0], y2 = landmark2[1];
-    double x3 = landmark3[0], y3 = landmark3[1];
-    
-    double A = 2 * (x2 - x1); 
-    double B = 2 * (y2 - y1);
-    double C = CAM_arr[1]*CAM_arr[1] - CAM_arr[4]*CAM_arr[4] - CAM_arr[2]*CAM_arr[2] + CAM_arr[5]*CAM_arr[5] + x1*x1 - x2*x2 + y1*y1 - y2*y2;
-    double D = 2 * (x3 - x2);
-    double E = 2 * (y3 - y2);
-    double F = CAM_arr[4]*CAM_arr[4] - CAM_arr[7]*CAM_arr[7] - CAM_arr[5]*CAM_arr[5] + CAM_arr[8]*CAM_arr[8] + x2*x2 - x3*x3 + y2*y2 - y3*y3;
-    
-    estimatedX = (B*F - E*C) / (B*D - E*A);
-    estimatedY = (D*C - A*F) / (B*D - E*A);
 
-    return estimatedX, estimatedY;
+double triangulate(Eigen::Vector3d position_prev, Landmark landmark1, Landmark landmark2, std::vector<float> CAM_arr)
+{
+  int error = 0;
+  double adjustedX1 = landmark1.x * cos(position_prev[2]) - landmark1.y * sin(position_prev[2]);
+  double adjustedY1 = landmark1.x * sin(position_prev[2]) + landmark1.y * cos(position_prev[2]);
+  double adjustedX2 = landmark2.x * cos(position_prev[2]) - landmark2.y * sin(position_prev[2]);
+  double adjustedY2 = landmark2.x * sin(position_prev[2]) + landmark2.y * cos(position_prev[2]);
+  double distance1 = sqrt((CAM_arr[1] * CAM_arr[1]) + (CAM_arr[2] * CAM_arr[2]));
+  double distance2 = sqrt((CAM_arr[4] * CAM_arr[4]) + (CAM_arr[5] * CAM_arr[5]));
+  double angle_landmark_1 = atan2(CAM_arr[2] , CAM_arr[1]);
+  double angle_landmark_2 = atan2(CAM_arr[5] , CAM_arr[4]);
+
+  double A = 2 * (adjustedX2 - adjustedX1);
+  double B = 2 * (adjustedY2 - adjustedY1);
+  double C = (distance1 * distance1) - (distance2 * distance2) - (adjustedX1 * adjustedX1) + (adjustedX2 * adjustedX2) - (adjustedY1 * adjustedY1) + (adjustedY2 * adjustedY2);
+
+  double estimatedX = (C * (adjustedY2 - adjustedY1) - B * (adjustedX2 - adjustedX1)) / (A * B - (adjustedY2 - adjustedY1) * A);
+  double estimatedY = (C * (adjustedX2 - adjustedX1) - A * (adjustedY2 - adjustedY1)) / ((adjustedX2 - adjustedX1) * B - A * B);
+
+  return estimatedX, estimatedY, error;
 }
 
-double triangulate_2(std::vector<double> landmark1, std::vector<double> landmark2, std::vector<float> CAM_arr)
-{
-    double estimatedX, estimatedY;
-    double x1 = landmark1[0], y1 = landmark1[1];
-    double x2 = landmark2[0], y2 = landmark2[1];
-    double x3 = landmark3[0], y3 = landmark3[1];
-    
-    double A = 2 * (x2 - x1); 
-    double B = 2 * (y2 - y1);
-    double C = CAM_arr[1]*CAM_arr[1] - CAM_arr[4]*CAM_arr[4] - CAM_arr[2]*CAM_arr[2] + CAM_arr[5]*CAM_arr[5] + x1*x1 - x2*x2 + y1*y1 - y2*y2;
-    double D = 2 * (x3 - x2);
-    double E = 2 * (y3 - y2);
-    double F = CAM_arr[4]*CAM_arr[4] - CAM_arr[7]*CAM_arr[7] - CAM_arr[5]*CAM_arr[5] + CAM_arr[8]*CAM_arr[8] + x2*x2 - x3*x3 + y2*y2 - y3*y3;
-    
-    estimatedX = (B*F - E*C) / (B*D - E*A);
-    estimatedY = (D*C - A*F) / (B*D - E*A);
-
-    return estimatedX, estimatedY;
-}
-*/
 
 void PredictCAM(VectorXd* z_pred_out, MatrixXd* Zsig_out, MatrixXd* S_out, VectorXd weights, MatrixXd Xsig_prediction)
 {
@@ -327,31 +351,11 @@ void GetLandmarkPos_2(int ID_1, int ID_2, std::vector<double>* LM_Pos1, std::vec
   *LM_Pos2 = { List_LM(1,ID_2) , List_LM(2,ID_2) };
 }
 */
-/*
-void GetLandmarkPos_3(int ID_1, int ID_2, int ID_3, std::vector<double>* LM_Pos1, std::vector<double>* LM_Pos2, std::vector<double>* LM_Pos3)
-{
-  int no_landmarks = 16;
-  MatrixXd List_LM; 
-  List_LM << 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15,
-            10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10,
-            10,  0, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10;
-
-  *LM_Pos1 = { List_LM(1,ID_1) , List_LM(2,ID_1) };
-  *LM_Pos2 = { List_LM(1,ID_2) , List_LM(2,ID_2) };
-  *LM_Pos3 = { List_LM(1,ID_3) , List_LM(2,ID_3) };
-}
-*/
 
 int main(int argc, char *argv[])                                                                                                          // initialization of ros node and other variables
 {
   std::vector<float> IMU_arr_old = {0.0,0.0001};
   std::vector<float> CAM_arr_old;
-  std::vector<double> LM_Pos1;
-  std::vector<double> LM_Pos2;
-  std::vector<double> LM_Pos3;
-  std::vector<double> LM_Pos_old_1;
-  std::vector<double> LM_Pos_old_2;
-  std::vector<double> LM_Pos_old_3;
   MatrixXd Xsig_aug;
   MatrixXd Xsig_pred = MatrixXd(3, 11);
   Eigen::Vector3d position;
@@ -376,8 +380,15 @@ int main(int argc, char *argv[])                                                
   ros::init(argc, argv, "localization");
   ros::NodeHandle nh;
   ros::Publisher pub = nh.advertise<std_msgs/*geometry_msgs*/::Float32MultiArray/*PoseStamped*/>("coordinates", 10);
-  ros::Subscriber sub1 = nh.subscribe("velocity", 10, Vel_Callback);
-  ros::Subscriber sub2 = nh.subscribe("IMU", 10, IMU_Callback);
+
+  ros::Subscriber sub1 = nh.subscribe("/roar/wheel_lhs_front_velocity_controller/command", 10, Vel_Callback);
+  ros::Subscriber sub4 = nh.subscribe("/roar/wheel_lhs_mid_velocity_controller/command", 10, Vel_Callback2);
+  ros::Subscriber sub5 = nh.subscribe("/roar/wheel_lhs_rear_velocity_controller/command", 10, Vel_Callback3);
+  ros::Subscriber sub6 = nh.subscribe("roar/wheel_rhs_front_velocity_controller/command", 10, Vel_Callback4);
+  ros::Subscriber sub7 = nh.subscribe("/roar/wheel_rhs_mid_velocity_controller/command", 10, Vel_Callback5);
+  ros::Subscriber sub8 = nh.subscribe("/roar/wheel_rhs_rear_velocity_controller/command", 10, Vel_Callback6);
+
+  ros::Subscriber sub2 = nh.subscribe("/gazebo/model_states", 10, IMU_Callback);
   ros::Subscriber sub3 = nh.subscribe("CAM", 10, CAM_Callback);
   std_msgs::Float32MultiArray coordinates;
   tf2_ros::TransformBroadcaster broadcaster;
@@ -391,23 +402,13 @@ while (ros::ok)
   ros::spinOnce();
   while (IMU_arr_old != IMU_arr)                                                                                                          
   {
+    /*
     if (CAM_arr != CAM_arr_old)
       {
-        if (CAM_arr.size() < 7)                                                                                                                   // 2 landmarks case
-        {
-          CAM_arr_2 = CAM_arr;
-          //GetLandmarkPos_2(CAM_arr_2[0], CAM_arr_2[3], &LM_Pos_old_1, &LM_Pos_old_2);
-          while(CAM_arr_2 == CAM_arr);
-          //GetLandmarkPos_2(CAM_arr[0], CAM_arr[3], &LM_Pos1, &LM_Pos2);
-        }
-
-        else if (CAM_arr.size() > 7)                                                                                                              // 3 landmarks case
-        {
-          CAM_arr_2 = CAM_arr;
-          //GetLandmarkPos_3(CAM_arr_2[0], CAM_arr_2[3], CAM_arr_2[6], &LM_Pos_old_1, &LM_Pos_old_2, &LM_Pos_old_3);
-          while(CAM_arr_2 == CAM_arr);
-          //GetLandmarkPos_3(CAM_arr[0], CAM_arr[3], CAM_arr[6], &LM_Pos1, &LM_Pos2, &LM_Pos3);
-        }
+        CAM_arr_2 = CAM_arr;
+        //GetLandmarkPos_2(CAM_arr_2[0], CAM_arr_2[3], &LM_Pos_old_1, &LM_Pos_old_2);
+        while(CAM_arr_2 == CAM_arr);
+        //GetLandmarkPos_2(CAM_arr[0], CAM_arr[3], &LM_Pos1, &LM_Pos2);
 
         sigma_points(position, covariance, &Xsig_aug);
         Predict(Vel_arr, IMU_arr[0], delta_time, Xsig_aug, &prediction, &pred_cov, &weights, &Xsig_pred);
@@ -434,7 +435,7 @@ while (ros::ok)
 
         CAM_arr_old = CAM_arr;
       }
-
+*/
       sigma_points(position, covariance, &Xsig_aug);
       Predict(Vel_arr, IMU_arr[0], delta_time, Xsig_aug, &prediction, &pred_cov, &weights, &Xsig_pred);
       PredictIMU(&z_pred, &Zsig, &S, weights, Xsig_pred);
