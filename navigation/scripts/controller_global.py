@@ -22,7 +22,7 @@ class Handler:
         # Linear velocity of the rover
         self.velocity: float = 0.4
         # Distance to lookahead for the next target point
-        self.lookahead: float = 0.2
+        self.lookahead: float = 1
         # Threshold for rover orientation error
         self.orientation_threshold: float = 5.0
         # Current rover pose [x, y, orientation]
