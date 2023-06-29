@@ -31,25 +31,25 @@ class ControlApp(Tk, object):
     def keydown(self, event: Event) -> None:
         if event.keysym == "Up":
             self.speeds_msg.data = [self.forw, self.forw, self.forw,
-                               self.forw, self.forw, self.forw]
-
+                                    self.forw, self.forw, self.forw]
+            self.nav_pub.publish(self.speeds_msg)
         elif event.keysym == "Down":
             self.speeds_msg.data = [self.back, self.back, self.back,
-                               self.back, self.back, self.back]
+                                    self.back, self.back, self.back]
             self.nav_pub.publish(self.speeds_msg)
         elif event.keysym == "Left":
             self.speeds_msg.data = [self.forw, self.back, self.forw,
-                               self.back, self.forw, self.back]
+                                    self.back, self.forw, self.back]
             self.nav_pub.publish(self.speeds_msg)
         elif event.keysym == "Right":
             self.speeds_msg.data = [self.back, self.forw, self.back,
-                               self.forw, self.back, self.forw]
-        self.nav_pub.publish(self.speeds_msg)
+                                    self.forw, self.back, self.forw]
+            self.nav_pub.publish(self.speeds_msg)
 
     def keyup(self, event: Event) -> None:
         if event.keysym in ["Up", "Down", "Left", "Right"]:
             self.speeds_msg.data = [self.stop, self.stop, self.stop,
-                               self.stop, self.stop, self.stop]
+                                    self.stop, self.stop, self.stop]
             self.nav_pub.publish(self.speeds_msg)
 
 
