@@ -70,7 +70,7 @@ class Handler:
 
     def nav_action_callback(self, rec_setpoints: Int8MultiArray) -> None:
         self.can_frame.header.stamp = rospy.Time.now()
-        self.can_frame.data = [setpoint for setpoint in rec_setpoints]
+        self.can_frame.data = [setpoint for setpoint in rec_setpoints.data]
         self.can_frame.data.append(0)
         self.can_frame.data.append(0)
         self.can_pub.publish(self.can_frame)

@@ -60,3 +60,4 @@ if __name__ == "__main__":
         system('xset r on')
     except rospy.ROSInterruptException:
         system('xset r on')
+        
