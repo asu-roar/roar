@@ -1,11 +1,10 @@
-<launch>
-   
+<launch> 
     
-    <node name="occupancy_grid" pkg="planning" type="occupancy_grid.py" output="screen"/>    
-    <node name="Astar_planner" pkg="planning" type="Astar_planner.py" output="screen"/>
+    <node name="occupancy_grid" pkg="planning" type="occupancy_grid.py"/>    
+    <!-- <node name="Astar_planner" pkg="planning" type="Astar_planner.py" output="screen"/> -->
     <!-- <node name="send_goals" pkg="planning" type="send_goals.py" output="screen"/> -->
-    <!-- <node name="test_send_goals" pkg="planning" type="test_send_goals.py" output="screen"/> -->
-    <!-- <node name="test_Astar_planner" pkg="planning" type="test_Astar_planner.py" output="screen"/> -->
+    <node name="test_send_goals" pkg="planning" type="test_send_goals.py" output="screen"/>
+    <node name="test_Astar_planner" pkg="planning" type="test_Astar_planner.py" output="screen"/>
     <!-- <node name="test_grid" pkg="planning" type="test_grid.py" output="screen"/> -->
 </launch>
 
