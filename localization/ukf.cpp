@@ -10,8 +10,7 @@
 #include <tf2_ros/transform_broadcaster.h>
 #include <random>
 #include <gazebo_msgs/ModelStates.h>
-#include <fstream>
-#include <sstream>
+
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
@@ -29,9 +28,9 @@ struct Landmark
   };
 
 std::vector<float> Vel_arr = {0, 0, 0, 0, 0, 0};
-std::vector<float> IMU_arr = {0, 0};                                                                                         // omega and theta absoulute respectively
-std::vector<float> CAM_arr = {595468, 5,
-                              2, 8};                                                                                         // ID then the distance from the camera to each landmark
+std::vector<float> IMU_arr = {0, 0};                                                                                            // omega and theta absoulute respectively
+std::vector<float> CAM_arr = {11, 5, 9,
+                              10, 8, 5};                                                                                         // ID then the distance from the camera to each landmark
 double delta_time = 0.00075;
 double delta_time_cam = 0.00075;
 
@@ -275,6 +274,35 @@ void Estimate(float IMU_reading, int size_z, VectorXd z_pred, MatrixXd Zsig, Mat
 
 }
 
+double getlandmarkpos(int searchID, MatrixXd list_landmark)
+{
+  int columnIndex = -1;  // Initialize to an invalid value
+  double x, y;
+
+  for (int i = 0; i < list_landmark.cols(); ++i) 
+  {
+    if (list_landmark(0, i) == searchID) 
+    {
+      columnIndex = i;
+      break;
+    }
+  }
+
+  if (columnIndex != -1) 
+  {
+    x = list_landmark(1, columnIndex);
+    y = list_landmark(2, columnIndex);
+    std::cout << "Coordinates for ID " << searchID << ": (" << x << ", " << y << ")\n";
+  }
+
+  else
+  {
+      std::cout << "ID not found in the matrix.\n";
+  }
+
+  return searchID, x, y;
+}
+
 double triangulate(Eigen::Vector3d position_prev, Landmark landmark1, Landmark landmark2, std::vector<float> CAM_array)
 {
   double error = 0;
@@ -339,48 +367,18 @@ void PredictCAM(VectorXd* z_pred_out, MatrixXd* Zsig_out, MatrixXd* S_out, Vecto
   *Zsig_out = Zsig;
 }
 
-Landmark findCoordinatesByID(const std::string& filename, int id) {
-    std::ifstream file(filename);
-    std::string line;
-
-    while (std::getline(file, line)) {
-        std::istringstream iss(line);
-        std::string idStr, xStr, yStr;
-
-        if (!(std::getline(iss, idStr, ',') &&
-              std::getline(iss, xStr, ',') &&
-              std::getline(iss, yStr, ','))) {
-            // CSV format is incorrect
-            continue;
-        }
-
-        int currentID = std::stoi(idStr);
-        if (currentID == id) {
-            Landmark landmark;
-            landmark.id = currentID;
-            landmark.x = std::stod(xStr);
-            landmark.y = std::stod(yStr);
-            return landmark;
-        }
-    }
-
-    return { -1, 0.0, 0.0 };                                                                                                              // in case id seen by rover is not in the csv file
-}
-
 int main(int argc, char *argv[])                                                                                                          // initialization of ros node and other variables
 {
-  std::string filename;
-  ros::param::param<std::string>("landmarks", filename, "landmarks.csv");
   std::vector<float> IMU_arr_old = {0.0,0.0001};
-  std::vector<float> CAM_arr_old;
+  std::vector<float> CAM_arr_old = {0, 0};
   MatrixXd Xsig_aug;
-  MatrixXd Xsig_pred = MatrixXd(3, 11);
+  MatrixXd Xsig_pred = MatrixXd(3,11);
   Eigen::Vector3d position;
   Eigen::Matrix3d covariance;
   position <<   0, 0, 0;
-  covariance << 0.01, 0, 0, 
-                0, 0.01, 0,
-                0, 0, 0.05;
+  covariance << 0.01, 0,    0, 
+                0,    0.01, 0,
+                0,    0,    0.05;
   VectorXd z_pred;
   MatrixXd S;
   Eigen::MatrixXd Zsig = MatrixXd(1,11);
@@ -389,10 +387,10 @@ int main(int argc, char *argv[])                                                
   VectorXd weights;
   int size_z_IMU = 1;
   int size_z_CAM = 3;
-  std::vector<float> CAM_arr_2 = {0, 0, 0,
-                                  0, 0, 0};  
-  
-
+  MatrixXd list_landmark = MatrixXd(3,14);
+  list_landmark << 1,   2,     3,     4,      5,     6,     7,     8,  9,     10,     11,     12,     13,     15,
+                   10, 10, 28.35, 21.83,  18.71, 26.95, 15.97, 17.87, 10,  29.26,  18.41,  23.34,   8.18,   2.27,
+                   0, -10, -0.04,  -2.8, -17.19, -7.44,  7.57, -7.57, 10, -14.52, -25.83, -14.11, -18.63, -16.84;
 
   ros::init(argc, argv, "localization");
   ros::NodeHandle nh;
@@ -419,70 +417,71 @@ while (ros::ok)
   ros::spinOnce();
   while (IMU_arr_old != IMU_arr)                                                                                                          
   {
-    
-    if (CAM_arr != CAM_arr_old)
-      {
-        Landmark landmark1, landmark2;
-        Landmark landmark1 = findCoordinatesByID("landmarks.csv", CAM_arr[0]);
-        Landmark landmark2 = findCoordinatesByID("landmarks.csv", CAM_arr[3]);
-        double x, y, theta, error = triangulate(position, landmark1, landmark2, CAM_arr);
+    sigma_points(position, covariance, &Xsig_aug);
+    Predict(Vel_arr, IMU_arr[0], delta_time, Xsig_aug, &prediction, &pred_cov, &weights, &Xsig_pred);
+    PredictIMU(&z_pred, &Zsig, &S, weights, Xsig_pred);
+    Estimate(IMU_arr[1], size_z_IMU, z_pred, Zsig, S, &position, &covariance, weights, prediction, pred_cov, Xsig_pred);
+    coordinates.data[0] = position[0];
+    coordinates.data[1] = position[1];
+    coordinates.data[2] = position[2]*(180/M_PI);
+    pub.publish(coordinates);
 
-        if (error == 1)
-        {
-          break;
-        }
+    geometry_msgs::TransformStamped transform_stamped;
+    transform_stamped.header.stamp = ros::Time::now();
+    transform_stamped.header.frame_id = "map"; 
+    transform_stamped.child_frame_id = "rover_pose"; 
+    transform_stamped.transform.translation.x = position[0];
+    transform_stamped.transform.translation.y = position[1];
+    tf2::Quaternion quat;
+    quat.setRPY(0, 0, position[2]);  
+    transform_stamped.transform.rotation.x = quat.x();
+    transform_stamped.transform.rotation.y = quat.y();
+    transform_stamped.transform.rotation.z = quat.z();
+    transform_stamped.transform.rotation.w = quat.w();
+    broadcaster.sendTransform(transform_stamped);
 
-        sigma_points(position, covariance, &Xsig_aug);
-        Predict(Vel_arr, IMU_arr[0], delta_time, Xsig_aug, &prediction, &pred_cov, &weights, &Xsig_pred);
-        PredictCAM(&z_pred, &Zsig, &S, weights, Xsig_pred);
-        Estimate(IMU_arr[1], size_z_IMU, z_pred, Zsig, S, &position, &covariance, weights, prediction, pred_cov, Xsig_pred);
-        coordinates.data[0] = position[0];
-        coordinates.data[1] = position[1];
-        coordinates.data[2] = position[2]*(180/M_PI);
-        pub.publish(coordinates);
-
-        geometry_msgs::TransformStamped transform_stamped;
-        transform_stamped.header.stamp = ros::Time::now();
-        transform_stamped.header.frame_id = "map"; 
-        transform_stamped.child_frame_id = "rover_pose"; 
-        transform_stamped.transform.translation.x = position[0];
-        transform_stamped.transform.translation.y = position[1];
-        tf2::Quaternion quat;
-        quat.setRPY(0, 0, position[2]);  
-        transform_stamped.transform.rotation.x = quat.x();
-        transform_stamped.transform.rotation.y = quat.y();
-        transform_stamped.transform.rotation.z = quat.z();
-        transform_stamped.transform.rotation.w = quat.w();
-        broadcaster.sendTransform(transform_stamped); 
-
-        CAM_arr_old = CAM_arr;
-      }
-
-      sigma_points(position, covariance, &Xsig_aug);
-      Predict(Vel_arr, IMU_arr[0], delta_time, Xsig_aug, &prediction, &pred_cov, &weights, &Xsig_pred);
-      PredictIMU(&z_pred, &Zsig, &S, weights, Xsig_pred);
-      Estimate(IMU_arr[1], size_z_IMU, z_pred, Zsig, S, &position, &covariance, weights, prediction, pred_cov, Xsig_pred);
-      coordinates.data[0] = position[0];
-      coordinates.data[1] = position[1];
-      coordinates.data[2] = position[2]*(180/M_PI);
-      pub.publish(coordinates);
-
-      geometry_msgs::TransformStamped transform_stamped;
-      transform_stamped.header.stamp = ros::Time::now();
-      transform_stamped.header.frame_id = "map"; 
-      transform_stamped.child_frame_id = "rover_pose"; 
-      transform_stamped.transform.translation.x = position[0];
-      transform_stamped.transform.translation.y = position[1];
-      tf2::Quaternion quat;
-      quat.setRPY(0, 0, position[2]);  
-      transform_stamped.transform.rotation.x = quat.x();
-      transform_stamped.transform.rotation.y = quat.y();
-      transform_stamped.transform.rotation.z = quat.z();
-      transform_stamped.transform.rotation.w = quat.w();
-      broadcaster.sendTransform(transform_stamped);
-
-      IMU_arr_old = IMU_arr;
+    IMU_arr_old = IMU_arr;
   }
+  
+  while (CAM_arr_old != CAM_arr)
+  {
+    Landmark landmark1, landmark2; 
+    landmark1.id, landmark1.x, landmark1.y= getlandmarkpos(CAM_arr[0], list_landmark);
+    landmark2.id ,landmark2.x, landmark2.y= getlandmarkpos(CAM_arr[3], list_landmark);
+    double x, y, theta, error = triangulate(position, landmark1, landmark2, CAM_arr);
+
+    if (error == 1)
+    {
+      break;
+    }
+
+    sigma_points(position, covariance, &Xsig_aug);
+    Predict(Vel_arr, IMU_arr[0], delta_time, Xsig_aug, &prediction, &pred_cov, &weights, &Xsig_pred);
+    PredictCAM(&z_pred, &Zsig, &S, weights, Xsig_pred);
+    Estimate(IMU_arr[1], size_z_IMU, z_pred, Zsig, S, &position, &covariance, weights, prediction, pred_cov, Xsig_pred);
+    coordinates.data[0] = position[0];
+    coordinates.data[1] = position[1];
+    coordinates.data[2] = position[2]*(180/M_PI);
+    pub.publish(coordinates);
+
+    geometry_msgs::TransformStamped transform_stamped;
+    transform_stamped.header.stamp = ros::Time::now();
+    transform_stamped.header.frame_id = "map"; 
+    transform_stamped.child_frame_id = "rover_pose"; 
+    transform_stamped.transform.translation.x = position[0];
+    transform_stamped.transform.translation.y = position[1];
+    tf2::Quaternion quat;
+    quat.setRPY(0, 0, position[2]);  
+    transform_stamped.transform.rotation.x = quat.x();
+    transform_stamped.transform.rotation.y = quat.y();
+    transform_stamped.transform.rotation.z = quat.z();
+    transform_stamped.transform.rotation.w = quat.w();
+    broadcaster.sendTransform(transform_stamped); 
+
+    CAM_arr_old = CAM_arr;
+    ROS_INFO("why god whyyyy");       
+  }
+
 }
  return 0;
 }
