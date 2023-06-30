@@ -10,6 +10,8 @@
 #include <tf2_ros/transform_broadcaster.h>
 #include <random>
 #include <gazebo_msgs/ModelStates.h>
+#include <fstream>
+#include <sstream>
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
@@ -21,6 +23,7 @@ std::normal_distribution<double> distribution_imu(0, 0.005);
 
 struct Landmark 
   {
+    int id;
     double x;
     double y;
   };
@@ -272,28 +275,27 @@ void Estimate(float IMU_reading, int size_z, VectorXd z_pred, MatrixXd Zsig, Mat
 
 }
 
-double triangulate(Eigen::Vector3d position_prev, Landmark landmark1, Landmark landmark2, std::vector<float> CAM_arr)
+double triangulate(Eigen::Vector3d position_prev, Landmark landmark1, Landmark landmark2, std::vector<float> CAM_array)
 {
-  int error = 0;
-  double adjustedX1 = landmark1.x * cos(position_prev[2]) - landmark1.y * sin(position_prev[2]);
-  double adjustedY1 = landmark1.x * sin(position_prev[2]) + landmark1.y * cos(position_prev[2]);
-  double adjustedX2 = landmark2.x * cos(position_prev[2]) - landmark2.y * sin(position_prev[2]);
-  double adjustedY2 = landmark2.x * sin(position_prev[2]) + landmark2.y * cos(position_prev[2]);
-  double distance1 = sqrt((CAM_arr[1] * CAM_arr[1]) + (CAM_arr[2] * CAM_arr[2]));
-  double distance2 = sqrt((CAM_arr[4] * CAM_arr[4]) + (CAM_arr[5] * CAM_arr[5]));
-  double angle_landmark_1 = atan2(CAM_arr[2] , CAM_arr[1]);
-  double angle_landmark_2 = atan2(CAM_arr[5] , CAM_arr[4]);
+  double error = 0;
+  double epsi = 12 * (M_PI/180);
+  double x1 = CAM_array[1];
+  double x2 = CAM_array[4];
+  double y1 = CAM_array[2];
+  double y2 = CAM_array[5];
+  double theta = atan2(y2 - y1, x2 - x1);
 
-  double A = 2 * (adjustedX2 - adjustedX1);
-  double B = 2 * (adjustedY2 - adjustedY1);
-  double C = (distance1 * distance1) - (distance2 * distance2) - (adjustedX1 * adjustedX1) + (adjustedX2 * adjustedX2) - (adjustedY1 * adjustedY1) + (adjustedY2 * adjustedY2);
+  if (abs(theta - position_prev[2]) >= epsi)
+  {
+    error = 1;
+    return 0, 0, 0, error;
+  }
 
-  double estimatedX = (C * (adjustedY2 - adjustedY1) - B * (adjustedX2 - adjustedX1)) / (A * B - (adjustedY2 - adjustedY1) * A);
-  double estimatedY = (C * (adjustedX2 - adjustedX1) - A * (adjustedY2 - adjustedY1)) / ((adjustedX2 - adjustedX1) * B - A * B);
+  double estimatedX = (landmark2.x - landmark1.x + (y1 * (x1 - x2) - x1 * (y1 - y2)) * (landmark2.y - landmark1.y) / ((y1 - y2) * (landmark2.x - landmark1.x) + (x2 - x1) * (landmark2.y - landmark1.y))) / (y1 - y2);
+  double estimatedY = (landmark2.y - landmark1.y + (x1 * (y1 - y2) - y1 * (x1 - x2)) * (landmark2.x - landmark1.x) / ((x1 - x2) * (landmark2.y - landmark1.y) + (y2 - y1) * (landmark2.x - landmark1.x))) / (x1 - x2);  
 
-  return estimatedX, estimatedY, error;
+  return estimatedX, estimatedY, theta, error;
 }
-
 
 void PredictCAM(VectorXd* z_pred_out, MatrixXd* Zsig_out, MatrixXd* S_out, VectorXd weights, MatrixXd Xsig_prediction)
 {
@@ -337,20 +339,33 @@ void PredictCAM(VectorXd* z_pred_out, MatrixXd* Zsig_out, MatrixXd* S_out, Vecto
   *Zsig_out = Zsig;
 }
 
+Landmark findCoordinatesByID(const std::string& filename, int id) {
+    std::ifstream file(filename);
+    std::string line;
 
-/*
-void GetLandmarkPos_2(int ID_1, int ID_2, std::vector<double>* LM_Pos1, std::vector<double>* LM_Pos2)
-{
-  int no_landmarks = 16;
-  MatrixXd List_LM; 
-  List_LM << 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15,
-            10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10,
-            10,  0, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10;
+    while (std::getline(file, line)) {
+        std::istringstream iss(line);
+        std::string idStr, xStr, yStr;
 
-  *LM_Pos1 = { List_LM(1,ID_1) , List_LM(2,ID_1) };
-  *LM_Pos2 = { List_LM(1,ID_2) , List_LM(2,ID_2) };
+        if (!(std::getline(iss, idStr, ',') &&
+              std::getline(iss, xStr, ',') &&
+              std::getline(iss, yStr, ','))) {
+            // CSV format is incorrect
+            continue;
+        }
+
+        int currentID = std::stoi(idStr);
+        if (currentID == id) {
+            Landmark landmark;
+            landmark.id = currentID;
+            landmark.x = std::stod(xStr);
+            landmark.y = std::stod(yStr);
+            return landmark;
+        }
+    }
+
+    return { -1, 0.0, 0.0 };                                                                                                              // in case id seen by rover is not in the csv file
 }
-*/
 
 int main(int argc, char *argv[])                                                                                                          // initialization of ros node and other variables
 {
@@ -402,13 +417,18 @@ while (ros::ok)
   ros::spinOnce();
   while (IMU_arr_old != IMU_arr)                                                                                                          
   {
-    /*
+    
     if (CAM_arr != CAM_arr_old)
       {
-        CAM_arr_2 = CAM_arr;
-        //GetLandmarkPos_2(CAM_arr_2[0], CAM_arr_2[3], &LM_Pos_old_1, &LM_Pos_old_2);
-        while(CAM_arr_2 == CAM_arr);
-        //GetLandmarkPos_2(CAM_arr[0], CAM_arr[3], &LM_Pos1, &LM_Pos2);
+        Landmark landmark1, landmark2;
+        Landmark landmark1 = findCoordinatesByID("landmarks.csv", CAM_arr[0]);
+        Landmark landmark2 = findCoordinatesByID("landmarks.csv", CAM_arr[3]);
+        double x, y, theta, error = triangulate(position, landmark1, landmark2, CAM_arr);
+
+        if (error == 1)
+        {
+          break;
+        }
 
         sigma_points(position, covariance, &Xsig_aug);
         Predict(Vel_arr, IMU_arr[0], delta_time, Xsig_aug, &prediction, &pred_cov, &weights, &Xsig_pred);
@@ -435,7 +455,7 @@ while (ros::ok)
 
         CAM_arr_old = CAM_arr;
       }
-*/
+
       sigma_points(position, covariance, &Xsig_aug);
       Predict(Vel_arr, IMU_arr[0], delta_time, Xsig_aug, &prediction, &pred_cov, &weights, &Xsig_pred);
       PredictIMU(&z_pred, &Zsig, &S, weights, Xsig_pred);
