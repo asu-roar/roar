@@ -1,5 +1,6 @@
 <launch>
-
+     
+    <param name="landmarks" type="string" value="$(find localization)/landmark_position/landmarks.csv"/>
     <node pkg="localization" type="localization" name="localization" output="screen"/>
 
 </launch>

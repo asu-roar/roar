@@ -369,6 +369,8 @@ Landmark findCoordinatesByID(const std::string& filename, int id) {
 
 int main(int argc, char *argv[])                                                                                                          // initialization of ros node and other variables
 {
+  std::string filename;
+  ros::param::param<std::string>("landmarks", filename, "landmarks.csv");
   std::vector<float> IMU_arr_old = {0.0,0.0001};
   std::vector<float> CAM_arr_old;
   MatrixXd Xsig_aug;
