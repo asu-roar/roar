@@ -12,10 +12,16 @@
     "manual_modules":
     [
         {
-            "name": "*Insert manual module name*",
-            "pkg": "supervisor",
-            "launch_file": "manual_test.launch",
+            "name": "teleoperation",
+            "pkg": "teleoperation",
+            "launch_file": "teleop.launch",
             "heartbeats_topic": null
-        }  
+        },
+        {
+            "name": "roscan",
+            "pkg": "roscan",
+            "launch_file": "roscan.launch",
+            "heartbeats_topic": null
+        }
     ]
 }
