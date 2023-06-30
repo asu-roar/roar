@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(ros_can)
+project(roscan)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
@@ -20,7 +20,8 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-# catkin_install_python(PROGRAMS
-#   src/script.py
-#   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
+catkin_install_python(PROGRAMS
+  src/roscan_converter.py
+  src/cansend.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)

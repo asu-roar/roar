@@ -1,0 +1,9 @@
+<launch>
+
+  <node name="roscan_node" pkg="roscan" type="roscan_converter.py" respawn="false" output="screen" />
+
+  <node pkg="socketcan_bridge" type="socketcan_bridge_node" name="socketcan_bridge_node" output="screen" >
+    <param name="can_device" value="vcan0" />
+  </node>
+
+</launch>
