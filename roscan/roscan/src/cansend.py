@@ -28,19 +28,7 @@ class Handler:
 
 
 if __name__ == '__main__':
-    # Run the handler by calling an object/instance
-    Handler()
-
-"""
-rosrun socketcan_bridge socketcan_bridge_node _can_device:=vcan0
-
-Receiving:
-How will Haidy send me the 6 setpoints packed in the Float32MultiArray?
-How will Yousef Nada send me the IMU readings packed in the CAN frame?
-How will Yousef Nada send me the 6 encoders readings packed in the CAN frame?
-
-Sending:
-How does Yousef Nada want the 6 setpoints packed in the frame data?
-How does Omar want the 6 encoder readings packed in the Float32MultiArray?
-How does Omar want the IMU readings packed in the sensor_msgs/Imu message?
-"""
+    try:
+        Handler()
+    except rospy.ROSInterruptException:
+        pass
