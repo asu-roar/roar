@@ -9,7 +9,7 @@ from geometry_msgs.msg import PoseStamped,PoseWithCovarianceStamped, Pose, Point
 from gazebo_msgs.msg import ModelStates
 
 class AStarPlanner:
-    def __init__(self,resolution=0.01, width=500, height=500):
+    def __init__(self,resolution=0.02, width=500, height=500):
         self.grid_resolution = resolution 
         self.grid_width = width
         self.grid_height = height

@@ -11,14 +11,14 @@ from geometry_msgs.msg import Pose, Point, Quaternion, Vector3
 from std_msgs.msg import  ColorRGBA
 
 class OccupancyGridMap:
-    def __init__(self,resolution=0.01, width=500, height=500):
+    def __init__(self,resolution=0.02, width=500, height=500):
         # Map Parameters
         self.grid_width = width
         self.grid_height = height
         self.grid_resolution = resolution
         self.origin_x = int(width//2)
         self.origin_y = int(height//2)
-        self.grid_map = np.zeros((width, height), dtype=np.int)
+        self.grid_map = np.zeros((width, height), dtype=np.int64)
 
         self.occupancy_threshold = 0.1  # minimum occupancy probability required for a grid cell to be considered as an obstacle
                                         # the lower value, the higher the sensitivity
@@ -34,8 +34,8 @@ class OccupancyGridMap:
         # calculate the coordinates of each point with its corresponding cell index in the occupancy grid = 2.6
         # np.floor to round down the float = 2.
         # astype to force int32 data type =2
-        x = np.floor(((point_cloud[:, 0] - 0) / self.grid_resolution) + self.origin_x).astype(np.int)
-        y = np.floor(((point_cloud[:, 2] - 0) / self.grid_resolution) + self.origin_y).astype(np.int)
+        x = np.floor(((point_cloud[:, 0] - 0) / self.grid_resolution) + self.origin_x).astype(np.int64)
+        y = np.floor(((point_cloud[:, 2] - 0) / self.grid_resolution) + self.origin_y).astype(np.int64)
 
         #filteration based on occupancy grid's boundaries 
         valid_indices = np.in1d(x, np.arange(self.grid_width)) & np.in1d(y, np.arange(self.grid_height))
