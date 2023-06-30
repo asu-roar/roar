@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import rospy
+import subprocess
 from std_msgs.msg import Int8MultiArray
 from sensor_msgs.msg import Imu
 from can_msgs.msg import Frame
@@ -33,6 +34,7 @@ class Handler:
                          self.can_callback)
 
     def init_can(self) -> None:
+        self.launch_shell_script()
         self.rec_frame: Frame = None
         self.can_frame = Frame()
         self.can_frame.header.frame_id = "setpoint_speeds"
@@ -42,6 +44,11 @@ class Handler:
         self.can_frame.is_extended: bool = False
         self.can_frame.is_error: bool = False
         self.encoders_map: int = -16
+
+    def launch_shell_script(self) -> None:
+        shellscript = subprocess.Popen(
+            ["/home/belal/roar_ws/src/roscan/roscan/config/vcan0.sh"])
+        shellscript.wait()
 
     # This will be called periodically to check for received CAN frames
     def loop(self) -> None:
@@ -101,16 +108,3 @@ if __name__ == '__main__':
         Handler()
     except rospy.ROSInterruptException:
         pass
-
-
-# rosrun socketcan_bridge socketcan_bridge_node _can_device:=can0
-
-# Receiving:
-# How will Haidy send me the 6 setpoints packed in the Float32MultiArray?
-# How will Yousef Nada send me the IMU readings packed in the CAN frame?
-# How will Yousef Nada send me the 6 encoders readings packed in the CAN frame?
-
-# Sending:
-# How does Yousef Nada want the 6 setpoints packed in the frame data?
-# How does Omar want the 6 encoder readings packed in the Float32MultiArray?
-# How does Omar want the IMU readings packed in the sensor_msgs/Imu message?
