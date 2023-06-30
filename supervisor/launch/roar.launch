@@ -1,0 +1,3 @@
+<launch>
+    <node pkg="supervisor" type="roar_supervisor.py" name="roar_supervisor" output="screen"/>
+</launch>
