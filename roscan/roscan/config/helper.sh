@@ -1,2 +1,2 @@
 #!/bin/bash
-echo "A fizzx a"
+echo "nvidia"

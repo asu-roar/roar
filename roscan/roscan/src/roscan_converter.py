@@ -47,7 +47,7 @@ class Handler:
 
     def launch_shell_script(self) -> None:
         shellscript = subprocess.Popen(
-            ["/home/belal/roar_ws/src/roscan/roscan/config/vcan0.sh"])
+            ["/home/nvidia/roar_ws/src/roscan/roscan/config/can0.sh"])
         shellscript.wait()
 
     # This will be called periodically to check for received CAN frames

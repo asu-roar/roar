@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export SUDO_ASKPASS=/home/belal/roar_ws/src/roscan/roscan/config/helper.sh
+export SUDO_ASKPASS=/home/nvidia/roar_ws/src/roscan/roscan/config/helper.sh
 
 # Open folder in terminal and run using ./vcan.sh
 
