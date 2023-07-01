@@ -20,9 +20,11 @@ class Handler:
         # Publishers
         self.pub = rospy.Publisher("/landmarks", LandmarkArray, queue_size=10)
         # Subscribe
-        rospy.Subscriber("/rear_cam/ar_detection",
+        rospy.Subscriber("/roar/camera/ar_detection",
                          AlvarMarkers, self.artag_callback)
-        rospy.Subscriber("/front_cam/ar_detection",
+        rospy.Subscriber("/roar/right_camera/ar_detection",
+                         AlvarMarkers, self.artag_callback)
+        rospy.Subscriber("/roar/left_camera/ar_detection",
                          AlvarMarkers, self.artag_callback)
         # Initialize variables
         self.alvar_markers: List[AlvarMarkers] = []
@@ -46,7 +48,7 @@ class Handler:
         self.front_cam_translation = (front_cam_x, front_cam_y, front_cam_z)
         self.front_cam_rotation = (front_cam_qx, front_cam_qy,
                                    front_cam_qz, front_cam_qw)
-        # This following block should be removed after rover_frame is published to tf
+        # This following block should be removed after base_link is published to tf
         temp_roar_x, temp_roar_y, temp_roar_z = 0, 0, 0
         temp_roar_qx, temp_roar_qy, temp_roar_qz, temp_roar_qw = 0, 0, 0, 1
         self.temp_roar_translation = (temp_roar_x, temp_roar_y, temp_roar_z)
@@ -59,31 +61,31 @@ class Handler:
             self.rear_cam_rotation,
             self.time,
             "rear_cam_frame",
-            "rover_frame")
+            "base_link")
         self.tf_br.sendTransform(
             self.front_cam_translation,
             self.front_cam_rotation,
             self.time,
             "front_cam_frame",
-            "rover_frame")
-        # This following block should be removed after rover_frame is published to tf
+            "base_link")
+        # This following block should be removed after base_link is published to tf
         self.tf_br.sendTransform(
             self.temp_roar_translation,
             self.temp_roar_rotation,
             self.time,
-            "rover_frame",
+            "base_link",
             "map")
 
     def loop(self) -> None:
         while not rospy.is_shutdown():
             self.time = rospy.Time.now()
-            self.pub_tf()
+            # self.pub_tf()
             landmarks = LandmarkArray()
             id_list: List[int] = []
             cont: bool = False
             for markers_group in self.alvar_markers:
                 self.time = markers_group.header.stamp
-                self.pub_tf()
+                # self.pub_tf()
                 for marker in markers_group.markers:
                     for id in id_list:
                         if marker.id == id:
@@ -111,12 +113,12 @@ class Handler:
                     landmark.pose.pose.orientation.y = quat[1]
                     landmark.pose.pose.orientation.z = quat[2]
                     landmark.pose.pose.orientation.w = quat[3]
-                    # Transform landmarks from cam_frame to rover_frame
+                    # Transform landmarks from cam_frame to base_link
                     self.tf_listener.waitForTransform(
-                        "rover_frame", marker.header.frame_id, self.time, rospy.Duration(2.0))
+                        "base_link", marker.header.frame_id, self.time, rospy.Duration(2.0))
                     try:
                         landmark.pose = self.tf_listener.transformPose(
-                            "rover_frame", landmark.pose)
+                            "base_link", landmark.pose)
                         landmark.header.frame_id = landmark.pose.header.frame_id
                     except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
                         rospy.logwarn("Failed to transform pose!")
@@ -124,7 +126,7 @@ class Handler:
                         continue
                     landmarks.landmarks.append(landmark)
                     # markers_group.markers.remove(marker)
-            landmarks.header.frame_id = "rover_frame"
+            landmarks.header.frame_id = "base_link"
             landmarks.header.stamp = self.time
             self.pub.publish(landmarks)
             self.alvar_markers: List[AlvarMarkers] = []

@@ -37,10 +37,10 @@ class Handler:
             for landmark in self.landmarks.landmarks:
                 poses.poses.append(landmark.pose.pose)
             poses.header.stamp = rospy.Time.now()
-            poses.header.frame_id = "rover_frame"
+            poses.header.frame_id = "base_link"
             self.rviz_pub.publish(poses)
-            self.rviz_rear_cam_pub.publish(self.rear_camera_marker)
-            self.rviz_front_cam_pub.publish(self.front_camera_marker)
+            # self.rviz_rear_cam_pub.publish(self.rear_camera_marker)
+            # self.rviz_front_cam_pub.publish(self.front_camera_marker)
             self.rate.sleep()
 
     def visualize_camera(self) -> None:
