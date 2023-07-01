@@ -12,12 +12,6 @@
     "manual_modules":
     [
         {
-            "name": "teleoperation",
-            "pkg": "teleoperation",
-            "launch_file": "teleop.launch",
-            "heartbeats_topic": null
-        },
-        {
             "name": "roscan",
             "pkg": "roscan",
             "launch_file": "roscan.launch",
