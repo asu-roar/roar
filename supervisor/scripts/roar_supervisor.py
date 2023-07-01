@@ -26,7 +26,7 @@ class NodeHandler():
      
     def init_roar(self) -> None:
         # Configuration variables
-        self.json_path: str = "/home/belal/roar_ws/src/supervisor/config/modules.json"
+        self.json_path: str = "/home/nvidia/roar_ws/src/supervisor/config/modules.json"
         self.manual_key: str = "manual_modules"
         self.autonomous_key: str = "autonomous_modules"
         # Initialize the module handler
