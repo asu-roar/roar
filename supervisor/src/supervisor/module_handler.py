@@ -231,7 +231,7 @@ class ModuleHandler:
                 rospy.logwarn(
                     "Found {} module OFFLINE when montoring, launching the module again!".format(
                     module_status.name))
-                self.__launch_module(module_status.name)
+                self.__launch_module(module)
                 rospy.loginfo(
                     "{} module was launched again!".format(module_status.name))
             elif module_status.status == module_status.UNRESPONSIVE:
