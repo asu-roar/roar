@@ -32,6 +32,12 @@ if __name__ == "__main__":
                             "bogie_rhs",
                             "base_link")
             
+            rotation_quat_lcl = quaternion_from_euler(3.14159 ,4.71239, 0.0)                   #(roll, pitch, yaw)
+            tf.sendTransform((0.9, 0, 0.55),
+                            rotation_quat_lcl,
+                            rospy.Time.now(),
+                            "left_camera_link",
+                            "base_link")
         except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
             rospy.logwarn('Error occurred while broadcasting tf transformation.')
         

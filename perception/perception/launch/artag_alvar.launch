@@ -1,17 +1,47 @@
 <launch>
+
   <!-- args -->
-  <arg name="marker_size" default="16.0" />
-  <arg name="max_new_marker_error" default="0.1" />
-  <arg name="max_track_error" default="0.1" />
+  <arg name="camera" default="camera" />
+  <arg name="right_camera" default="right_camera" />
+  <arg name="left_camera" default="left_camera" />
+
+  <!-- Detection args -->
+  <arg name="marker_size" default="13.0" />
+  <arg name="max_new_marker_error" default="0.05" />
+  <arg name="max_track_error" default="0.05" />
   
   <!-- ar_track_alvar nodes -->
-  <node name="ar_track_node" pkg="ar_track_alvar" type="individualMarkersNoKinect" respawn="false" output="screen" >
+  <node name="$(arg camera)_ar_track_node" pkg="ar_track_alvar" type="individualMarkersNoKinect" respawn="false" output="screen" >
     <param name="marker_size" type="double" value="$(arg marker_size)" />
     <param name="max_new_marker_error" type="double" value="$(arg max_new_marker_error)" />
     <param name="max_track_error" type="double" value="$(arg max_track_error)" />
-    <param name="output_frame" type="string" value="rear_cam_frame" />
-
-    <remap from="camera_image" to="rear_cam/image_raw" />
-	<remap from="camera_info" to="rear_cam/camera_info" />
+    <param name="output_frame" type="string" value="$(arg camera)_link" />
+    <remap from="camera_image" to="/roar/$(arg camera)/rgb/image_raw" />
+	  <remap from="camera_info" to="/roar/$(arg camera)/rgb/camera_info" />
+    <remap from="ar_pose_marker" to="/roar/$(arg camera)/ar_detection" />
+    <remap from="visualization_marker" to="/roar/$(arg camera)/detection_marker" />
   </node>
+
+  <node name="$(arg right_camera)_ar_track_node" pkg="ar_track_alvar" type="individualMarkersNoKinect" respawn="false" output="screen" >
+    <param name="marker_size" type="double" value="$(arg marker_size)" />
+    <param name="max_new_marker_error" type="double" value="$(arg max_new_marker_error)" />
+    <param name="max_track_error" type="double" value="$(arg max_track_error)" />
+    <param name="output_frame" type="string" value="$(arg right_camera)_link" />
+    <remap from="camera_image" to="/roar/$(arg right_camera)/image_raw" />
+	  <remap from="camera_info" to="/roar/$(arg right_camera)/camera_info" />
+    <remap from="ar_pose_marker" to="/roar/$(arg right_camera)/ar_detection" />
+    <remap from="visualization_marker" to="/roar/$(arg right_camera)/detection_marker" />
+  </node>
+
+  <node name="$(arg left_camera)_ar_track_node" pkg="ar_track_alvar" type="individualMarkersNoKinect" respawn="false" output="screen" >
+    <param name="marker_size" type="double" value="$(arg marker_size)" />
+    <param name="max_new_marker_error" type="double" value="$(arg max_new_marker_error)" />
+    <param name="max_track_error" type="double" value="$(arg max_track_error)" />
+    <param name="output_frame" type="string" value="$(arg left_camera)_link" />
+    <remap from="camera_image" to="/roar/$(arg left_camera)/image_raw" />
+	  <remap from="camera_info" to="/roar/$(arg left_camera)/camera_info" />
+    <remap from="ar_pose_marker" to="/roar/$(arg left_camera)/ar_detection" />
+    <remap from="visualization_marker" to="/roar/$(arg left_camera)/detection_marker" />
+  </node>
+
 </launch>

@@ -1,0 +1,13 @@
+<launch>
+
+  <!-- ALL PERCEPTION -->
+  <include file="$(find perception)/launch/perception.launch" />
+  
+  <!-- VISUALIZATION NODE -->
+  <node name="perception_visualizer_node" pkg="perception" type="perception_visualizer.py" respawn="false" output="screen" />
+  
+  <!-- RVIZ -->
+  <arg name="rviz_config" default="$(find perception)/config/perception.rviz" />
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rviz_config)" />
+  
+</launch>
