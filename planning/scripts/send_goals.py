@@ -2,20 +2,20 @@
 import rospy
 import numpy as np
 from gazebo_msgs.msg import ModelStates
+from std_msgs.msg import Float32MultiArray
 from geometry_msgs.msg import PoseStamped, Quaternion
 import time
 class GoalPublisher:
     def __init__(self):
-        self.goals = [(5.0, 0.0, 0),
-                      (10.0 ,0.0, 0),
+        self.goals = [(5.0, -5.0, 0),
                       ]    
         self.goal_pub = rospy.Publisher('/goal', PoseStamped, queue_size=10)
-        self.start_sub = rospy.Subscriber('/gazebo/model_states', ModelStates, self.pose_callback)
+        self.start_sub = rospy.Subscriber('/rover_pose', PoseStamped, self.pose_callback)
         self.current_pose = None
         self.first_time = True
         
-    def pose_callback(self, msg:ModelStates):
-        self.current_pose = msg.pose[15]
+    def pose_callback(self, msg:PoseStamped):
+        self.current_pose = msg.pose
 
     def is_goal_reached(self):
         if self.current_pose is not None:

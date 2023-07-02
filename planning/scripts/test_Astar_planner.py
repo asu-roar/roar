@@ -7,7 +7,7 @@ import time
 from nav_msgs.msg import OccupancyGrid, Path
 from geometry_msgs.msg import PoseStamped, Pose, Point, Quaternion
 from gazebo_msgs.msg import ModelStates
-
+from std_msgs.msg import Float32MultiArray
 def measure_execution_time(func):
     def wrapper(*args, **kwargs):
         start = time.time()
@@ -35,21 +35,17 @@ class AStarPlanner:
         self.grid_map = np.zeros((self.grid_width, self.grid_height), dtype=np.int8)
 
         self.grid_sub = rospy.Subscriber('/occupancy_grid', OccupancyGrid, self.grid_callback)
-        self.start_sub = rospy.Subscriber('/gazebo/model_states', ModelStates, self.odom_callback)
+        self.start_sub = rospy.Subscriber('/rover_pose',PoseStamped , self.odom_callback)
         self.goal_sub = rospy.Subscriber('/goal', PoseStamped, self.goal_callback)
 
         self.path_pub = rospy.Publisher('/path', Path, queue_size=10)
 #-------------------------------------------------callbacks-------------------------------------------------------
-    def odom_callback(self, odom:ModelStates) -> Pose:
-        self.start = odom.pose[15]  
+    def odom_callback(self, odom:PoseStamped) -> Pose:
+        self.start = odom.pose 
         if self.goal is not None and self.grid_ready:
             self.plan_path()   
  
     def goal_callback(self, goal:PoseStamped):
-        # if self.start is None:
-        #     self.start = goal.pose
-        # else:
-        #     self.goal = goal.pose
         if self.start is not None:
             self.goal = goal.pose
         rospy.loginfo("New goal is set: {}".format(goal.pose))
