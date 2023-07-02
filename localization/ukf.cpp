@@ -10,6 +10,8 @@
 #include <tf2_ros/transform_broadcaster.h>
 #include <random>
 #include <gazebo_msgs/ModelStates.h>
+#include <roar_msgs/LandmarkArray.h>
+#include <geometry_msgs/PoseStamped.h>
 
 
 using Eigen::MatrixXd;
@@ -80,9 +82,20 @@ void IMU_Callback(const gazebo_msgs::ModelStates::ConstPtr& msg)                
 
 
 
-void CAM_Callback(const std_msgs::Float32MultiArray::ConstPtr& msg)                                                          // callback of landmarks captured by camera
+void CAM_Callback(const roar_msgs::LandmarkArray::ConstPtr& msg)                                                          // callback of landmarks captured by camera
 {
-  CAM_arr = msg->data;
+  std::vector<roar_msgs::Landmark> landmarks = msg->landmarks;
+  while (landmarks.size() > 3)
+  {
+    int i = 0;
+    for (const auto& landmark : landmarks)
+      {
+          CAM_arr[i] = landmark.id;
+          CAM_arr[i+1] = landmark.pose.pose.position.x;
+          CAM_arr[i+2] = landmark.pose.pose.position.y;
+          i = i + 3;
+      }
+  }
 }
 
 
@@ -220,7 +233,7 @@ void PredictIMU(VectorXd* z_pred_out, MatrixXd* Zsig_out, MatrixXd* S_out, Vecto
 }
 
 
-void Estimate(float IMU_reading, int size_z, VectorXd z_pred, MatrixXd Zsig, MatrixXd S, Eigen::Vector3d* position, Eigen::Matrix3d* covariance, VectorXd weights, MatrixXd position_pred, MatrixXd covariance_pred, MatrixXd Xsig_prediction)                                                                                                              // estimation function (where we update prediction readings using IMU)
+void Estimate(float IMU_reading, int size_z, VectorXd z_pred, MatrixXd Zsig, MatrixXd S, Eigen::Vector3d* position, Eigen::Matrix3d* covariance, VectorXd weights, MatrixXd position_pred, MatrixXd covariance_pred, MatrixXd Xsig_prediction, VectorXd Z_cam)                                                                                                              // estimation function (where we update prediction readings using IMU)
 {
   int size = 3;
   int size_aug = 5;
@@ -253,9 +266,19 @@ void Estimate(float IMU_reading, int size_z, VectorXd z_pred, MatrixXd Zsig, Mat
   K = Tc * S.inverse();
   std::cout << "kalman gain is" << std::endl;
   std::cout << K << std::endl;
-  MatrixXd IMU_vec = MatrixXd(1,1);
-  IMU_vec(0,0) = IMU_reading;
-  VectorXd z_diff = IMU_vec - z_pred;
+  VectorXd Z_vec;
+
+  if (size_z == 1)
+  {
+    Z_vec[0] = IMU_reading;
+  }
+
+  if (size_z == 3)
+  {
+    Z_vec = Z_cam;
+  }
+
+  VectorXd z_diff = Z_vec - z_pred;
   if (size_z == 1)
   {
     while (z_diff(0)> M_PI) z_diff(0)-=2.*M_PI;
@@ -292,7 +315,6 @@ double getlandmarkpos(int searchID, MatrixXd list_landmark)
   {
     x = list_landmark(1, columnIndex);
     y = list_landmark(2, columnIndex);
-    std::cout << "Coordinates for ID " << searchID << ": (" << x << ", " << y << ")\n";
   }
 
   else
@@ -357,9 +379,9 @@ void PredictCAM(VectorXd* z_pred_out, MatrixXd* Zsig_out, MatrixXd* S_out, Vecto
   }
 
   MatrixXd R = MatrixXd(size_z,size_z);
-  R <<      0.0000000001, 0,            0,
-            0,            0.0000000001, 0,
-            0,            0,            0.0000000001;
+  R <<      0.0000000000001, 0,               0,
+            0,               0.0000000000001, 0,
+            0,               0,               0.0000000000001;
   S = S + R;
 
   *z_pred_out = z_pred;
@@ -380,6 +402,7 @@ int main(int argc, char *argv[])                                                
                 0,    0.01, 0,
                 0,    0,    0.05;
   VectorXd z_pred;
+  VectorXd dummy_z;
   MatrixXd S;
   Eigen::MatrixXd Zsig = MatrixXd(1,11);
   MatrixXd prediction;
@@ -394,7 +417,8 @@ int main(int argc, char *argv[])                                                
 
   ros::init(argc, argv, "localization");
   ros::NodeHandle nh;
-  ros::Publisher pub = nh.advertise<std_msgs/*geometry_msgs*/::Float32MultiArray/*PoseStamped*/>("coordinates", 10);
+  ros::Publisher pub = nh.advertise<geometry_msgs::PoseStamped>("rover_pose", 10);
+  ros::Publisher pubb = nh.advertise<std_msgs::Float32MultiArray>("coordinates", 10);
 
   ros::Subscriber sub1 = nh.subscribe("/roar/wheel_lhs_front_velocity_controller/command", 10, Vel_Callback);
   ros::Subscriber sub4 = nh.subscribe("/roar/wheel_lhs_mid_velocity_controller/command", 10, Vel_Callback2);
@@ -404,9 +428,8 @@ int main(int argc, char *argv[])                                                
   ros::Subscriber sub8 = nh.subscribe("/roar/wheel_rhs_rear_velocity_controller/command", 10, Vel_Callback6);
 
   ros::Subscriber sub2 = nh.subscribe("/gazebo/model_states", 10, IMU_Callback);
-  ros::Subscriber sub3 = nh.subscribe("CAM", 10, CAM_Callback);
+  ros::Subscriber sub3 = nh.subscribe("landmarks", 10, CAM_Callback);
   std_msgs::Float32MultiArray coordinates;
-  tf2_ros::TransformBroadcaster broadcaster;
   coordinates.data = {0.0, 0.0, 0.0};
   ros::Rate rate(100);
   ROS_INFO("Node initialized succesfully");         
@@ -420,45 +443,45 @@ while (ros::ok)
     sigma_points(position, covariance, &Xsig_aug);
     Predict(Vel_arr, IMU_arr[0], delta_time, Xsig_aug, &prediction, &pred_cov, &weights, &Xsig_pred);
     PredictIMU(&z_pred, &Zsig, &S, weights, Xsig_pred);
-    Estimate(IMU_arr[1], size_z_IMU, z_pred, Zsig, S, &position, &covariance, weights, prediction, pred_cov, Xsig_pred);
+    Estimate(IMU_arr[1], size_z_IMU, z_pred, Zsig, S, &position, &covariance, weights, prediction, pred_cov, Xsig_pred, dummy_z);
     coordinates.data[0] = position[0];
     coordinates.data[1] = position[1];
     coordinates.data[2] = position[2]*(180/M_PI);
-    pub.publish(coordinates);
+    pubb.publish(coordinates);
 
-    geometry_msgs::TransformStamped transform_stamped;
-    transform_stamped.header.stamp = ros::Time::now();
-    transform_stamped.header.frame_id = "map"; 
-    transform_stamped.child_frame_id = "rover_pose"; 
-    transform_stamped.transform.translation.x = position[0];
-    transform_stamped.transform.translation.y = position[1];
+    geometry_msgs::PoseStamped pose_msg;
+    pose_msg.header.stamp = ros::Time::now();
+    pose_msg.header.frame_id = "base_link";
+    pose_msg.pose.position.x = position[0];
+    pose_msg.pose.position.y = position[1];
     tf2::Quaternion quat;
     quat.setRPY(0, 0, position[2]);  
-    transform_stamped.transform.rotation.x = quat.x();
-    transform_stamped.transform.rotation.y = quat.y();
-    transform_stamped.transform.rotation.z = quat.z();
-    transform_stamped.transform.rotation.w = quat.w();
-    broadcaster.sendTransform(transform_stamped);
+    pose_msg.pose.orientation.x = quat.x();
+    pose_msg.pose.orientation.y = quat.y();
+    pose_msg.pose.orientation.z = quat.z();
+    pose_msg.pose.orientation.w = quat.w();
+    pub.publish(pose_msg);
 
     IMU_arr_old = IMU_arr;
   }
-  
+/* 
   while (CAM_arr_old != CAM_arr)
   {
     Landmark landmark1, landmark2; 
     landmark1.id, landmark1.x, landmark1.y= getlandmarkpos(CAM_arr[0], list_landmark);
     landmark2.id ,landmark2.x, landmark2.y= getlandmarkpos(CAM_arr[3], list_landmark);
-    double x, y, theta, error = triangulate(position, landmark1, landmark2, CAM_arr);
+    double cam_x, cam_y, cam_theta, error = triangulate(position, landmark1, landmark2, CAM_arr);
 
     if (error == 1)
     {
       break;
     }
-
+    VectorXd Z_cam;
+    Z_cam << cam_x, cam_y, cam_theta;
     sigma_points(position, covariance, &Xsig_aug);
     Predict(Vel_arr, IMU_arr[0], delta_time, Xsig_aug, &prediction, &pred_cov, &weights, &Xsig_pred);
     PredictCAM(&z_pred, &Zsig, &S, weights, Xsig_pred);
-    Estimate(IMU_arr[1], size_z_IMU, z_pred, Zsig, S, &position, &covariance, weights, prediction, pred_cov, Xsig_pred);
+    Estimate(IMU_arr[1], size_z_IMU, z_pred, Zsig, S, &position, &covariance, weights, prediction, pred_cov, Xsig_pred, Z_cam);
     coordinates.data[0] = position[0];
     coordinates.data[1] = position[1];
     coordinates.data[2] = position[2]*(180/M_PI);
@@ -479,9 +502,8 @@ while (ros::ok)
     broadcaster.sendTransform(transform_stamped); 
 
     CAM_arr_old = CAM_arr;
-    ROS_INFO("why god whyyyy");       
   }
-
+*/
 }
  return 0;
 }
