@@ -645,7 +645,7 @@
         </image>
         <clip>
           <near>0.03</near>
-          <far>4</far>
+          <far>7</far>
         </clip>
       </camera>     
       <plugin name="kinect" filename="libgazebo_ros_openni_kinect.so">
