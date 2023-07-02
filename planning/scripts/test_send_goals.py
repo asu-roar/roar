@@ -21,7 +21,7 @@ if __name__ == "__main__":
     rospy.init_node('test_send_goals') 
     rate = rospy.Rate(1)
     gp = Goal()
-    goal = (3.0,3.0)
+    goal = (3.0,1.0)
     gp.publish_goal(goal)
     rospy.spin()
 
