@@ -4,7 +4,6 @@
 #include <eigen3/Eigen/Dense>
 #include <eigen3/Eigen/Cholesky>
 #include <cmath>
-#include <chrono>
 #include <numeric>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2_ros/transform_broadcaster.h>
@@ -16,7 +15,6 @@
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
-using namespace std::chrono;
 std::random_device rd;
 std::mt19937 gen(rd());
 std::normal_distribution<double> distribution_vel(0, 0.05);
@@ -266,15 +264,16 @@ void Estimate(float IMU_reading, int size_z, VectorXd z_pred, MatrixXd Zsig, Mat
   K = Tc * S.inverse();
   std::cout << "kalman gain is" << std::endl;
   std::cout << K << std::endl;
-  VectorXd Z_vec;
+  MatrixXd Z_vec = MatrixXd(1,1);
 
   if (size_z == 1)
   {
-    Z_vec[0] = IMU_reading;
+    Z_vec(0,0) = IMU_reading;
   }
 
   if (size_z == 3)
   {
+    MatrixXd Z_vec = MatrixXd(3,3);
     Z_vec = Z_cam;
   }
 
@@ -294,7 +293,6 @@ void Estimate(float IMU_reading, int size_z, VectorXd z_pred, MatrixXd Zsig, Mat
     *position = position_pred.col(0) + K * z_diff;
     *covariance = covariance_pred.topLeftCorner(3,3) - K*S*K.transpose();
   }
-
 }
 
 double getlandmarkpos(int searchID, MatrixXd list_landmark)
@@ -402,7 +400,8 @@ int main(int argc, char *argv[])                                                
                 0,    0.01, 0,
                 0,    0,    0.05;
   VectorXd z_pred;
-  VectorXd dummy_z;
+  Eigen::Vector3d dummy_z;
+  dummy_z << 0, 0, 0;
   MatrixXd S;
   Eigen::MatrixXd Zsig = MatrixXd(1,11);
   MatrixXd prediction;
@@ -426,7 +425,6 @@ int main(int argc, char *argv[])                                                
   ros::Subscriber sub6 = nh.subscribe("roar/wheel_rhs_front_velocity_controller/command", 10, Vel_Callback4);
   ros::Subscriber sub7 = nh.subscribe("/roar/wheel_rhs_mid_velocity_controller/command", 10, Vel_Callback5);
   ros::Subscriber sub8 = nh.subscribe("/roar/wheel_rhs_rear_velocity_controller/command", 10, Vel_Callback6);
-
   ros::Subscriber sub2 = nh.subscribe("/gazebo/model_states", 10, IMU_Callback);
   ros::Subscriber sub3 = nh.subscribe("landmarks", 10, CAM_Callback);
   std_msgs::Float32MultiArray coordinates;
