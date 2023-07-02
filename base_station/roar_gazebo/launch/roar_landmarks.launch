@@ -1,5 +1,6 @@
 <launch>
 
+  <!-- Load gazebo ROS core and landmarks -->
   <include file="$(find roar_gazebo)/launch/roar_gazebo.launch"
     pass_all_args="true">
     <arg name="world_name" value="$(find roar_gazebo)/worlds/rover_map.world" />
@@ -7,8 +8,17 @@
     <arg name="y" value="7.617856" />
     <arg name="z" value="1.5" />
   </include>
-  <node name="controller_node" pkg="navigation" type="controller_global.py" output="screen"/>
+
   <!-- Load tf tree -->
   <node name="tf_broadcaster" pkg="roar_gazebo" type="tf_broadcaster.py"/>
+
+  <!-- Load perception launch file -->
+  <include file="$(find perception)/launch/perception_simulator.launch"/>
+
+  <!-- Load control node -->
+  <node name="controller_node" pkg="navigation" type="controller_global.py" output="screen"/>
+  
+  <!-- Load localization node -->
+  <node name="localization" pkg="localization" type="localization"/>
 
 </launch>
