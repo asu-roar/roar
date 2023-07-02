@@ -9,9 +9,19 @@ from nav_msgs.msg import OccupancyGrid
 from visualization_msgs.msg import Marker
 from geometry_msgs.msg import Pose, Point, Quaternion, Vector3
 from std_msgs.msg import  ColorRGBA
+import time 
+def measure_execution_time(func):
+    def wrapper(*args, **kwargs):
+        start = time.time()
+        result = func(*args, **kwargs)
+        end = time.time()
+        execution_time = (end - start) * 1000
+        print(f"Execution time of {func.__name__}: {execution_time} ms")
+        return result
+    return wrapper
 
 class OccupancyGridMap:
-    def __init__(self,resolution=0.01, width=500, height=500):
+    def __init__(self,resolution=0.03, width=1000, height=1000):
         # Map Parameters
         self.grid_width = width
         self.grid_height = height
@@ -86,12 +96,12 @@ class OccupancyGridMap:
                                     Quaternion(0, 0, 0, 1))
 
         #obstacles inflation
-        # inflation_size = 1         #half the cells track width of the rover 
-        # grid_image = np.array(self.grid_map, dtype=np.uint8)  
-        # kernel_size = (2 * inflation_size) + 1 
-        # kernel = np.ones((kernel_size, kernel_size), np.uint8)     
-        # grid_image = cv2.dilate(grid_image,kernel,iterations = 1)
-        # self.grid_map = np.array(grid_image, dtype=np.int8)
+        inflation_size = 0.2         #half the cells track width of the rover 
+        grid_image = np.array(self.grid_map, dtype=np.uint8)  
+        kernel_size = int (2 * inflation_size) + 1 
+        kernel = np.ones((kernel_size, kernel_size), np.uint8)     
+        grid_image = cv2.dilate(grid_image,kernel,iterations = 1)
+        self.grid_map = np.array(grid_image, dtype=np.int8)
         #convert grid map from 2D numpy array to a 1D list
         grid_msg.data = self.grid_map.flatten().tolist()
         self.grid_pub.publish(grid_msg)
