@@ -84,7 +84,7 @@ class Handler:
 
     def get_encoders(self, data_frame: bytes) -> Int8MultiArray:
         encoders_msg = Int8MultiArray()
-        encoders_msg = [rec_reading +
+        encoders_msg.data = [rec_reading +
                         self.encoders_map for rec_reading in data_frame]
         return encoders_msg
 
