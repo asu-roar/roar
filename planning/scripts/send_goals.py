@@ -2,12 +2,12 @@
 import rospy
 import numpy as np
 from gazebo_msgs.msg import ModelStates
-from std_msgs.msg import Float32MultiArray
 from geometry_msgs.msg import PoseStamped, Quaternion
 import time
 class GoalPublisher:
     def __init__(self):
-        self.goals = [(5.0, -5.0, 0),
+        self.goals = [(3.0, 0.0, 0),
+                    #   (5.0, 1.0, 0),
                       ]    
         self.goal_pub = rospy.Publisher('/goal', PoseStamped, queue_size=10)
         self.start_sub = rospy.Subscriber('/rover_pose', PoseStamped, self.pose_callback)
@@ -21,7 +21,9 @@ class GoalPublisher:
         if self.current_pose is not None:
             goal_position = self.goals[0]
             distance = np.sqrt( (self.current_pose.position.x - goal_position[0])**2 + 
-                                (self.current_pose.position.y - goal_position[1])**2)
+                                (self.current_pose.position.y - goal_position[1])**2+
+                                (self.current_pose.position.z - goal_position[2])**2)
+                                
             rospy.loginfo("distance {}".format(distance))
             if distance < 3.2:             #if the distance between the current position and the goal position is less than a threshold, then the goal is reached
                 return True
@@ -37,13 +39,13 @@ class GoalPublisher:
             self.first_time=False
             self.goals.pop(0)
         elif len(self.goals) > 0 and self.is_goal_reached():
-            time.sleep(1)
+            time.sleep(1)            
             print('goal')
             self.publish_goal(self.goals[0])
+            time.sleep(1)            
             self.goals.pop(0)
         else:
-            print('no goal')
-
+            # print('no goal')
             return 
         
     def publish_goal(self, goal):  
@@ -56,7 +58,6 @@ class GoalPublisher:
         self.goal_pub.publish(goal_msg)
         rospy.loginfo("Goal published")
         
-
 #------------------------------------------------------main--------------------------------------------------------
 
 if __name__ == '__main__':
