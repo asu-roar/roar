@@ -7,7 +7,7 @@ import time
 from nav_msgs.msg import OccupancyGrid, Path
 from geometry_msgs.msg import PoseStamped, Pose, Point, Quaternion
 from gazebo_msgs.msg import ModelStates
-from std_msgs.msg import Float32MultiArray
+
 def measure_execution_time(func):
     def wrapper(*args, **kwargs):
         start = time.time()
@@ -41,7 +41,7 @@ class AStarPlanner:
         self.path_pub = rospy.Publisher('/path', Path, queue_size=10)
 #-------------------------------------------------callbacks-------------------------------------------------------
     def odom_callback(self, odom:PoseStamped) -> Pose:
-        self.start = odom.pose 
+        self.start = odom.pose
         if self.goal is not None and self.grid_ready:
             self.plan_path()   
  
@@ -66,9 +66,9 @@ class AStarPlanner:
             x, y = current_cell                                                                 
             neighbors = [(x+i, y+j)             
                         for i in range(-1, 2) for j in range(-1, 2)    
-                        if not(i==0 and j==0)                                                   
-                        and (0<= x+i <=self.grid_width and 0<= y+j <=self.grid_height)     
-                        and not (self.grid_map[x + i, y + j] == 100)]                           
+                        if not(i==0 and j==0)
+                        and (np.in1d(x+i, np.arange(self.grid_width)) & np.in1d(y+j, np.arange(self.grid_height)))                                                   
+                        and not (self.grid_map[x + i , y + j] == 100)]                           
             return neighbors
         else:
             return []
@@ -78,12 +78,12 @@ class AStarPlanner:
         euclidean_distance = math.sqrt((end_cell[0] - start_cell[0])**2 + (end_cell[1] - start_cell[1])**2)
         angle = math.atan2(end_cell[1] - start_cell[1] ,end_cell[0] - start_cell[0])
         #obstacle_distance = min([self.distance_to_obstacle(start_cell, obstacle) for obstacle in obstacles])
-        cost_of_moving_forward = 0
-        cost_of_turning_left = 0
-        cost_of_turning_right = 0
+        cost_of_moving_forward = 3
+        cost_of_turning_left = 2
+        cost_of_turning_right = 2
 
         # heuristic_value = euclidean_distance * (1 + 0.2 * angle)  + cost_of_moving_forward + cost_of_turning_left * 0.1 + cost_of_turning_right * 0.1
-        heuristic_value = euclidean_distance + abs(angle)
+        heuristic_value = euclidean_distance + abs(angle) + cost_of_moving_forward + cost_of_turning_left * 0.1 + cost_of_turning_right * 0.1
         return heuristic_value
 
     def pose_to_cell(self, pose: Pose):
@@ -130,6 +130,7 @@ class AStarPlanner:
                     current_cell = came_from[current_cell]
                 path.reverse()                
                 self.goal_reached = True
+                time.sleep(1)
                 self.publish_path(path)                           
                 break
             closed.append(current_cell)                               
