@@ -31,7 +31,7 @@ class OccupancyGridMap:
         self.grid_map = np.zeros((width, height), dtype=np.int)
 
         self.occupancy_threshold = 0.1  # minimum occupancy probability required for a grid cell to be considered as an obstacle
-                                        # the lower value, the higher the sensitivity
+                                         # the lower value, the higher the sensitivity
 
         self.pc_sub = rospy.Subscriber("/roar/camera/depth/points", PointCloud2, self.pc_callback)
         self.grid_pub = rospy.Publisher("/occupancy_grid", OccupancyGrid, queue_size=10)
@@ -60,12 +60,12 @@ class OccupancyGridMap:
         z =  - (point_cloud[:, 1])
         # rospy.loginfo('z points: {}'.format(z))
 
-        # rover_height = 0.5 
-        # occupancy_threshold_z = rover_height + 0.6      #to filter out the points above rover's height before updating the occupancy grid
-        # valid_indices = np.where(z <= occupancy_threshold_z )[0]
-        # x = x[valid_indices]
-        # y = y[valid_indices]
-        # z = z[valid_indices]
+        rover_height = 0.5 
+        occupancy_threshold_z = rover_height + 0.6      #to filter out the points above rover's height before updating the occupancy grid
+        valid_indices = np.where(z <= occupancy_threshold_z )[0]
+        x = x[valid_indices]
+        y = y[valid_indices]
+        z = z[valid_indices]
 
         heights = np.zeros((self.grid_width, self.grid_height))
         for i in range (len(x)):
@@ -96,7 +96,7 @@ class OccupancyGridMap:
                                     Quaternion(0, 0, 0, 1))
 
         #obstacles inflation
-        inflation_size = 0.2         #half the cells track width of the rover 
+        inflation_size = 1         #half the cells track width of the rover 
         grid_image = np.array(self.grid_map, dtype=np.uint8)  
         kernel_size = int (2 * inflation_size) + 1 
         kernel = np.ones((kernel_size, kernel_size), np.uint8)     
@@ -104,6 +104,7 @@ class OccupancyGridMap:
         self.grid_map = np.array(grid_image, dtype=np.int8)
         #convert grid map from 2D numpy array to a 1D list
         grid_msg.data = self.grid_map.flatten().tolist()
+        time.sleep(2)
         self.grid_pub.publish(grid_msg)
         # rospy.loginfo('Grid: {}'.format(self.grid_map))
         # check if all the cells in the self.grid_map array is zero then print something
