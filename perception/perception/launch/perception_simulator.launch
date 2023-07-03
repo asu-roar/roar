@@ -5,9 +5,9 @@
 
   <!-- PERCEPTION -->
   <!-- perception node -->
-  <node name="perception_node" pkg="perception" type="perception.py" respawn="false" output="screen" />
+  <node name="perception_node" pkg="perception" type="perception.py" respawn="false" />
 
   <!-- VISUALIZATION NODE -->
-  <node name="perception_visualizer_node" pkg="perception" type="perception_visualizer.py" respawn="false" output="screen" />
+  <node name="perception_visualizer_node" pkg="perception" type="perception_visualizer.py" respawn="false" />
 
 </launch>
