@@ -29,8 +29,8 @@ struct Landmark
 
 std::vector<float> Vel_arr = {0, 0, 0, 0, 0, 0};
 std::vector<float> IMU_arr = {0, 0};                                                                                            // omega and theta absoulute respectively
-std::vector<float> CAM_arr = {11, 5, 9,
-                              10, 8, 5};                                                                                         // ID then the distance from the camera to each landmark
+std::vector<float> CAM_arr = {1, 0, 0,
+                              1, 0, 0};                                                                                         // ID then the distance from the camera to each landmark
 double delta_time = 0.00075;
 double delta_time_cam = 0.00075;
 
@@ -82,8 +82,9 @@ void IMU_Callback(const gazebo_msgs::ModelStates::ConstPtr& msg)                
 
 void CAM_Callback(const roar_msgs::LandmarkArray::ConstPtr& msg)                                                          // callback of landmarks captured by camera
 {
+  //ROS_INFO("I Heard Camera");
   std::vector<roar_msgs::Landmark> landmarks = msg->landmarks;
-  while (landmarks.size() > 3)
+  if (landmarks.size() > 0)
   {
     int i = 0;
     for (const auto& landmark : landmarks)
@@ -94,12 +95,17 @@ void CAM_Callback(const roar_msgs::LandmarkArray::ConstPtr& msg)                
           i = i + 3;
       }
   }
+  for (int element : CAM_arr)
+   {
+    // std::cout << element << " ";
+   }
 }
 
 
 
 void sigma_points(Eigen::Vector3d x, Eigen::Matrix3d X_cov, MatrixXd* Xsig_aug)
 {
+  ROS_INFO("Entered sigma points function");
   int size = 3;
   int size_aug = 5;
   double lambda = 3 - size_aug;
@@ -130,12 +136,13 @@ void sigma_points(Eigen::Vector3d x, Eigen::Matrix3d X_cov, MatrixXd* Xsig_aug)
 
 void Predict(std::vector<float> velocity, float omega, float delta_t, MatrixXd Xsig_aug, MatrixXd* prediction, MatrixXd* covariance, VectorXd* weights_out, MatrixXd* Xsig_predion)            // prediction function (where system model goes)
 {
- int size = 3;
- int size_aug = 5;
- double lambda = 3 - size_aug;
- MatrixXd Xsig_pred = MatrixXd(size, 2 * size_aug + 1);                  
- for (int i = 0; i< 2*size_aug+1; ++i)
-   {
+  ROS_INFO("I am in Prediction Function"); 
+  int size = 3;
+  int size_aug = 5;
+  double lambda = 3 - size_aug;
+  MatrixXd Xsig_pred = MatrixXd(size, 2 * size_aug + 1);                  
+  for (int i = 0; i< 2*size_aug+1; ++i)
+  {
     double p_x = Xsig_aug(0,i);
     double p_y = Xsig_aug(1,i);
     double yaw = Xsig_aug(2,i);
@@ -159,7 +166,7 @@ void Predict(std::vector<float> velocity, float omega, float delta_t, MatrixXd X
     Xsig_pred(0,i) = px_p;
     Xsig_pred(1,i) = py_p;
     Xsig_pred(2,i) = yaw_p;
-   }
+  }
 
   VectorXd weights = VectorXd(2*size_aug+1);  
   VectorXd x = VectorXd(size);
@@ -317,7 +324,7 @@ double getlandmarkpos(int searchID, MatrixXd list_landmark)
 
   else
   {
-      std::cout << "ID not found in the matrix.\n";
+ //     std::cout << "ID not found in the matrix.\n";
   }
 
   return searchID, x, y;
@@ -326,7 +333,22 @@ double getlandmarkpos(int searchID, MatrixXd list_landmark)
 double triangulate(Eigen::Vector3d position_prev, Landmark landmark1, Landmark landmark2, std::vector<float> CAM_array)
 {
   double error = 0;
-  double epsi = 12 * (M_PI/180);
+
+  if (landmark1.id == landmark2.id)
+  {
+    error = 1;
+    ROS_INFO("I see the same landmarks 2 times");
+    return 0, 0, 0, error;
+  }
+
+  if (landmark1.x == landmark2.x && landmark1.y == landmark2.y)
+  {
+    error = 1;
+    ROS_INFO("Both landmarks are exactly on the same position");
+    return 0, 0, 0, error;
+  }
+  
+  double epsi = 180 * (M_PI/180);
   double x1 = CAM_array[1];
   double x2 = CAM_array[4];
   double y1 = CAM_array[2];
@@ -336,12 +358,13 @@ double triangulate(Eigen::Vector3d position_prev, Landmark landmark1, Landmark l
   if (abs(theta - position_prev[2]) >= epsi)
   {
     error = 1;
+    ROS_INFO("invalid triangulation answer");
     return 0, 0, 0, error;
   }
 
   double estimatedX = (landmark2.x - landmark1.x + (y1 * (x1 - x2) - x1 * (y1 - y2)) * (landmark2.y - landmark1.y) / ((y1 - y2) * (landmark2.x - landmark1.x) + (x2 - x1) * (landmark2.y - landmark1.y))) / (y1 - y2);
   double estimatedY = (landmark2.y - landmark1.y + (x1 * (y1 - y2) - y1 * (x1 - x2)) * (landmark2.x - landmark1.x) / ((x1 - x2) * (landmark2.y - landmark1.y) + (y2 - y1) * (landmark2.x - landmark1.x))) / (x1 - x2);  
-
+  ROS_INFO("valid triangulation answer");
   return estimatedX, estimatedY, theta, error;
 }
 
@@ -390,7 +413,7 @@ void PredictCAM(VectorXd* z_pred_out, MatrixXd* Zsig_out, MatrixXd* S_out, Vecto
 int main(int argc, char *argv[])                                                                                                          // initialization of ros node and other variables
 {
   std::vector<float> IMU_arr_old = {0.0,0.0001};
-  std::vector<float> CAM_arr_old = {0, 0};
+  std::vector<float> CAM_arr_old = {1, 0, 0, 1, 0, 0};
   MatrixXd Xsig_aug;
   MatrixXd Xsig_pred = MatrixXd(3,11);
   Eigen::Vector3d position;
@@ -407,12 +430,14 @@ int main(int argc, char *argv[])                                                
   MatrixXd prediction;
   MatrixXd pred_cov;
   VectorXd weights;
+  VectorXd Z_cam(3);
+  double cam_x, cam_y, cam_theta, error;
   int size_z_IMU = 1;
   int size_z_CAM = 3;
   MatrixXd list_landmark = MatrixXd(3,14);
-  list_landmark << 1,   2,     3,     4,      5,     6,     7,     8,  9,     10,     11,     12,     13,     15,
-                   10, 10, 28.35, 21.83,  18.71, 26.95, 15.97, 17.87, 10,  29.26,  18.41,  23.34,   8.18,   2.27,
-                   0, -10, -0.04,  -2.8, -17.19, -7.44,  7.57, -7.57, 10, -14.52, -25.83, -14.11, -18.63, -16.84;
+  list_landmark <<   1,   2,    3,    4,      5,     6,     7,     8,    9,     10,     11,     12,     13,     15,
+                     7,   7,  3.0, -2.0,  10.00, 10.00,   3.0,  -5.0, -5.0,  29.26,   -2.0,  -10.0,  -10.0,   -3.0,
+                   2.5,-2.5, -0.0,  0.0,  10.00, -10.0,   8.0,   2.5, -2.5, -14.52,    0.0,   10.0,  -10.0,    8.0;
 
   ros::init(argc, argv, "localization");
   ros::NodeHandle nh;
@@ -430,13 +455,14 @@ int main(int argc, char *argv[])                                                
   std_msgs::Float32MultiArray coordinates;
   coordinates.data = {0.0, 0.0, 0.0};
   ros::Rate rate(100);
+  geometry_msgs::PoseStamped pose_msg;
   ROS_INFO("Node initialized succesfully");         
 
 
 while (ros::ok)
 {
   ros::spinOnce();
-  while (IMU_arr_old != IMU_arr)                                                                                                          
+/*  while (IMU_arr_old != IMU_arr)                                                                                                          
   {
     sigma_points(position, covariance, &Xsig_aug);
     Predict(Vel_arr, IMU_arr[0], delta_time, Xsig_aug, &prediction, &pred_cov, &weights, &Xsig_pred);
@@ -447,7 +473,6 @@ while (ros::ok)
     coordinates.data[2] = position[2]*(180/M_PI);
     pubb.publish(coordinates);
 
-    geometry_msgs::PoseStamped pose_msg;
     pose_msg.header.stamp = ros::Time::now();
     pose_msg.header.frame_id = "base_link";
     pose_msg.pose.position.x = position[0];
@@ -462,20 +487,26 @@ while (ros::ok)
 
     IMU_arr_old = IMU_arr;
   }
-/* 
+ */
+
   while (CAM_arr_old != CAM_arr)
   {
     Landmark landmark1, landmark2; 
     landmark1.id, landmark1.x, landmark1.y= getlandmarkpos(CAM_arr[0], list_landmark);
     landmark2.id ,landmark2.x, landmark2.y= getlandmarkpos(CAM_arr[3], list_landmark);
-    double cam_x, cam_y, cam_theta, error = triangulate(position, landmark1, landmark2, CAM_arr);
+    //ROS_INFO("I have gotten the landmarks and ready to traingulate them");
+    cam_x, cam_y, cam_theta, error = triangulate(position, landmark1, landmark2, CAM_arr);
+    //ROS_INFO("Triangulation complete");
 
     if (error == 1)
     {
       break;
     }
-    VectorXd Z_cam;
-    Z_cam << cam_x, cam_y, cam_theta;
+
+    ROS_INFO("valid output");
+    Z_cam[0] = cam_x;
+    Z_cam[1] = cam_y;
+    Z_cam[2] = cam_theta;
     sigma_points(position, covariance, &Xsig_aug);
     Predict(Vel_arr, IMU_arr[0], delta_time, Xsig_aug, &prediction, &pred_cov, &weights, &Xsig_pred);
     PredictCAM(&z_pred, &Zsig, &S, weights, Xsig_pred);
@@ -483,25 +514,22 @@ while (ros::ok)
     coordinates.data[0] = position[0];
     coordinates.data[1] = position[1];
     coordinates.data[2] = position[2]*(180/M_PI);
-    pub.publish(coordinates);
+    pubb.publish(coordinates);
 
-    geometry_msgs::TransformStamped transform_stamped;
-    transform_stamped.header.stamp = ros::Time::now();
-    transform_stamped.header.frame_id = "map"; 
-    transform_stamped.child_frame_id = "rover_pose"; 
-    transform_stamped.transform.translation.x = position[0];
-    transform_stamped.transform.translation.y = position[1];
+    pose_msg.header.stamp = ros::Time::now();
+    pose_msg.header.frame_id = "base_link";
+    pose_msg.pose.position.x = position[0];
+    pose_msg.pose.position.y = position[1];
     tf2::Quaternion quat;
     quat.setRPY(0, 0, position[2]);  
-    transform_stamped.transform.rotation.x = quat.x();
-    transform_stamped.transform.rotation.y = quat.y();
-    transform_stamped.transform.rotation.z = quat.z();
-    transform_stamped.transform.rotation.w = quat.w();
-    broadcaster.sendTransform(transform_stamped); 
-
+    pose_msg.pose.orientation.x = quat.x();
+    pose_msg.pose.orientation.y = quat.y();
+    pose_msg.pose.orientation.z = quat.z();
+    pose_msg.pose.orientation.w = quat.w();
+    pub.publish(pose_msg);
+    
     CAM_arr_old = CAM_arr;
   }
-*/
 }
  return 0;
 }

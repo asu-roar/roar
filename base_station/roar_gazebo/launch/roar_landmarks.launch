@@ -18,7 +18,5 @@
   <!-- Load control node -->
   <node name="controller_node" pkg="navigation" type="controller_global.py" output="screen"/>
   
-  <!-- Load localization node -->
-  <node name="localization" pkg="localization" type="localization"/>
 
 </launch>
