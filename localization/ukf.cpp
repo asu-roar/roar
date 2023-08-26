@@ -359,6 +359,9 @@ double triangulate(Eigen::Vector3d position_prev, Landmark landmark1, Landmark l
   {
     error = 1;
     ROS_INFO("invalid triangulation answer");
+    std::cout << theta << std::endl;
+    ROS_INFO("calculated difference is ");
+    std::cout << (abs(theta - position_prev[2])) << std::endl;
     return 0, 0, 0, error;
   }
 
